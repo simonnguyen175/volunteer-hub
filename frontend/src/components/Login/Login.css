@@ -1,0 +1,109 @@
+/* Overlay to darken the landing page */
+.overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
+	z-index: 999;
+}
+
+/* Modal styling */
+.modal {
+	position: fixed;
+	font-family: "Inter", system-ui, sans-serif;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	color: #111;
+	background: #ffffff;
+	background-color: white;
+	padding: 2rem 5rem;
+	max-width: 20vw;
+	border-radius: 10px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+	z-index: 1000;
+	text-align: center;
+
+	animation: fade-down 0.5s;
+}
+
+.login-title {
+	font-family: "Crimson Text", serif;
+	font-size: 5rem;
+	font-weight: 600;
+	margin: 2rem 0 1.2rem 0;
+}
+
+.login-subtitle {
+	margin-bottom: 3rem;
+	font-size: 1.25rem;
+	color: #444;
+	font-weight: 200;
+}
+
+.form {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	margin-top: 1rem;
+}
+
+label {
+	text-align: left;
+	font-size: 1.05rem;
+	margin-top: 1rem;
+}
+
+input {
+	border: none;
+	border-bottom: 1px solid #bbb;
+	padding: 0.6rem 0;
+	font-size: 1rem;
+	outline: none;
+}
+
+input:focus {
+	border-bottom-color: #333;
+}
+
+.password-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.forgot {
+	color: #666;
+	font-size: 0.95rem;
+	text-decoration: none;
+}
+
+.login-btn {
+	width: 100%;
+	height: 3rem;
+	margin-top: 2rem;
+	background: #747E59;
+	color: #fff;
+	border: none;
+	padding: 0.5rem;
+	border-radius: 16px;
+	font-size: 1.25rem;
+	cursor: pointer;
+}
+
+.login-btn:hover {
+	opacity: 0.9;
+}
+
+.signup {
+	margin-top: 1.5rem;
+	font-size: 1rem;
+	color: #747E59;
+}
+
+.signup a {
+	color: #2c3e1e;
+	text-decoration: underline;
+}

@@ -1,0 +1,110 @@
+@import url("https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&display=swap");
+
+h1 {
+	font-family: "Crimson Text", serif;
+	font-weight: 600;
+	font-size: 5rem;
+	margin: 1rem;
+
+	text-align: center;
+}
+
+.login-button {
+	position: absolute;
+	top: 1rem;
+	right: 2rem;
+	background-color: #556b2f;
+	color: white;
+	font-size: 1rem;
+	font-weight: 600;
+	padding: 1rem 2rem;
+	border: none;
+	border-radius: 50px;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+	z-index: 99;
+}
+
+.login-button:hover {
+	background-color: #8e9c78; /* Lighter olive on hover */
+}
+
+.arrow-icon {
+	transition: transform 0.3s ease;
+}
+
+.login-button:hover .arrow-icon {
+	transform: translateY(-5px);
+}
+
+header {
+	animation: fade-down 1.5s;
+}
+
+.image-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	position: relative;
+	height: 70vh;
+	width: 100%;
+	margin-top: 2rem;
+
+	animation: fade-up 1s;
+}
+
+.invisible-div {
+	height: 30%;
+	width: auto;
+	flex-shrink: 0;
+}
+
+.demo-img {
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	border-radius: 16px 16px 0px 0px;
+	transform: translateX(-50%);
+	height: 90%;
+	width: auto;
+
+	box-shadow: 0 0px 90px rgba(0, 0, 0, 0.2);
+	z-index: 10;
+}
+
+.green-background {
+	position: relative;
+	height: 80%;
+	width: 80vw;
+	margin: 0 auto;
+	background-color: #8e9c78; /* Light olive/sage green */
+	border-radius: 36px;
+	padding: 0rem 5rem;
+	padding-bottom: 0;
+}
+
+
+
+@keyframes fade-up {
+	0% {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes fade-down {
+	0% {
+		opacity: 0;
+		transform: translate(-50%, -50%) scale(0.9);
+	}
+
+	100% {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(1);
+	}
+}
