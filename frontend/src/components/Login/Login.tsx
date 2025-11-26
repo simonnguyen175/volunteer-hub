@@ -30,6 +30,7 @@ export default function Login({ setLoginOpen }: Props) {
 
 				<p className="signup">
 					Don't have an account?
+					&nbsp;
 					<Link to="/signup">Sign up</Link>
 				</p>
 

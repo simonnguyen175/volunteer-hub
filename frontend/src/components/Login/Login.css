@@ -104,6 +104,6 @@ input:focus {
 }
 
 .signup a {
-	color: #2c3e1e;
+	color: inherit;
 	text-decoration: underline;
 }
