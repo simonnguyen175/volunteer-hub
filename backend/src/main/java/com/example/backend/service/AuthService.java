@@ -29,10 +29,6 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-
-    // ------------------------
-    // REGISTER
-    // ------------------------
     public ApiResponse register(RegisterRequest request) {
 
         if (userRepository.existsByUsername(request.getUsername())) {
@@ -63,12 +59,7 @@ public class AuthService {
         );
     }
 
-
-    // ------------------------
-    // LOGIN (phân biệt chi tiết)
-    // ------------------------
     public ApiResponse login(LoginRequest request) {
-
         // 1) Check username tồn tại
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() ->

@@ -1,7 +1,8 @@
 package com.example.backend.config;
 
-import com.example.backend.security.CustomAuthenticationEntryPoint;
-import com.example.backend.security.CustomUserDetailsService;
+import com.example.backend.security.AccessDeniedHandlerImpl;
+import com.example.backend.security.AuthenticationEntryPointImpl;
+import com.example.backend.security.UserDetailsServiceImpl;
 import com.example.backend.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +24,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
   private final JwtAuthenticationFilter jwtAuthFilter;
-  private final CustomUserDetailsService userDetailsService;
+  private final UserDetailsServiceImpl userDetailsService;
+  private final AuthenticationEntryPointImpl authenticationEntryPoint;
+  private final AccessDeniedHandlerImpl accessDeniedHandler;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -31,6 +34,10 @@ public class SecurityConfig {
     http.csrf(csrf -> csrf.disable())
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .exceptionHandling(
+            ex ->
+                ex.authenticationEntryPoint(authenticationEntryPoint)
+                    .accessDeniedHandler(accessDeniedHandler))
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers("/auth/**")
