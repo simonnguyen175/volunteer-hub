@@ -1,5 +1,6 @@
 import mainImg from "../assets/hands-unite.avif";
-
+import logo from "../assets/VolunteerHub.png";
+import { IconArrowUpRight } from "@tabler/icons-react";
 import { useState } from "react";
 import Login from "./Login";
 import Header from "./Header";
@@ -9,7 +10,7 @@ export default function LandingPage() {
 
 	return (
 		<>
-			<Header/>
+			<Header />
 
 			<h1 className="relative font-(family-name:--font-crimson) font-medium top-10 text-[5rem] text-center m-4">
 				Let's help others together.
@@ -33,8 +34,6 @@ export default function LandingPage() {
 				></img>
 			</div>
 			<hr></hr>
-
-			{isLoginOpen && <Login setLoginOpen={setLoginOpen} />}
 		</>
 	);
 }
