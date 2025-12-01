@@ -36,7 +36,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        // Không có header → cho qua, để các rule khác xử lý
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -44,7 +43,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String token = authHeader.substring(7);
 
-        // Token không hợp lệ → trả 401 JSON
         if (!jwtService.isTokenValid(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -57,10 +55,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Token hợp lệ → lấy username
         String username = jwtService.extractUsername(token);
 
-        // Nếu chưa có Authentication trong context → set vào
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
@@ -75,7 +71,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authToken);
         }
 
-        // Cho qua filter tiếp theo
         filterChain.doFilter(request, response);
     }
 }
+

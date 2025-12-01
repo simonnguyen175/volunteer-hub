@@ -42,12 +42,6 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers("/auth/**")
                     .permitAll()
-                    .requestMatchers("/admin/**")
-                    .hasRole("ADMIN")
-                    .requestMatchers("/host/**")
-                    .hasRole("HOST")
-                    .requestMatchers("/user/**")
-                    .hasRole("USER")
                     .anyRequest()
                     .authenticated())
         .authenticationProvider(authenticationProvider())

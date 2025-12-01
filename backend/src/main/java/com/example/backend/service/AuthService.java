@@ -60,25 +60,27 @@ public class AuthService {
     }
 
     public ApiResponse login(LoginRequest request) {
-        // 1) Check username tồn tại
-        User user = userRepository.findByUsername(request.getUsername())
+        User user = userRepository.findByEmail(request.getUsername())
+                .orElse(null);
+        if (user == null) {
+            user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() ->
-                        new AppException("Username doesn't exist", HttpStatus.NOT_FOUND)
+                        new AppException("User doesn't exist", HttpStatus.NOT_FOUND)
                 );
+        }
 
-        // 2) Check password bằng AuthenticationManager
+
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.getUsername(),
+                            user.getUsername(),
                             request.getPassword()
                     )
             );
         } catch (BadCredentialsException ex) {
-            throw new AppException("Invalid username or password", HttpStatus.UNAUTHORIZED);
+            throw new AppException("Invalid password", HttpStatus.UNAUTHORIZED);
         }
 
-        // 3) Nếu đúng → generate token
         String token = jwtService.generateToken(user.getUsername());
 
         AuthResponse authResponse = new AuthResponse(
