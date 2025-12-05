@@ -41,57 +41,50 @@ public class AuthService {
 
         RoleName roleName = request.getRole() == null ? RoleName.USER : request.getRole();
 
-        Role role = roleRepository.findByName(roleName)
-                .orElseThrow(() -> new AppException("Role not found", HttpStatus.BAD_REQUEST));
+        Role role =
+                roleRepository
+                        .findByName(roleName)
+                        .orElseThrow(
+                                () -> new AppException("Role not found", HttpStatus.BAD_REQUEST));
 
-        User user = User.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(role)
-                .build();
+        User user =
+                User.builder()
+                        .username(request.getUsername())
+                        .email(request.getEmail())
+                        .password(passwordEncoder.encode(request.getPassword()))
+                        .role(role)
+                        .build();
 
         userRepository.save(user);
 
-        return new ApiResponse(
-                "User registered successfully",
-                null
-        );
+        return new ApiResponse("User registered successfully", null);
     }
 
     public ApiResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getUsername())
-                .orElse(null);
+        User user = userRepository.findByEmail(request.getUsername()).orElse(null);
         if (user == null) {
-            user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() ->
-                        new AppException("User doesn't exist", HttpStatus.NOT_FOUND)
-                );
+            user =
+                    userRepository
+                            .findByUsername(request.getUsername())
+                            .orElseThrow(
+                                    () ->
+                                            new AppException(
+                                                    "User doesn't exist", HttpStatus.NOT_FOUND));
         }
-
 
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            user.getUsername(),
-                            request.getPassword()
-                    )
-            );
+                            user.getUsername(), request.getPassword()));
         } catch (BadCredentialsException ex) {
             throw new AppException("Invalid password", HttpStatus.UNAUTHORIZED);
         }
 
         String token = jwtService.generateToken(user.getUsername());
 
-        AuthResponse authResponse = new AuthResponse(
-                token,
-                user.getUsername(),
-                user.getRole().getName().name()
-        );
+        AuthResponse authResponse =
+                new AuthResponse(token, user.getUsername(), user.getRole().getName().name());
 
-        return new ApiResponse(
-                "Login successful",
-                authResponse
-        );
+        return new ApiResponse("Login successful", authResponse);
     }
 }

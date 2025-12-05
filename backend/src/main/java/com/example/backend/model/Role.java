@@ -12,11 +12,11 @@ import lombok.*;
 @Builder
 public class Role {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  @Enumerated(EnumType.STRING)
-  @Column(unique = true, nullable = false, length = 20)
-  private RoleName name;
+    @Enumerated(EnumType.STRING)
+    @Column(unique = true, nullable = false, length = 20)
+    private RoleName name;
 }

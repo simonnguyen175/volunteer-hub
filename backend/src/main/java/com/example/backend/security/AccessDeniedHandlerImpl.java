@@ -18,14 +18,15 @@ public class AccessDeniedHandlerImpl implements AccessDeniedHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public void handle(HttpServletRequest request,
-                       HttpServletResponse response,
-                       AccessDeniedException accessDeniedException) throws IOException {
+    public void handle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            AccessDeniedException accessDeniedException)
+            throws IOException {
 
-        ApiResponse body = new ApiResponse(
-                "Access denied: you do not have permission to access this resource",
-                null
-        );
+        ApiResponse body =
+                new ApiResponse(
+                        "Access denied: you do not have permission to access this resource", null);
 
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

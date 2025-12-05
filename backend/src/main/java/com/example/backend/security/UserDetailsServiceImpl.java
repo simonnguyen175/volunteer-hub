@@ -10,21 +10,22 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-  private final UserRepository userRepository;
+    private final UserRepository userRepository;
 
-  @Override
-  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-    User user =
-        userRepository
-            .findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        User user =
+                userRepository
+                        .findByUsername(username)
+                        .orElseThrow(
+                                () -> new UsernameNotFoundException("User not found: " + username));
 
-    String roleName = "ROLE_" + user.getRole().getName().name(); // ROLE_USER etc
+        String roleName = "ROLE_" + user.getRole().getName().name(); // ROLE_USER etc
 
-    return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
-        .password(user.getPassword())
-        .authorities(roleName)
-        .build();
-  }
+        return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
+                .password(user.getPassword())
+                .authorities(roleName)
+                .build();
+    }
 }
