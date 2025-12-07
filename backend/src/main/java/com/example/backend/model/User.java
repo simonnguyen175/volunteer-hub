@@ -24,8 +24,9 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    // Exactly one role
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
+
+    private boolean isLocked = false;
 }
