@@ -1,6 +1,7 @@
 // File: src/main/java/com/example/backend/model/Event.java
 package com.example.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,14 +19,18 @@ import java.time.LocalDateTime;
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "manager_id", referencedColumnName = "id")
+    @JsonIgnore
     private User manager;
 
     @Column(name = "type", nullable = false)
     private String type;
+
+    @Column(name = "title", nullable = false)
+    private String title;
 
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;

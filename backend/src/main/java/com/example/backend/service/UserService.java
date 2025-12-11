@@ -20,7 +20,7 @@ public class UserService {
     }
 
     public List<User> getUserByName(String name) {
-        return userRepository.findByNameContaining(name);
+        return userRepository.findByUsernameContaining(name);
     }
 
     public User updateUser(Long id, Role role) {

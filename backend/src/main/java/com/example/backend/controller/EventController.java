@@ -1,13 +1,12 @@
 package com.example.backend.controller;
 
-import com.example.backend.model.Event;
+import com.example.backend.dto.ApiResponse;
+import com.example.backend.dto.EventCreateRequest;
+import com.example.backend.dto.EventUpdateRequest;
 import com.example.backend.service.EventService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/event")
@@ -19,32 +18,32 @@ public class EventController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Event>> getAllEvents() {
-        List<Event> events = eventService.getAllEvents();
-        return ResponseEntity.ok(events);
+    public ResponseEntity<ApiResponse> getAllEvents() {
+        ApiResponse response = eventService.getAllEvents();
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Event> createEvent(@RequestBody Event event) {
-        Event saved = eventService.createEvent(event);
-        return ResponseEntity.ok(saved);
+    public ResponseEntity<ApiResponse> createEvent(@RequestBody EventCreateRequest request) {
+        ApiResponse response = eventService.createEvent(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Event> updateEvent(@PathVariable Long id, @RequestBody Event event) {
-        Event updated = eventService.createEvent(event);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<ApiResponse> updateEvent(@PathVariable Long id, @RequestBody EventUpdateRequest request) {
+        ApiResponse response = eventService.updateEvent(id, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<Event> partialUpdate(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
-        Event patched = eventService.partialUpdate(id, updates);
-        return ResponseEntity.ok(patched);
+    @PatchMapping("/{id}/accept")
+    public ResponseEntity<ApiResponse> acceptEvent(@PathVariable Long id) {
+        ApiResponse response = eventService.acceptEvent(id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
-        eventService.deleteEvent(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse> deleteEvent(@PathVariable Long id) {
+        ApiResponse response = eventService.deleteEvent(id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

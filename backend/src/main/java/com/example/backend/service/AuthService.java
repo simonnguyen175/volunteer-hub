@@ -55,9 +55,9 @@ public class AuthService {
                         .role(role)
                         .build();
 
-        userRepository.save(user);
+        User saved = userRepository.save(user);
 
-        return new ApiResponse("User registered successfully", null);
+        return new ApiResponse("User registered successfully", saved);
     }
 
     public ApiResponse login(LoginRequest request) {
@@ -83,7 +83,7 @@ public class AuthService {
         String token = jwtService.generateToken(user.getUsername());
 
         AuthResponse authResponse =
-                new AuthResponse(token, user.getUsername(), user.getRole().getName().name());
+                new AuthResponse(token, user);
 
         return new ApiResponse("Login successful", authResponse);
     }
