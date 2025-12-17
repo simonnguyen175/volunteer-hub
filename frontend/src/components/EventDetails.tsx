@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router";
 import { IconArrowLeft, IconUsers, IconCalendar, IconClock } from "@tabler/icons-react";
-import Header from "./Header";
+
 
 const exampleEventsList = [
 	{
@@ -126,7 +126,6 @@ export default function EventDetails() {
 	if (!event) {
 		return (
 			<div className="min-h-screen bg-gray-50">
-				<Header />
 				<div className="max-w-4xl mx-auto px-4 py-20 text-center">
 					<h1 className="text-4xl font-bold mb-4">Event Not Found</h1>
 					<Link
@@ -146,7 +145,6 @@ export default function EventDetails() {
 
 	return (
 		<div className="min-h-screen bg-white">
-			<Header />
 
 			{/* Hero Section with Event Image and Title */}
 			<section className="relative w-full h-[50vh] md:h-[60vh] overflow-hidden">

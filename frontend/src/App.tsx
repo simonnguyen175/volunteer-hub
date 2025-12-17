@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router";
 import LandingPage from "./components/LandingPage";
-import NavBar from "./components/NavBar";
+import Header from "./components/Header";
 import Events from "./components/Events";
 import EventDetails from "./components/EventDetails";
 import NewsFeed from "./components/NewsFeed";
@@ -10,7 +10,7 @@ function App() {
 	return (
 		<AuthProvider>
 			<BrowserRouter>
-				<NavBar />
+				<Header />
 				<Routes>
 					<Route index element={<LandingPage />} />
 					<Route path="/events" element={<Events />} />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Header from "./Header";
+
 import {
 	IconHeart,
 	IconMessageCircle,
@@ -120,7 +120,6 @@ export default function NewsFeed() {
 
 	return (
 		<div className="min-h-screen bg-gray-50">
-			<Header />
 
 			<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				<h1 className="relative font-(family-name:--font-crimson) font-medium top-10 mb-10 text-[5rem] text-center m-4">

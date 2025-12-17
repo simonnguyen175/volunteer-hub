@@ -1,7 +1,7 @@
 import mainImg from "../assets/hands-unite.avif";
 import { IconArrowUpRight, IconHeart, IconUsers, IconCalendar } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
-import Header from "./Header";
+
 import { Link } from "react-router";
 import useEmblaCarousel from "embla-carousel-react";
 import {
@@ -99,7 +99,6 @@ export default function LandingPage() {
 
 	return (
 		<div className="min-h-screen bg-white">
-			<Header />
 
 			{/* Hero Section - Netflix style with text overlay on image */}
 			<section className="relative w-full h-[90vh] overflow-hidden">

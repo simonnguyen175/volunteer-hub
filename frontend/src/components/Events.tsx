@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import Header from "./Header";
+
 import { IconSearch, IconGridDots, IconList } from "@tabler/icons-react";
 
 import {
@@ -137,7 +137,6 @@ export default function Events() {
 
 	return (
 		<div className="min-h-screen bg-gray-50">
-			<Header />
 
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				<h1 className="relative font-(family-name:--font-crimson) font-medium top-10 mb-10 text-[5rem] text-center m-4">
