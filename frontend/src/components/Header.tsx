@@ -1,6 +1,6 @@
 import { IconArrowUpRight, IconBell, IconMenu2, IconX } from "@tabler/icons-react";
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router";
+import { NavLink, useSearchParams } from "react-router";
 
 import logo from "../assets/VolunteerHub.png";
 import Login from "./Login";
@@ -11,6 +11,7 @@ export default function Header() {
 	const [isScrolled, setIsScrolled] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 	const auth = useAuth();
+	const [searchParams, setSearchParams] = useSearchParams();
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -18,8 +19,20 @@ export default function Header() {
 		};
 
 		window.addEventListener("scroll", handleScroll);
+		
+		// Check for login query param
+		if (searchParams.get("login") === "true") {
+			setLoginOpen(true);
+			// Optional: Remove the query param to clean up URL
+			setSearchParams((prev) => {
+				const newParams = new URLSearchParams(prev);
+				newParams.delete("login");
+				return newParams;
+			}, { replace: true });
+		}
+
 		return () => window.removeEventListener("scroll", handleScroll);
-	}, []);
+	}, [searchParams, setSearchParams]);
 	
 	const navLinks = [
 		{ name: "Home", path: "/" },

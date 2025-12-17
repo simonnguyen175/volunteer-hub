@@ -75,7 +75,11 @@ export default function Login({ setLoginOpen }: Props) {
 
 				<p className="text-base text-[#747E59] mt-6">
 					Don't have an account? &nbsp;
-					<Link to="/signup" className="text-inherit underline">
+					<Link 
+						to="/register" 
+						className="text-inherit underline"
+						onClick={() => setLoginOpen(false)}
+					>
 						Sign up
 					</Link>
 				</p>

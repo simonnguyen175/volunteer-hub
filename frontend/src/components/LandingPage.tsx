@@ -1,4 +1,4 @@
-import mainImg from "../assets/hands-unite.avif";
+import mainImg from "../assets/hands-unite.jpg";
 import { IconArrowUpRight, IconHeart, IconUsers, IconCalendar } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -11,6 +11,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+
+const role = "user";
 
 const exampleEventsList = [
 	{
