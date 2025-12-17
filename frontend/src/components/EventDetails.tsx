@@ -1,5 +1,8 @@
 import { useParams, Link } from "react-router";
+import { useState } from "react";
 import { IconArrowLeft, IconUsers, IconCalendar, IconClock } from "@tabler/icons-react";
+import EventDescription from "./EventDescription";
+import EventDiscussion from "./EventDiscussion";
 
 
 const exampleEventsList = [
@@ -122,6 +125,7 @@ const exampleEventsList = [
 export default function EventDetails() {
 	const { eventId } = useParams();
 	const event = exampleEventsList.find((e) => e.id === eventId);
+	const [activeTab, setActiveTab] = useState<"details" | "discussion">("details");
 
 	if (!event) {
 		return (
@@ -193,39 +197,43 @@ export default function EventDetails() {
 			{/* Content Section */}
 			<section className="max-w-7xl mx-auto px-4 md:px-8 py-12">
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-					{/* Main Content - Description */}
-					<div className="lg:col-span-2 space-y-8">
-						<div>
-							<h2 className="font-(family-name:--font-crimson) text-3xl font-semibold mb-4 text-gray-900">
-								About This Event
-							</h2>
-							<p className="text-lg text-gray-700 leading-relaxed">
-								{event.description}
-							</p>
+					{/* Main Content - Tabs */}
+					<div className="lg:col-span-2 space-y-6">
+						{/* Tab Navigation */}
+						<div className="flex gap-4 border-b border-gray-200">
+							<button
+								onClick={() => setActiveTab("details")}
+								className={`pb-3 px-4 font-semibold transition-colors relative ${
+									activeTab === "details"
+										? "text-[#556b2f] border-b-2 border-[#556b2f]"
+										: "text-gray-500 hover:text-gray-700"
+								}`}
+							>
+								Details
+							</button>
+							<button
+								onClick={() => setActiveTab("discussion")}
+								className={`pb-3 px-4 font-semibold transition-colors relative ${
+									activeTab === "discussion"
+										? "text-[#556b2f] border-b-2 border-[#556b2f]"
+										: "text-gray-500 hover:text-gray-700"
+								}`}
+							>
+								Discussion
+							</button>
 						</div>
 
-						<div>
-							<h3 className="font-(family-name:--font-crimson) text-2xl font-semibold mb-3 text-gray-900">
-								What to Bring / Requirements
-							</h3>
-							<ul className="space-y-2">
-								{event.requirements.map((req, index) => (
-									<li
-										key={index}
-										className="flex items-start gap-3 text-gray-700"
-									>
-										<span className="text-[#556b2f] mt-1">•</span>
-										<span>{req}</span>
-									</li>
-								))}
-							</ul>
-						</div>
-
-						<div className="bg-gray-50 p-6 rounded-xl">
-							<h3 className="font-semibold text-lg mb-2 text-gray-900">
-								Organized by
-							</h3>
-							<p className="text-gray-700">{event.organizer}</p>
+						{/* Tab Content */}
+						<div className="py-4">
+							{activeTab === "details" ? (
+								<EventDescription
+									description={event.description}
+									requirements={event.requirements}
+									organizer={event.organizer}
+								/>
+							) : (
+								<EventDiscussion eventId={event.id} />
+							)}
 						</div>
 					</div>
 
@@ -276,9 +284,6 @@ export default function EventDetails() {
 							<div className="space-y-3">
 								<button className="w-full bg-[#556b2f] text-white text-lg font-semibold py-4 rounded-xl hover:bg-[#6d8c3a] transition-colors shadow-lg">
 									Join Event
-								</button>
-								<button className="w-full bg-white text-[#556b2f] text-lg font-semibold py-4 rounded-xl border-2 border-[#556b2f] hover:bg-gray-50 transition-colors">
-									Discuss
 								</button>
 							</div>
 
