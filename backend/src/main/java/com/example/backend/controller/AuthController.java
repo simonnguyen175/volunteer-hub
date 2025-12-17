@@ -26,5 +26,4 @@ public class AuthController {
         ApiResponse response = authService.login(request);
         return ResponseEntity.ok(response);
     }
-
 }

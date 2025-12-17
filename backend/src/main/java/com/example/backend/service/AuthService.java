@@ -29,10 +29,6 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-
-    // ------------------------
-    // REGISTER
-    // ------------------------
     public ApiResponse register(RegisterRequest request) {
 
         if (userRepository.existsByUsername(request.getUsername())) {
@@ -45,60 +41,50 @@ public class AuthService {
 
         RoleName roleName = request.getRole() == null ? RoleName.USER : request.getRole();
 
-        Role role = roleRepository.findByName(roleName)
-                .orElseThrow(() -> new AppException("Role not found", HttpStatus.BAD_REQUEST));
+        Role role =
+                roleRepository
+                        .findByName(roleName)
+                        .orElseThrow(
+                                () -> new AppException("Role not found", HttpStatus.BAD_REQUEST));
 
-        User user = User.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(role)
-                .build();
+        User user =
+                User.builder()
+                        .username(request.getUsername())
+                        .email(request.getEmail())
+                        .password(passwordEncoder.encode(request.getPassword()))
+                        .role(role)
+                        .build();
 
-        userRepository.save(user);
+        User saved = userRepository.save(user);
 
-        return new ApiResponse(
-                "User registered successfully",
-                null
-        );
+        return new ApiResponse("User registered successfully", saved);
     }
 
-
-    // ------------------------
-    // LOGIN (phân biệt chi tiết)
-    // ------------------------
     public ApiResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getUsername()).orElse(null);
+        if (user == null) {
+            user =
+                    userRepository
+                            .findByUsername(request.getUsername())
+                            .orElseThrow(
+                                    () ->
+                                            new AppException(
+                                                    "User doesn't exist", HttpStatus.NOT_FOUND));
+        }
 
-        // 1) Check username tồn tại
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() ->
-                        new AppException("Username doesn't exist", HttpStatus.NOT_FOUND)
-                );
-
-        // 2) Check password bằng AuthenticationManager
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.getUsername(),
-                            request.getPassword()
-                    )
-            );
+                            user.getUsername(), request.getPassword()));
         } catch (BadCredentialsException ex) {
-            throw new AppException("Invalid username or password", HttpStatus.UNAUTHORIZED);
+            throw new AppException("Invalid password", HttpStatus.UNAUTHORIZED);
         }
 
-        // 3) Nếu đúng → generate token
         String token = jwtService.generateToken(user.getUsername());
 
-        AuthResponse authResponse = new AuthResponse(
-                token,
-                user.getUsername(),
-                user.getRole().getName().name()
-        );
+        AuthResponse authResponse =
+                new AuthResponse(token, user);
 
-        return new ApiResponse(
-                "Login successful",
-                authResponse
-        );
+        return new ApiResponse("Login successful", authResponse);
     }
 }
