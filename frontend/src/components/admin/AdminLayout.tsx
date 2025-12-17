@@ -34,8 +34,7 @@ export default function AdminLayout() {
 					{/* Sidebar Header */}
 					<div className="flex items-center justify-center h-20 border-b border-gray-100">
 						<Link to="/" className="flex items-center gap-2">
-							<img src={logo} alt="Logo" className="h-10 w-auto" />
-							{isSidebarOpen && <span className="font-bold text-xl text-[#556b2f] hidden lg:block">VolunteerHub</span>}
+							<img src={logo} alt="Logo" className="h-16 w-auto object-contain" />
 						</Link>
 					</div>
 
@@ -77,7 +76,7 @@ export default function AdminLayout() {
 						>
 							<IconLogout size={20} />
 							<span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? "opacity-100" : "opacity-0 lg:hidden"}`}>
-								Logout
+								Log out
 							</span>
 						</button>
 					</div>
