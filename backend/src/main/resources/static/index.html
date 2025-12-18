@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Push Notification</title>
+</head>
+<body>
+<div class="container">
+    <h1>Test Push Notification</h1>
+
+    <div class="form-group">
+        <label for="userId">User ID:</label>
+        <input type="number" id="userId" value="1" />
+    </div>
+
+    <div class="form-group">
+        <label for="jwtToken">JWT Token:</label>
+        <input type="text" id="jwtToken" value="eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzaW1vbiIsImlhdCI6MTc2NjA0MDYzMiwiZXhwIjoxNzY2MTI3MDMyfQ.9865qYohe4AvHqBbY503JqD7YaORk_JY9EeQoeRzC_-XtHzrzDhu_IgDZG1gFiFrpsCEDsNTF7UoUXf11OCKiQ" />
+    </div>
+
+    <div class="button-group">
+        <button onclick="subscribeUser()">Đăng Ký Push</button>
+        <button onclick="testSendNotification()">Test Gửi</button>
+        <button onclick="loadNotifications()">Reload Notifications</button>
+    </div>
+
+    <div id="status"></div>
+
+    <div class="notifications-section">
+        <h3>Danh sách thông báo <span id="unread-count"></span></h3>
+        <div id="notifications-list">
+            <div class="no-notifications">Reload Notifications</div>
+        </div>
+    </div>
+</div>
+
+<script src="push-notifications.js"></script>
+</body>
+</html>
