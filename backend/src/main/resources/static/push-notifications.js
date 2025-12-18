@@ -65,7 +65,7 @@ async function sendSubscriptionToServer(subscription) {
         p256dh: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('p256dh')))),
         auth: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('auth'))))
     };
-
+    console.log('Sending subscription to server:', subscriptionObject);
     const response = await fetch(`${API_BASE_URL}/notifications/subscribe/${userId}`, {
         method: 'POST',
         headers: {
@@ -135,6 +135,7 @@ async function loadNotifications() {
         const token = getJWTToken();
         const userId = getUserId();
 
+        console.log('Loading notifications for userId:', userId);
         const response = await fetch(`${API_BASE_URL}/notifications/${userId}`, {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
