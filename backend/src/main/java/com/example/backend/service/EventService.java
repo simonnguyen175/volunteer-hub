@@ -1,6 +1,5 @@
 package com.example.backend.service;
 
-import com.example.backend.dto.ApiResponse;
 import com.example.backend.dto.EventCreateRequest;
 import com.example.backend.dto.EventUpdateRequest;
 import com.example.backend.model.Event;
@@ -12,18 +11,36 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class EventService {
     @Autowired private EventRepository eventRepository;
     @Autowired private UserRepository userRepository;
 
-    public ApiResponse getAllEvents() {
-        List<Event> events = eventRepository.findAll();
-        return new ApiResponse("Events retrieved successfully", events);
+    public List<Event> getAllEvents() {
+        return eventRepository.findByStatus(EventStatus.ACCEPTED);
     }
 
-    public ApiResponse createEvent(EventCreateRequest request) {
+    public List<Event> getEventsByName(String name) {
+        String lower = name == null ? "" : name.toLowerCase();
+        return eventRepository.findAll().stream()
+                .filter(e -> e.getTitle() != null && e.getTitle().toLowerCase().contains(lower))
+                .collect(Collectors.toList());
+    }
+
+    public List<Event> getEventsByType(String type) {
+        return eventRepository.findByType(type);
+    }
+
+    public List<Event> getEventsByNameAndType(String name, String type) {
+        String lower = name == null ? "" : name.toLowerCase();
+        return eventRepository.findByType(type).stream()
+                .filter(e -> e.getTitle() != null && e.getTitle().toLowerCase().contains(lower))
+                .collect(Collectors.toList());
+    }
+
+    public Event createEvent(EventCreateRequest request) {
         User manager =
                 userRepository
                         .findById(request.getManagerId())
@@ -37,11 +54,10 @@ public class EventService {
         event.setEndTime(request.getEndTime());
         event.setLocation(request.getLocation());
         event.setDescription(request.getDescription());
-        Event saved = eventRepository.save(event);
-        return new ApiResponse("Event created successfully", saved);
+        return eventRepository.save(event);
     }
 
-    public ApiResponse updateEvent(Long id, EventUpdateRequest request) {
+    public Event updateEvent(Long id, EventUpdateRequest request) {
         Event existingEvent =
                 eventRepository
                         .findById(id)
@@ -55,11 +71,10 @@ public class EventService {
         existingEvent.setEndTime(request.getEndTime());
         existingEvent.setLocation(request.getLocation());
 
-        Event saved = eventRepository.save(existingEvent);
-        return new ApiResponse("Event updated successfully", saved);
+        return eventRepository.save(existingEvent);
     }
 
-    public ApiResponse acceptEvent(Long id) {
+    public Event acceptEvent(Long id) {
         Event existingEvent =
                 eventRepository
                         .findById(id)
@@ -70,15 +85,18 @@ public class EventService {
 
         existingEvent.setStatus(EventStatus.ACCEPTED);
 
-        Event saved = eventRepository.save(existingEvent);
-        return new ApiResponse("Event accepted successfully", saved);
+        return eventRepository.save(existingEvent);
     }
 
-    public ApiResponse deleteEvent(Long id) {
+    public void deleteEvent(Long id) {
         if (!eventRepository.existsById(id)) {
             throw new IllegalArgumentException("Event with id " + id + " not found");
         }
         eventRepository.deleteById(id);
-        return new ApiResponse("Event deleted successfully", null);
+    }
+
+    public Event getEventById(Long eventId) {
+        return eventRepository.findById(eventId)
+                .orElseThrow(() -> new IllegalArgumentException("Event with id " + eventId + " not found"));
     }
 }

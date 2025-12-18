@@ -19,31 +19,61 @@ public class EventController {
 
     @GetMapping
     public ResponseEntity<ApiResponse> getAllEvents() {
-        ApiResponse response = eventService.getAllEvents();
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        ApiResponse response =
+                new ApiResponse("Events retrieved successfully", eventService.getAllEvents());
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/search/")
+    public ResponseEntity<ApiResponse> getEvents(
+            @RequestParam(value = "q", required = false) String q,
+            @RequestParam(value = "type", required = false) String type) {
+
+        Object result;
+        boolean hasQ = q != null && !q.isBlank();
+        boolean hasType = type != null && !type.isBlank();
+
+        if (hasQ && hasType) {
+            result = eventService.getEventsByNameAndType(q, type);
+        } else if (hasQ) {
+            result = eventService.getEventsByName(q);
+        } else if (hasType) {
+            result = eventService.getEventsByType(type);
+        } else {
+            result = eventService.getAllEvents();
+        }
+
+        ApiResponse response = new ApiResponse("Events retrieved successfully", result);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping("/create")
     public ResponseEntity<ApiResponse> createEvent(@RequestBody EventCreateRequest request) {
-        ApiResponse response = eventService.createEvent(request);
+        ApiResponse response =
+                new ApiResponse("Event created successfully", eventService.createEvent(request));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse> updateEvent(@PathVariable Long id, @RequestBody EventUpdateRequest request) {
-        ApiResponse response = eventService.updateEvent(id, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<ApiResponse> updateEvent(
+            @PathVariable Long id, @RequestBody EventUpdateRequest request) {
+        ApiResponse response =
+                new ApiResponse(
+                        "Event updated successfully", eventService.updateEvent(id, request));
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PatchMapping("/{id}/accept")
     public ResponseEntity<ApiResponse> acceptEvent(@PathVariable Long id) {
-        ApiResponse response = eventService.acceptEvent(id);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        ApiResponse response =
+                new ApiResponse("Event accepted successfully", eventService.acceptEvent(id));
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse> deleteEvent(@PathVariable Long id) {
-        ApiResponse response = eventService.deleteEvent(id);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        eventService.deleteEvent(id);
+        ApiResponse response = new ApiResponse("Event deleted successfully", null);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
