@@ -4,7 +4,6 @@ import Header from "./components/Header";
 import Events from "./components/Events";
 import EventDetails from "./components/EventDetails";
 import NewsFeed from "./components/NewsFeed";
-import Register from "./components/Register";
 import { AuthProvider } from "./contexts/AuthContext";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./components/admin/AdminDashboard";
@@ -31,9 +30,6 @@ function App() {
 						<Route path="/events/:eventId" element={<EventDetails />} />
 						<Route path="/newsfeed" element={<NewsFeed />} />
 					</Route>
-
-					{/* Routes without Header */}
-					<Route path="/register" element={<Register />} />
 					
 					{/* Admin Routes */}
 					<Route path="/admin" element={<AdminLayout />}>

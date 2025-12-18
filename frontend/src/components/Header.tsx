@@ -1,17 +1,21 @@
-import { IconArrowUpRight, IconBell, IconMenu2, IconX } from "@tabler/icons-react";
-import { useState, useEffect } from "react";
+import { IconArrowUpRight, IconBell, IconMenu2, IconX, IconUser, IconCalendarEvent, IconLogout, IconChevronDown } from "@tabler/icons-react";
+import { useState, useEffect, useRef } from "react";
 import { NavLink, useSearchParams } from "react-router";
 
 import logo from "../assets/VolunteerHub.png";
 import Login from "./Login";
+import Register from "./Register";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Header() {
 	const [isLoginOpen, setLoginOpen] = useState(false);
+	const [isRegisterOpen, setRegisterOpen] = useState(false);
 	const [isScrolled, setIsScrolled] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+	const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 	const auth = useAuth();
 	const [searchParams, setSearchParams] = useSearchParams();
+	const userMenuRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -30,9 +34,51 @@ export default function Header() {
 				return newParams;
 			}, { replace: true });
 		}
+		
+		// Check for register query param
+		if (searchParams.get("register") === "true") {
+			setRegisterOpen(true);
+			setSearchParams((prev) => {
+				const newParams = new URLSearchParams(prev);
+				newParams.delete("register");
+				return newParams;
+			}, { replace: true });
+		}
 
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, [searchParams, setSearchParams]);
+
+	// Disable body scroll when modal is open
+	useEffect(() => {
+		if (isLoginOpen || isRegisterOpen) {
+			document.body.style.overflow = 'hidden';
+		} else {
+			document.body.style.overflow = 'unset';
+		}
+
+		return () => {
+			document.body.style.overflow = 'unset';
+		};
+	}, [isLoginOpen, isRegisterOpen]);
+
+	// Close user menu when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+				setIsUserMenuOpen(false);
+			}
+		};
+
+		if (isUserMenuOpen) {
+			document.addEventListener('mousedown', handleClickOutside);
+		} else {
+			document.removeEventListener('mousedown', handleClickOutside);
+		}
+
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, [isUserMenuOpen]);
 	
 	const navLinks = [
 		{ name: "Home", path: "/" },
@@ -82,13 +128,62 @@ export default function Header() {
 					)}
 					
 					{auth.isAuthenticated ? (
-						<div className="flex items-center gap-2">
-							<span className="font-(family-name:--font-crimson) text-lg">
-								Hello,{" "}
-							</span>
-							<span className="font-(family-name:--font-crimson) text-lime-800 font-bold text-lg">
-								{auth.username}
-							</span>
+						<div className="relative" ref={userMenuRef}>
+							<button
+								onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+								className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+							>
+								<span className="font-(family-name:--font-crimson) text-xl">
+									Hello,{" "}
+								</span>
+								<span className="font-(family-name:--font-crimson) text-lime-800 font-bold text-xl">
+									{auth.username}
+								</span>
+								<IconChevronDown 
+									size={20} 
+									className={`text-gray-600 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`}
+								/>
+							</button>
+
+							{/* Dropdown Menu */}
+							{isUserMenuOpen && (
+								<div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-[1001]">
+									<button
+										onClick={() => {
+											setIsUserMenuOpen(false);
+											// Navigate to my events
+										}}
+										className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left text-gray-700"
+									>
+										<IconCalendarEvent size={20} className="text-[#556b2f]" />
+										<span className="font-medium">My Events</span>
+									</button>
+
+									<button
+										onClick={() => {
+											setIsUserMenuOpen(false);
+											// Navigate to profile
+										}}
+										className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left text-gray-700"
+									>
+										<IconUser size={20} className="text-[#556b2f]" />
+										<span className="font-medium">Profile</span>
+									</button>
+
+									<div className="border-t border-gray-200 my-2"></div>
+
+									<button
+										onClick={() => {
+											auth.logout();
+											setIsUserMenuOpen(false);
+										}}
+										className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-left text-red-600"
+									>
+										<IconLogout size={20} />
+										<span className="font-medium">Logout</span>
+									</button>
+								</div>
+							)}
 						</div>
 					) : (
 						<button
@@ -179,6 +274,7 @@ export default function Header() {
 			</div>
 
 			{isLoginOpen && <Login setLoginOpen={setLoginOpen} />}
+			{isRegisterOpen && <Register setRegisterOpen={setRegisterOpen} />}
 		</>
 	);
 }

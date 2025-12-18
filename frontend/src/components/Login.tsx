@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { RestClient } from "../api/RestClient";
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
@@ -11,6 +11,7 @@ export default function Login({ setLoginOpen }: Props) {
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const auth = useAuth();
+	const navigate = useNavigate();
 
 	return (
 		<>
@@ -32,7 +33,7 @@ export default function Login({ setLoginOpen }: Props) {
 				<form className="flex flex-col gap-3 mt-4">
 					<input
 						type="text"
-						placeholder="Username"
+						placeholder="Username or Email"
 						className="w-70 text-base px-0 py-[0.6rem] border-b-[#bbb] border-[none] border-b border-solid"
 						onChange={(e) => {
 							setUsername(e.target.value);
@@ -75,13 +76,18 @@ export default function Login({ setLoginOpen }: Props) {
 
 				<p className="text-base text-[#747E59] mt-6">
 					Don't have an account? &nbsp;
-					<Link 
-						to="/register" 
+					<a 
+						href="#"
 						className="text-inherit underline"
-						onClick={() => setLoginOpen(false)}
+						onClick={(e) => {
+							e.preventDefault();
+							setLoginOpen(false);
+							// Trigger register modal via URL param
+							navigate("/?register=true");
+						}}
 					>
 						Sign up
-					</Link>
+					</a>
 				</p>
 			</div>
 		</>
