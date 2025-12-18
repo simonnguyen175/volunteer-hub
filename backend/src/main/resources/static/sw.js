@@ -14,7 +14,7 @@ self.addEventListener('push', function(event) {
     console.log('🔔 Push event received:', event);
 
     let notificationData = {
-        title: 'Thông báo mới',
+        title: 'Thông báo mới!',
         body: 'Bạn có thông báo mới',
         url: '/'
     };
@@ -25,7 +25,7 @@ self.addEventListener('push', function(event) {
             console.log('📄 Push data:', data);
 
             notificationData = {
-                title: data.title || 'Thông báo mới',
+                title: data.title || 'Thông báo nè',
                 body: data.body || 'Bạn có thông báo mới',
                 url: data.url || '/'
             };

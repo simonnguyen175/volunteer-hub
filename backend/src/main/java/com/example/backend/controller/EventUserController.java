@@ -26,4 +26,26 @@ public class EventUserController {
                         eventUserService.registerUserToEvent(userId, eventId));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @PostMapping("/accept/")
+    public ResponseEntity<ApiResponse> acceptUserToEvent(
+            @RequestParam(value="event-user_id", required = false) Long id) {
+        ApiResponse response =
+                new ApiResponse(
+                        "User accepted to event successfully",
+                        eventUserService.acceptUserInEvent(id));
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @DeleteMapping("/deny/")
+    public ResponseEntity<ApiResponse> denyUserToEvent(
+            @RequestParam(value="event-user_id", required = false) Long id){
+        ApiResponse response =
+                new ApiResponse(
+                        "User is denied to join event",
+                        eventUserService.denyUserInEvent(id));
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+
 }

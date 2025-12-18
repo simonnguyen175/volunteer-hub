@@ -41,9 +41,10 @@ public class SecurityConfig {
                                 ex.authenticationEntryPoint(authenticationEntryPoint)
                                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(
-                        auth ->
-                                auth.requestMatchers("/auth/**")
-                                        .permitAll()
+                        auth -> auth
+                                .requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/", "/index.html", "/sw.js", "/push-notifications.js").permitAll()
+                                .requestMatchers("/*.png", "/*.ico", "/*.css", "/*.js").permitAll()
                                         .anyRequest()
                                         .authenticated())
                 .authenticationProvider(authenticationProvider())

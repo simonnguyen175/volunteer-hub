@@ -87,14 +87,14 @@ public class NotificationService {
         }
     }
 
+    @Transactional
     public void subscribe(Integer userId, PushSubscriptionRequest request) {
-        if (!subscriptionRepo.existsByEndpoint(request.getEndpoint())) {
-            PushSubscription entity = new PushSubscription();
-            entity.setUserId(userId);
-            entity.setEndpoint(request.getEndpoint());
-            entity.setP256dh(request.getP256dh());
-            entity.setAuth(request.getAuth());
-            subscriptionRepo.save(entity);
-        }
+        String endpoint = request.getEndpoint();
+        PushSubscription entity = new PushSubscription();
+        entity.setUserId(userId);
+        entity.setEndpoint(endpoint);
+        entity.setP256dh(request.getP256dh());
+        entity.setAuth(request.getAuth());
+        subscriptionRepo.save(entity);
     }
 }

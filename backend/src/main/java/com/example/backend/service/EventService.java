@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 public class EventService {
     @Autowired private EventRepository eventRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired private NotificationService notificationService;
 
     public List<Event> getAllEvents() {
         return eventRepository.findByStatus(EventStatus.ACCEPTED);
@@ -84,7 +85,12 @@ public class EventService {
                                                 "Event with id " + id + " not found"));
 
         existingEvent.setStatus(EventStatus.ACCEPTED);
-
+        notificationService.createAndSendNotification(
+                existingEvent.getManager().getId(),
+                "Sự kiện "
+                        + "<b>" + existingEvent.getTitle() + "</b>"
+                        + " đã được chấp nhận",
+                "/event/" + existingEvent.getId());
         return eventRepository.save(existingEvent);
     }
 
