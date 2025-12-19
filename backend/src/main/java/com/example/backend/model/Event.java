@@ -44,6 +44,9 @@ public class Event {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @Enumerated(EnumType.STRING)
     private EventStatus status = EventStatus.PENDING;
 }

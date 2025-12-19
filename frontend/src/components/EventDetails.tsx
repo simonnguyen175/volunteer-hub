@@ -1,131 +1,177 @@
 import { useParams, Link } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IconArrowLeft, IconUsers, IconCalendar, IconClock } from "@tabler/icons-react";
+import { createClient } from "@supabase/supabase-js";
+import { RestClient } from "../api/RestClient";
+import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "./ui/Toast";
 import EventDescription from "./EventDescription";
 import EventDiscussion from "./EventDiscussion";
 
+const supabase = createClient(
+	import.meta.env.VITE_SUPABASE_URL,
+	import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
-const exampleEventsList = [
-	{
-		id: "beach-cleanup",
-		eventName: "Beach Cleanup Drive",
-		time: "08:30",
-		date: "12/12/2025",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1679689587683-4147eddacebc?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8YmVhY2glMjBjbGVhbnxlbnwwfHwwfHx8MA%3D%3D",
-		description:
-			"Join us for our monthly beach cleanup initiative! We'll be cleaning up the coastline, collecting plastic waste, and making our beaches beautiful again. This is a great opportunity to meet fellow volunteers, enjoy the outdoors, and make a tangible difference in our community. All equipment will be provided including gloves, bags, and refreshments. Perfect for individuals, families, and groups!",
-		location: "Sunset Beach Park",
-		volunteersJoined: 87,
-		volunteersRequired: 150,
-		organizer: "Green Ocean Initiative",
-		requirements: [
-			"Wear comfortable clothing and closed-toe shoes",
-			"Bring sunscreen and water bottle",
-			"Minimum age: 12 years (under 18 must be accompanied by adult)",
-		],
-	},
-	{
-		id: "food-distribution",
-		eventName: "Community Food Distribution",
-		time: "14:00",
-		date: "15/12/2025",
-		imageUrl:
-			"https://images.unsplash.com/photo-1600880292089-90a7e086ee0c",
-		description:
-			"Help us distribute food packages to families in need across our community. We partner with local food banks to ensure fresh produce and essential groceries reach those who need them most. Volunteers will help sort, pack, and distribute food items. This is a rewarding experience that directly impacts hundreds of families in our area.",
-		location: "Community Center, Downtown",
-		volunteersJoined: 45,
-		volunteersRequired: 60,
-		organizer: "Food For All Foundation",
-		requirements: [
-			"Ability to lift up to 25 lbs",
-			"Commitment for minimum 3 hours",
-			"Food handling certification (preferred but not required)",
-		],
-	},
-	{
-		id: "tree-planting",
-		eventName: "Tree Planting Day",
-		time: "07:45",
-		date: "18/12/2025",
-		imageUrl:
-			"https://images.unsplash.com/photo-1501004318641-b39e6451bec6",
-		description:
-			"Be part of our mission to plant 1,000 trees this year! Join environmental enthusiasts and community members in our reforestation project. We'll provide all tools, saplings, and training. This hands-on activity is perfect for nature lovers and those wanting to combat climate change at the local level. Watch your contribution grow for years to come!",
-		location: "Riverside Park",
-		volunteersJoined: 112,
-		volunteersRequired: 120,
-		organizer: "Green City Coalition",
-		requirements: [
-			"Wear weather-appropriate outdoor clothing",
-			"Bring gardening gloves if you have them",
-			"No prior experience needed - training provided",
-		],
-	},
-	{
-		id: "elderly-visit",
-		eventName: "Elderly Home Visit",
-		time: "09:00",
-		date: "20/12/2025",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1663036976879-4baf18adfd5b?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZWxkZXJseSUyMGNhcmV8ZW58MHx8MHx8fDA%3D",
-		description:
-			"Brighten the day of our senior community members! Spend quality time with elderly residents, play games, share stories, and provide companionship. Many residents rarely receive visitors, and your presence can make an incredible difference in their lives. Activities include board games, reading, crafts, and conversation. A heartwarming experience for all involved.",
-		location: "Sunshine Retirement Home",
-		volunteersJoined: 28,
-		volunteersRequired: 40,
-		organizer: "Elder Care Volunteers",
-		requirements: [
-			"Patient and friendly demeanor",
-			"Background check required (we'll assist)",
-			"Commitment to 2-hour minimum visit",
-		],
-	},
-	{
-		id: "blood-donation",
-		eventName: "Blood Donation Camp",
-		time: "10:30",
-		date: "22/12/2025",
-		imageUrl:
-			"https://images.unsplash.com/photo-1615461066159-fea0960485d5?q=80&w=2216&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-		description:
-			"Save lives by donating blood or volunteering at our blood donation camp! Whether you're donating or helping with registration, refreshments, and donor care, you'll be part of a life-saving mission. Each donation can save up to three lives. Medical staff will be present throughout the event to ensure safety and comfort for all donors.",
-		location: "City Hospital, Main Hall",
-		volunteersJoined: 54,
-		volunteersRequired: 80,
-		organizer: "Red Cross Society",
-		requirements: [
-			"Donors: Age 18-65, weight over 50kg, healthy condition",
-			"Volunteers: Help with registration and donor support",
-			"Bring valid ID for donation",
-		],
-	},
-	{
-		id: "charity-marathon",
-		eventName: "Charity Marathon",
-		time: "06:00",
-		date: "05/01/2026",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1663090417989-b399378d45ac?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bWFyYXRob258ZW58MHx8MHx8fDA%3D",
-		description:
-			"Run for a cause! Join our annual charity marathon supporting children's education programs. Choose from 5K, 10K, or half-marathon distances. All proceeds go directly to building schools in underserved communities. Whether you run, walk, or volunteer at water stations, you're making education accessible to children who need it most. Join hundreds of participants in this inspiring event!",
-		location: "Central Park - Main Entrance",
-		volunteersJoined: 203,
-		volunteersRequired: 250,
-		organizer: "Run for Education",
-		requirements: [
-			"Register online before event day",
-			"Runners: Complete health waiver",
-			"Volunteers: Help at water stations, registration, or finish line",
-		],
-	},
-];
+interface Event {
+	id: number;
+	type: string;
+	title: string;
+	startTime: string;
+	endTime: string;
+	location: string;
+	description: string;
+	imageUrl: string;
+	status: string;
+	managerId?: number;
+	managerName?: string;
+}
+
+const getSupabaseImageUrl = (imagePath: string): string => {
+	if (!imagePath) return "";
+	const { data } = supabase.storage.from("volunteer").getPublicUrl(imagePath);
+	return data.publicUrl;
+};
+
+const formatDateTime = (isoString: string) => {
+	const date = new Date(isoString);
+	return {
+		date: date.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }),
+		time: date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+	};
+};
 
 export default function EventDetails() {
 	const { eventId } = useParams();
-	const event = exampleEventsList.find((e) => e.id === eventId);
+	const { user } = useAuth();
+	const { showToast } = useToast();
+	const [event, setEvent] = useState<Event | null>(null);
+	const [hostName, setHostName] = useState<string>("Loading...");
+	const [loading, setLoading] = useState(true);
+	const [fullImageUrl, setFullImageUrl] = useState("");
 	const [activeTab, setActiveTab] = useState<"details" | "discussion">("details");
+	const [isJoining, setIsJoining] = useState(false);
+	const [registrationStatus, setRegistrationStatus] = useState<{
+		isRegistered: boolean;
+		isPending: boolean;
+		isAccepted: boolean;
+	}>({ isRegistered: false, isPending: false, isAccepted: false });
+
+	useEffect(() => {
+		const fetchEvent = async () => {
+			try {
+				// Use the get-by-id API which includes host info
+				const result = await RestClient.getEventById(parseInt(eventId || "0"));
+				if (result.data) {
+					setEvent(result.data);
+					if (result.data.imageUrl) {
+						setFullImageUrl(getSupabaseImageUrl(result.data.imageUrl));
+					}
+					// Host name is now included in the response
+					setHostName(result.data.managerName || "Unknown Host");
+				}
+
+				// Check user's registration status if logged in
+				if (user?.id) {
+					try {
+						const statusResult = await RestClient.getUserEventStatus(user.id, parseInt(eventId || "0"));
+						console.log("Initial status check result:", statusResult);
+						console.log("Status data:", statusResult?.data);
+						console.log("Has data?", !!statusResult?.data);
+						
+						if (statusResult && statusResult.data !== null && statusResult.data !== undefined) {
+							console.log("User is registered with status:", statusResult.data.status);
+							setRegistrationStatus({
+								isRegistered: true,
+								isPending: !statusResult.data.status,
+								isAccepted: statusResult.data.status
+							});
+						} else {
+							console.log("User is not registered for this event (data is null)");
+							// Explicitly set to not registered
+							setRegistrationStatus({
+								isRegistered: false,
+								isPending: false,
+								isAccepted: false
+							});
+						}
+					} catch (err) {
+						// User not registered, that's fine
+						console.log("Error checking status (user likely not registered):", err);
+						setRegistrationStatus({
+							isRegistered: false,
+							isPending: false,
+							isAccepted: false
+						});
+					}
+				}
+			} catch (err) {
+				console.error("Failed to fetch event:", err);
+			} finally {
+				setLoading(false);
+			}
+		};
+		fetchEvent();
+	}, [eventId, user?.id]);
+
+	const handleJoinEvent = async () => {
+		if (!user) {
+			showToast("Please log in to join events", "warning");
+			return;
+		}
+
+		setIsJoining(true);
+		try {
+			const joinResult = await RestClient.joinEvent(user.id, parseInt(eventId || "0"));
+			console.log("Join result:", joinResult);
+			
+			// Small delay to ensure database is updated
+			await new Promise(resolve => setTimeout(resolve, 100));
+			
+			// Refetch status from database after successful join
+			const statusResult = await RestClient.getUserEventStatus(user.id, parseInt(eventId || "0"));
+			console.log("Status result after join:", statusResult);
+			
+			if (statusResult?.data) {
+				console.log("Setting registration status:", {
+					isRegistered: true,
+					isPending: !statusResult.data.status,
+					isAccepted: statusResult.data.status
+				});
+				setRegistrationStatus({
+					isRegistered: true,
+					isPending: !statusResult.data.status,
+					isAccepted: statusResult.data.status
+				});
+				showToast("Successfully requested to join event! Wait for approval.", "success");
+			} else {
+				console.warn("No data in status result, setting default pending state");
+				// Fallback: assume pending since we just joined
+				setRegistrationStatus({
+					isRegistered: true,
+					isPending: true,
+					isAccepted: false
+				});
+				showToast("Successfully requested to join event! Wait for approval.", "success");
+			}
+		} catch (err) {
+			console.error("Failed to join event:", err);
+			showToast("Failed to join event. You may have already registered.", "error");
+		} finally {
+			setIsJoining(false);
+		}
+	};
+
+	if (loading) {
+		return (
+			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+				<div className="text-center">
+					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#556b2f] mx-auto mb-4"></div>
+					<p className="text-gray-600">Loading event...</p>
+				</div>
+			</div>
+		);
+	}
 
 	if (!event) {
 		return (
@@ -143,9 +189,7 @@ export default function EventDetails() {
 		);
 	}
 
-	const progressPercentage = Math.round(
-		(event.volunteersJoined / event.volunteersRequired) * 100
-	);
+	const { date, time } = formatDateTime(event.startTime);
 
 	return (
 		<div className="min-h-screen bg-white">
@@ -155,8 +199,8 @@ export default function EventDetails() {
 				{/* Background Image */}
 				<div className="absolute inset-0">
 					<img
-						src={event.imageUrl}
-						alt={event.eventName}
+						src={fullImageUrl}
+						alt={event.title}
 						className="w-full h-full object-cover"
 					/>
 					{/* Gradient overlay */}
@@ -174,17 +218,17 @@ export default function EventDetails() {
 					</Link>
 
 					<h1 className="font-(family-name:--font-crimson) text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-2xl">
-						{event.eventName}
+						{event.title}
 					</h1>
 
 					<div className="flex flex-wrap gap-4 text-white/90 text-lg">
 						<div className="flex items-center gap-2">
 							<IconCalendar size={20} />
-							<span>{event.date}</span>
+							<span>{date}</span>
 						</div>
 						<div className="flex items-center gap-2">
 							<IconClock size={20} />
-							<span>{event.time}</span>
+							<span>{time}</span>
 						</div>
 						<div className="flex items-center gap-2">
 							<IconUsers size={20} />
@@ -228,11 +272,11 @@ export default function EventDetails() {
 							{activeTab === "details" ? (
 								<EventDescription
 									description={event.description}
-									requirements={event.requirements}
-									organizer={event.organizer}
+									requirements={[]}
+									organizer={hostName}
 								/>
 							) : (
-								<EventDiscussion eventId={event.id} />
+								<EventDiscussion eventId={event.id.toString()} />
 							)}
 						</div>
 					</div>
@@ -240,41 +284,25 @@ export default function EventDetails() {
 					{/* Sidebar - Action Buttons and Stats */}
 					<div className="lg:col-span-1">
 						<div className="sticky top-24 space-y-6">
-							{/* Volunteer Stats Card */}
+							{/* Event Info Card */}
 							<div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
-								<div className="mb-4">
-									<div className="flex justify-between items-center mb-2">
-										<span className="text-sm font-semibold text-gray-700">
-											Volunteers
-										</span>
-										<span className="text-sm font-semibold text-gray-700">
-											{event.volunteersJoined} /{" "}
-											{event.volunteersRequired}
-										</span>
-									</div>
-									<div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-										<div
-											className="bg-[#556b2f] h-full rounded-full transition-all"
-											style={{ width: `${progressPercentage}%` }}
-										></div>
-									</div>
-									<p className="text-xs text-gray-500 mt-2">
-										{progressPercentage}% filled
-									</p>
-								</div>
-
-								<div className="space-y-3 pt-4 border-t border-gray-300">
+								<div className="space-y-3">
 									<div className="flex justify-between">
-										<span className="text-gray-600">Joined</span>
+										<span className="text-gray-600">Type</span>
 										<span className="font-semibold text-gray-900">
-											{event.volunteersJoined}
+											{event.type}
 										</span>
 									</div>
 									<div className="flex justify-between">
-										<span className="text-gray-600">Spots Left</span>
+										<span className="text-gray-600">Status</span>
 										<span className="font-semibold text-[#556b2f]">
-											{event.volunteersRequired -
-												event.volunteersJoined}
+											{event.status}
+										</span>
+									</div>
+									<div className="flex justify-between">
+										<span className="text-gray-600">End Time</span>
+										<span className="font-semibold text-gray-900">
+											{formatDateTime(event.endTime).time}
 										</span>
 									</div>
 								</div>
@@ -282,8 +310,20 @@ export default function EventDetails() {
 
 							{/* Action Buttons */}
 							<div className="space-y-3">
-								<button className="w-full bg-[#556b2f] text-white text-lg font-semibold py-4 rounded-xl hover:bg-[#6d8c3a] transition-colors shadow-lg">
-									Join Event
+								<button 
+									onClick={handleJoinEvent}
+									disabled={isJoining || !user || registrationStatus.isRegistered}
+									className="w-full bg-[#556b2f] text-white text-lg font-semibold py-4 rounded-xl hover:bg-[#6d8c3a] transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+								>
+									{isJoining 
+										? "Joining..." 
+										: registrationStatus.isAccepted 
+										? "Already Joined ✓" 
+										: registrationStatus.isPending 
+										? "Pending Approval..." 
+										: user 
+										? "Join Event" 
+										: "Login to Join"}
 								</button>
 							</div>
 

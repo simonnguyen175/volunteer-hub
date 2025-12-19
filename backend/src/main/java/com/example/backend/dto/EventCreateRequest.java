@@ -12,4 +12,5 @@ public class EventCreateRequest {
     private LocalDateTime endTime;
     private String location;
     private String description;
+    private String imageUrl;
 }

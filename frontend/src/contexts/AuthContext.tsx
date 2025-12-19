@@ -1,11 +1,24 @@
 import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 
+interface Role {
+    id: number;
+    name: string;
+}
+
+interface User {
+    id: number;
+    username: string;
+    email: string;
+    role: Role | string;
+}
+
 interface AuthContextType {
     username: string | null;
     isAuthenticated: boolean;
     token: string | null;
-    login: (username: string, token: string) => void;
+    user: User | null;
+    login: (username: string, token: string, user: User) => void;
     logout: () => void;
 }
 
@@ -20,31 +33,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return localStorage.getItem("token");
     })
 
+    const [user, setUser] = useState<User | null>(() => {
+        const storedUser = localStorage.getItem("user");
+        return storedUser ? JSON.parse(storedUser) : null;
+    });
+
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
         return localStorage.getItem("isAuthenticated") === "true";
     });
 
-    const login = (username: string, token: string) => {
+    const login = (username: string, token: string, userData: User) => {
         setUsername(username);
         setToken(token);
+        setUser(userData);
         setIsAuthenticated(true);
         
         localStorage.setItem("username", username);
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(userData));
         localStorage.setItem("isAuthenticated", "true");
     };
 
     const logout = () => {
         setUsername(null);
         setToken(null);
+        setUser(null);
         setIsAuthenticated(false);
 
         localStorage.clear();
     };
 
     return (
-        <AuthContext value={{ username, isAuthenticated, token, login, logout }}>
+        <AuthContext.Provider value={{ username, isAuthenticated, token, user, login, logout }}>
             {children}
-        </AuthContext>
+        </AuthContext.Provider>
     );
 }
 

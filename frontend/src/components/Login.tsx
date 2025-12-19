@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router";
 import { RestClient } from "../api/RestClient";
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "./ui/Toast";
 
 interface Props {
 	setLoginOpen: (isOpen: boolean) => void;
@@ -12,6 +13,7 @@ export default function Login({ setLoginOpen }: Props) {
 	const [password, setPassword] = useState("");
 	const auth = useAuth();
 	const navigate = useNavigate();
+	const { showToast } = useToast();
 
 	return (
 		<>
@@ -64,11 +66,28 @@ export default function Login({ setLoginOpen }: Props) {
 					onClick={() => {
 						RestClient.handleLogin(username, password)
 							.then((result) => {
-								if (result.username !== null) {
-									auth.login(username);
+								if (result.data && result.data.user) {
+									const userData = result.data.user;
+									auth.login(username, result.data.token, userData);
 									setLoginOpen(false);
+									
+									// Check if admin and redirect to dashboard
+									const rawRole = userData.role;
+									const roleName = typeof rawRole === "string" 
+										? rawRole 
+										: (rawRole as { name?: string } | undefined)?.name ?? "";
+									
+									if (roleName.toUpperCase() === "ADMIN") {
+										navigate("/admin");
+									}
+								} else {
+									showToast("Login failed: " + (result.message || "Unknown error"), "error");
 								}
 							})
+							.catch((err) => {
+								console.error("Login error:", err);
+								showToast("Login failed", "error");
+							});
 					}}
 				>
 					Log in

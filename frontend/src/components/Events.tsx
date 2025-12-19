@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
+import { createClient } from "@supabase/supabase-js";
 
-import { IconSearch, IconGridDots, IconList, IconFilter, IconArrowsSort } from "@tabler/icons-react";
+import { IconSearch, IconGridDots, IconList, IconFilter, IconArrowsSort, IconPlus } from "@tabler/icons-react";
 
 import {
 	Card,
@@ -11,128 +12,89 @@ import {
 } from "@/components/ui/card";
 
 import { Switch } from "@/components/ui/switch";
+import { RestClient } from "@/api/RestClient";
+import { useAuth } from "@/contexts/AuthContext";
+import CreateEventModal from "./CreateEventModal";
 
-const exampleEventsList = [
-	{
-		id: "beach-cleanup",
-		eventName: "Beach Cleanup Drive",
-		startTime: "2025-12-12T08:30:00",
-		endTime: "2025-12-12T12:00:00",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1679689587683-4147eddacebc?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8YmVhY2glMjBjbGVhbnxlbnwwfHwwfHx8MA%3D%3D",
-	},
-	{
-		id: "food-distribution",
-		eventName: "Community Food Distribution",
-		startTime: "2025-12-15T14:00:00",
-		endTime: "2025-12-15T17:00:00",
-		imageUrl:
-			"https://images.unsplash.com/photo-1600880292089-90a7e086ee0c",
-	},
-	{
-		id: "tree-planting",
-		eventName: "Tree Planting Day",
-		startTime: "2025-12-18T07:45:00",
-		endTime: "2025-12-18T11:30:00",
-		imageUrl:
-			"https://images.unsplash.com/photo-1501004318641-b39e6451bec6",
-	},
-	{
-		id: "elderly-visit",
-		eventName: "Elderly Home Visit",
-		startTime: "2025-12-20T09:00:00",
-		endTime: "2025-12-20T11:00:00",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1663036976879-4baf18adfd5b?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZWxkZXJseSUyMGNhcmV8ZW58MHx8MHx8fDA%3D",
-	},
-	{
-		id: "blood-donation",
-		eventName: "Blood Donation Camp",
-		startTime: "2025-12-22T10:30:00",
-		endTime: "2025-12-22T16:00:00",
-		imageUrl:
-			"https://images.unsplash.com/photo-1615461066159-fea0960485d5?q=80&w=2216&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-	},
-	{
-		id: "charity-marathon",
-		eventName: "Charity Marathon",
-		startTime: "2026-01-05T06:00:00",
-		endTime: "2026-01-05T13:00:00",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1663090417989-b399378d45ac?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bWFyYXRob258ZW58MHx8MHx8fDA%3D",
-	},
-	{
-		id: "charity-marathon1",
-		eventName: "Charity Marathon",
-		startTime: "2026-01-05T06:00:00",
-		endTime: "2026-01-05T13:00:00",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1663090417989-b399378d45ac?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bWFyYXRob258ZW58MHx8MHx8fDA%3D",
-	},
-	{
-		id: "charity-marathon2",
-		eventName: "Charity Marathon",
-		startTime: "2026-01-05T06:00:00",
-		endTime: "2026-01-05T13:00:00",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1663090417989-b399378d45ac?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bWFyYXRob258ZW58MHx8MHx8fDA%3D",
-	},
-	{
-		id: "charity-marathon3",
-		eventName: "Charity Marathon",
-		startTime: "2026-01-05T06:00:00",
-		endTime: "2026-01-05T13:00:00",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1663090417989-b399378d45ac?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bWFyYXRob258ZW58MHx8MHx8fDA%3D",
-	},
-	{
-		id: "charity-marathon4",
-		eventName: "Charity Marathon",
-		startTime: "2026-01-05T06:00:00",
-		endTime: "2026-01-05T13:00:00",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1663090417989-b399378d45ac?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bWFyYXRob258ZW58MHx8MHx8fDA%3D",
-	},
-	{
-		id: "charity-marathon5",
-		eventName: "Charity Marathon",
-		startTime: "2026-01-05T06:00:00",
-		endTime: "2026-01-05T13:00:00",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1663090417989-b399378d45ac?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bWFyYXRob258ZW58MHx8MHx8fDA%3D",
-	},
-	{
-		id: "charity-marathon6",
-		eventName: "Charity Marathon",
-		startTime: "2026-01-05T06:00:00",
-		endTime: "2026-01-05T13:00:00",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1663090417989-b399378d45ac?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bWFyYXRob258ZW58MHx8MHx8fDA%3D",
-	},
-	{
-		id: "charity-marathon7",
-		eventName: "Charity Marathon",
-		startTime: "2026-01-05T06:00:00",
-		endTime: "2026-01-05T13:00:00",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1663090417989-b399378d45ac?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bWFyYXRob258ZW58MHx8MHx8fDA%3D",
-	},
-	{
-		id: "charity-marathon8",
-		eventName: "Charity Marathon",
-		startTime: "2026-01-05T06:00:00",
-		endTime: "2026-01-05T13:00:00",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1663090417989-b399378d45ac?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bWFyYXRob258ZW58MHx8MHx8fDA%3D",
-	},
-];
+interface Event {
+	id: number;
+	type: string;
+	title: string;
+	startTime: string;
+	endTime: string;
+	location: string;
+	description: string;
+	imageUrl: string;
+	status: string;
+}
 
 export default function Events() {
+	// Supabase client
+	const supabase = createClient(
+		import.meta.env.VITE_SUPABASE_URL,
+		import.meta.env.VITE_SUPABASE_ANON_KEY
+	);
+
+	const { user } = useAuth();
+	const [events, setEvents] = useState<Event[]>([]);
+	const [eventsWithImages, setEventsWithImages] = useState<(Event & { fullImageUrl: string })[]>([]);
 	const [searchQuery, setSearchQuery] = useState("");
+	const [typeFilter, setTypeFilter] = useState("");
 	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-	const [sortBy, setSortBy] = useState<"name" | "startTime" | "endTime">("startTime");
+	const [sortBy, setSortBy] = useState<"title" | "startTime" | "endTime">("startTime");
 	const [startDateFilter, setStartDateFilter] = useState("");
 	const [endDateFilter, setEndDateFilter] = useState("");
+	const [isSearching, setIsSearching] = useState(false);
+	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+	// Check if user is a host
+	const rawRole = user?.role;
+	const roleName = typeof rawRole === "string" ? rawRole : (rawRole as { name?: string } | undefined)?.name ?? "";
+	const isHost = roleName === "HOST" || roleName === "ADMIN";
+
+	// Helper function to get Supabase public URL for event images
+	const getSupabaseImageUrl = (imageUrl: string): string => {
+		if (!imageUrl) return "";
+		if (imageUrl.startsWith("http")) return imageUrl;
+		const { data } = supabase.storage.from("volunteer").getPublicUrl(imageUrl);
+		return data?.publicUrl || "";
+	};
+
+	// Fetch events from API (with search and filter)
+	const fetchEvents = async () => {
+		setIsSearching(true);
+		try {
+			// Use search API if there's a query or type filter
+			const result = searchQuery || typeFilter 
+				? await RestClient.searchEvents(searchQuery, typeFilter)
+				: await RestClient.getEvents();
+			
+			if (result.data) {
+				setEvents(result.data);
+			}
+		} catch (err) {
+			console.error("Failed to fetch events:", err);
+		} finally {
+			setIsSearching(false);
+		}
+	};
+
+	useEffect(() => {
+		// Debounce search
+		const timeoutId = setTimeout(fetchEvents, 300);
+		return () => clearTimeout(timeoutId);
+	}, [searchQuery, typeFilter]);
+
+	// Load Supabase images for events
+	useEffect(() => {
+		if (events.length > 0) {
+			const eventsWithFullUrls = events.map((event) => ({
+				...event,
+				fullImageUrl: getSupabaseImageUrl(event.imageUrl),
+			}));
+			setEventsWithImages(eventsWithFullUrls);
+		}
+	}, [events]);
 
 	// Helper function to format datetime for display
 	const formatDateTime = (datetime: string) => {
@@ -143,8 +105,8 @@ export default function Events() {
 	};
 
 	// Filter events by search query and date range
-	let filteredEvents = exampleEventsList.filter((event) => {
-		const matchesSearch = event.eventName.toLowerCase().includes(searchQuery.toLowerCase());
+	let filteredEvents = eventsWithImages.filter((event) => {
+		const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase());
 		
 		let matchesDateRange = true;
 		if (startDateFilter || endDateFilter) {
@@ -167,8 +129,8 @@ export default function Events() {
 
 	// Sort events based on selected criteria
 	filteredEvents = [...filteredEvents].sort((a, b) => {
-		if (sortBy === "name") {
-			return a.eventName.localeCompare(b.eventName);
+		if (sortBy === "title") {
+			return a.title.localeCompare(b.title);
 		} else if (sortBy === "startTime") {
 			return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
 		} else if (sortBy === "endTime") {
@@ -181,9 +143,20 @@ export default function Events() {
 		<div className="min-h-screen bg-gray-50">
 
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-				<h1 className="relative font-(family-name:--font-crimson) font-medium top-10 mb-10 text-[5rem] text-center m-4">
-					Our Events.
-				</h1>
+				<div className="relative top-10 mb-10 flex items-center justify-center">
+					<h1 className="font-(family-name:--font-crimson) font-medium text-[5rem] text-center m-4">
+						Our Events.
+					</h1>
+					{isHost && (
+						<button
+							onClick={() => setIsCreateModalOpen(true)}
+							className="absolute right-0 flex items-center gap-2 px-6 py-3 bg-[#556b2f] text-white rounded-xl font-semibold hover:bg-[#6d8c3a] transition-all shadow-md hover:shadow-lg"
+						>
+							<IconPlus size={20} />
+							Create Event
+						</button>
+					)}
+				</div>
 
 				{/* Search and View Toggle */}
 				<div className="flex flex-col gap-4 mb-8">
@@ -228,16 +201,34 @@ export default function Events() {
 
 					{/* Sort and Filter Controls */}
 					<div className="flex flex-wrap items-center gap-4 p-4 bg-white rounded-lg border border-gray-200">
+						{/* Event Type Filter */}
+						<div className="flex items-center gap-2">
+							<IconFilter className="text-gray-600 w-5 h-5" />
+							<label className="text-sm font-semibold text-gray-700">Type:</label>
+							<select
+								value={typeFilter}
+								onChange={(e) => setTypeFilter(e.target.value)}
+								className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-700"
+							>
+								<option value="">All Types</option>
+								<option value="HELPING">Helping</option>
+								<option value="PLANTING">Planting</option>
+								<option value="MEDICAL">Medical</option>
+								<option value="FUNDRAISER">Fundraiser</option>
+								<option value="FOOD">Food</option>
+							</select>
+						</div>
+
 						{/* Sort By */}
 						<div className="flex items-center gap-2">
 							<IconArrowsSort className="text-gray-600 w-5 h-5" />
 							<label className="text-sm font-semibold text-gray-700">Sort by:</label>
 							<select
 								value={sortBy}
-								onChange={(e) => setSortBy(e.target.value as "name" | "startTime" | "endTime")}
-								className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-700"
-							>
-								<option value="name">Name</option>
+							onChange={(e) => setSortBy(e.target.value as "title" | "startTime" | "endTime")}
+							className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-700"
+						>
+							<option value="title">Name</option>
 								<option value="startTime">Start Time</option>
 								<option value="endTime">End Time</option>
 							</select>
@@ -245,8 +236,7 @@ export default function Events() {
 
 						{/* Date Range Filter */}
 						<div className="flex items-center gap-2 flex-1">
-							<IconFilter className="text-gray-600 w-5 h-5" />
-							<label className="text-sm font-semibold text-gray-700">Filter:</label>
+							<label className="text-sm font-semibold text-gray-700">Date:</label>
 							<div className="flex items-center gap-2">
 								<input
 									type="date"
@@ -255,7 +245,7 @@ export default function Events() {
 									className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-700"
 									placeholder="Start date"
 								/>
-								<span className="text-gray-500">to</span>
+				<span className="text-gray-500">to</span>
 								<input
 									type="date"
 									value={endDateFilter}
@@ -290,15 +280,15 @@ export default function Events() {
 									<Card className="overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
 										<div className="aspect-video w-full overflow-hidden">
 											<img
-												src={event.imageUrl}
-												alt={event.eventName}
+												src={event.fullImageUrl}
+												alt={event.title}
 												className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
 											/>
 										</div>
 
 										<CardHeader className="">
 											<CardTitle className="font-(family-name:--font-crimson) text-2xl">
-												{event.eventName}
+												{event.title}
 											</CardTitle>
 											<CardDescription>
 												{startDate} • {startTimeStr} - {endTimeStr}
@@ -320,8 +310,8 @@ export default function Events() {
 										<div className="flex flex-row">
 											<div className="w-64 h-40 shrink-0 overflow-hidden">
 												<img
-													src={event.imageUrl}
-													alt={event.eventName}
+													src={event.fullImageUrl}
+													alt={event.title}
 													className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
 												/>
 											</div>
@@ -329,7 +319,7 @@ export default function Events() {
 											<div className="flex-1">
 												<CardHeader>
 													<CardTitle className="font-(family-name:--font-crimson) text-2xl">
-														{event.eventName}
+														{event.title}
 													</CardTitle>
 													<CardDescription>
 														{startDate} • {startTimeStr} - {endTimeStr}
@@ -350,6 +340,13 @@ export default function Events() {
 					</div>
 				)}
 			</div>
+
+			{/* Create Event Modal */}
+			<CreateEventModal
+				isOpen={isCreateModalOpen}
+				onClose={() => setIsCreateModalOpen(false)}
+				onEventCreated={fetchEvents}
+			/>
 		</div>
 	);
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { IconSend, IconUser, IconPhoto } from "@tabler/icons-react";
+import { useToast } from "./ui/Toast";
 
 interface Post {
 	id: string;
@@ -39,12 +40,13 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 	const [posts, setPosts] = useState<Post[]>(initialPosts);
 	const [newPostContent, setNewPostContent] = useState("");
 	const [newPostImage, setNewPostImage] = useState("");
+	const { showToast } = useToast();
 
 	const handleSubmitPost = (e: React.FormEvent) => {
 		e.preventDefault();
 		
 		if (!newPostContent.trim()) {
-			alert("Post content cannot be empty!");
+			showToast("Post content cannot be empty!", "warning");
 			return;
 		}
 

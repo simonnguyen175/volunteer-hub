@@ -1,6 +1,7 @@
 package com.example.backend.service;
 
 import com.example.backend.dto.EventCreateRequest;
+import com.example.backend.dto.EventDetailResponse;
 import com.example.backend.dto.EventUpdateRequest;
 import com.example.backend.model.Event;
 import com.example.backend.model.EventStatus;
@@ -21,6 +22,11 @@ public class EventService {
 
     public List<Event> getAllEvents() {
         return eventRepository.findByStatus(EventStatus.ACCEPTED);
+    }
+
+    // For admin panel - get all events regardless of status
+    public List<Event> getAllEventsForAdmin() {
+        return eventRepository.findAll();
     }
 
     public List<Event> getEventsByName(String name) {
@@ -55,6 +61,7 @@ public class EventService {
         event.setEndTime(request.getEndTime());
         event.setLocation(request.getLocation());
         event.setDescription(request.getDescription());
+        event.setImageUrl(request.getImageUrl());
         return eventRepository.save(event);
     }
 
@@ -71,6 +78,8 @@ public class EventService {
         existingEvent.setStartTime(request.getStartTime());
         existingEvent.setEndTime(request.getEndTime());
         existingEvent.setLocation(request.getLocation());
+        existingEvent.setDescription(request.getDescription());
+        existingEvent.setImageUrl(request.getImageUrl());
 
         return eventRepository.save(existingEvent);
     }
@@ -90,7 +99,7 @@ public class EventService {
                 "Sự kiện "
                         + "<b>" + existingEvent.getTitle() + "</b>"
                         + " đã được chấp nhận",
-                "/event/" + existingEvent.getId());
+                "/events/" + existingEvent.getId());
         return eventRepository.save(existingEvent);
     }
 
@@ -104,5 +113,18 @@ public class EventService {
     public Event getEventById(Long eventId) {
         return eventRepository.findById(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("Event with id " + eventId + " not found"));
+    }
+
+    public EventDetailResponse getEventDetailById(Long eventId) {
+        Event event = getEventById(eventId);
+        return EventDetailResponse.fromEvent(event);
+    }
+
+    public List<EventDetailResponse> getHostedEvents(Long userId) {
+        User manager = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return eventRepository.findByManager(manager).stream()
+                .map(EventDetailResponse::fromEvent)
+                .collect(Collectors.toList());
     }
 }

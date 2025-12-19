@@ -1,6 +1,16 @@
-import { IconArrowUpRight, IconBell, IconMenu2, IconX, IconUser, IconCalendarEvent, IconLogout, IconChevronDown } from "@tabler/icons-react";
+import {
+	IconArrowUpRight,
+	IconBell,
+	IconMenu2,
+	IconX,
+	IconUser,
+	IconCalendarEvent,
+	IconLogout,
+	IconChevronDown,
+} from "@tabler/icons-react";
 import { useState, useEffect, useRef } from "react";
-import { NavLink, useSearchParams } from "react-router";
+import { NavLink, useSearchParams, useNavigate } from "react-router";
+import { RestClient } from "../api/RestClient";
 
 import logo from "../assets/VolunteerHub.png";
 import Login from "./Login";
@@ -13,9 +23,19 @@ export default function Header() {
 	const [isScrolled, setIsScrolled] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 	const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+	const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+	const [notifications, setNotifications] = useState<any[]>([]);
+	const [unreadCount, setUnreadCount] = useState(0);
 	const auth = useAuth();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const userMenuRef = useRef<HTMLDivElement>(null);
+	const notificationRef = useRef<HTMLDivElement>(null);
+	const navigate = useNavigate();
+
+	const rawRole = auth.user?.role;
+	const roleName = typeof rawRole === "string" ? rawRole : (rawRole as { name?: string; role?: string } | undefined)?.name ?? "";
+	const greetingLabel = roleName === "USER" ? "user" : roleName === "HOST" ? "host" : roleName === "ADMIN" ? "admin" : "user";
+	// role may be a string or an object like { id, name }
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -23,26 +43,32 @@ export default function Header() {
 		};
 
 		window.addEventListener("scroll", handleScroll);
-		
+
 		// Check for login query param
 		if (searchParams.get("login") === "true") {
 			setLoginOpen(true);
 			// Optional: Remove the query param to clean up URL
-			setSearchParams((prev) => {
-				const newParams = new URLSearchParams(prev);
-				newParams.delete("login");
-				return newParams;
-			}, { replace: true });
+			setSearchParams(
+				(prev) => {
+					const newParams = new URLSearchParams(prev);
+					newParams.delete("login");
+					return newParams;
+				},
+				{ replace: true },
+			);
 		}
-		
+
 		// Check for register query param
 		if (searchParams.get("register") === "true") {
 			setRegisterOpen(true);
-			setSearchParams((prev) => {
-				const newParams = new URLSearchParams(prev);
-				newParams.delete("register");
-				return newParams;
-			}, { replace: true });
+			setSearchParams(
+				(prev) => {
+					const newParams = new URLSearchParams(prev);
+					newParams.delete("register");
+					return newParams;
+				},
+				{ replace: true },
+			);
 		}
 
 		return () => window.removeEventListener("scroll", handleScroll);
@@ -51,35 +77,93 @@ export default function Header() {
 	// Disable body scroll when modal is open
 	useEffect(() => {
 		if (isLoginOpen || isRegisterOpen) {
-			document.body.style.overflow = 'hidden';
+			document.body.style.overflow = "hidden";
 		} else {
-			document.body.style.overflow = 'unset';
+			document.body.style.overflow = "unset";
 		}
 
 		return () => {
-			document.body.style.overflow = 'unset';
+			document.body.style.overflow = "unset";
 		};
 	}, [isLoginOpen, isRegisterOpen]);
 
 	// Close user menu when clicking outside
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
-			if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+			if (
+				userMenuRef.current &&
+				!userMenuRef.current.contains(event.target as Node)
+			) {
 				setIsUserMenuOpen(false);
 			}
 		};
 
 		if (isUserMenuOpen) {
-			document.addEventListener('mousedown', handleClickOutside);
+			document.addEventListener("mousedown", handleClickOutside);
 		} else {
-			document.removeEventListener('mousedown', handleClickOutside);
+			document.removeEventListener("mousedown", handleClickOutside);
+		}
+	});
+
+	// Fetch notifications
+	useEffect(() => {
+		if (auth.isAuthenticated && auth.user?.id) {
+			fetchNotifications();
+			// Poll for new notifications every 30 seconds
+			const interval = setInterval(fetchNotifications, 30000);
+			return () => clearInterval(interval);
+		}
+	}, [auth.isAuthenticated, auth.user]);
+
+	const fetchNotifications = async () => {
+		if (!auth.user?.id) return;
+
+		try {
+			const [notifResult, countResult] = await Promise.all([
+				RestClient.getUserNotifications(auth.user.id),
+				RestClient.getUnreadNotificationCount(auth.user.id),
+			]);
+
+			if (notifResult.data) {
+				setNotifications(notifResult.data);
+			}
+			if (countResult.data !== undefined) {
+				setUnreadCount(countResult.data);
+			}
+		} catch (err) {
+			console.error("Failed to fetch notifications:", err);
+		}
+	};
+
+	const handleMarkAsRead = async (notificationId: number) => {
+		try {
+			await RestClient.markNotificationAsRead(notificationId);
+			fetchNotifications();
+		} catch (err) {
+			console.error("Failed to mark notification as read:", err);
+		}
+	};
+
+	// Close notification menu when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (
+				notificationRef.current &&
+				!notificationRef.current.contains(event.target as Node)
+			) {
+				setIsNotificationOpen(false);
+			}
+		};
+
+		if (isNotificationOpen) {
+			document.addEventListener("mousedown", handleClickOutside);
 		}
 
 		return () => {
-			document.removeEventListener('mousedown', handleClickOutside);
+			document.removeEventListener("mousedown", handleClickOutside);
 		};
-	}, [isUserMenuOpen]);
-	
+	}, [isNotificationOpen]);
+
 	const navLinks = [
 		{ name: "Home", path: "/" },
 		{ name: "Events", path: "/events" },
@@ -88,8 +172,9 @@ export default function Header() {
 
 	return (
 		<>
-			<header className={`fixed top-0 left-0 right-0 z-[999] px-4 md:px-10 py-4 flex items-center justify-between transition-all duration-300 ${isScrolled || isMobileMenuOpen ? "backdrop-blur-md bg-white/60 shadow-sm" : "bg-transparent"}`}>
-				{/* VolunteerHub logo */}
+			<header
+				className={`fixed top-0 left-0 right-0 z-[999] px-4 md:px-10 py-4 flex items-center justify-between transition-all duration-300 ${isScrolled || isMobileMenuOpen ? "backdrop-blur-md bg-white/60 shadow-sm" : "bg-transparent"}`}
+			>
 				{/* VolunteerHub logo */}
 				<NavLink to="/" className="flex items-center cursor-pointer">
 					<img
@@ -98,7 +183,7 @@ export default function Header() {
 						alt="VolunteerHub Logo"
 					/>
 				</NavLink>
-				
+
 				{/* Navigation Links - Centered & Clean */}
 				<nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center gap-10">
 					{navLinks.map((link) => (
@@ -121,27 +206,88 @@ export default function Header() {
 				{/* Sign in button & Notification */}
 				<div className="flex items-center gap-4">
 					{auth.isAuthenticated && (
-						<button className="p-2 text-gray-600 hover:text-[#556b2f] transition-colors cursor-pointer relative">
-							<IconBell size={24} />
-							<span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-						</button>
+						<div className="relative" ref={notificationRef}>
+							<button
+								onClick={() =>
+									setIsNotificationOpen(!isNotificationOpen)
+								}
+								className="p-2 text-gray-600 hover:text-[#556b2f] transition-colors cursor-pointer relative"
+							>
+								<IconBell size={24} />
+								{unreadCount > 0 && (
+									<span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 bg-red-500 rounded-full border border-white text-white text-xs flex items-center justify-center px-1">
+										{unreadCount > 9 ? "9+" : unreadCount}
+									</span>
+								)}
+							</button>
+
+							{/* Notification Dropdown */}
+							{isNotificationOpen && (
+								<div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-[1001] max-h-96 overflow-y-auto">
+									<div className="px-4 py-3 border-b border-gray-200">
+										<h3 className="font-semibold text-gray-800">
+											Notifications
+										</h3>
+									</div>
+									<div className="divide-y divide-gray-100">
+										{notifications.length === 0 ? (
+											<div className="px-4 py-8 text-center text-gray-500 text-sm">
+												No notifications yet
+											</div>
+										) : (
+											notifications
+												.slice(0, 10)
+												.map((notif) => (
+													<div
+														key={notif.id}
+														className={`px-4 py-3 hover:bg-gray-50 cursor-pointer ${
+															!notif.read
+																? "bg-blue-50"
+																: ""
+														}`}
+														onClick={() => {
+															handleMarkAsRead(
+																notif.id,
+															);
+														if (notif.link)
+															window.location.href =
+																notif.link;
+														}}
+													>
+														<p className="text-sm text-gray-800">
+															{notif.content}
+														</p>
+														<p className="text-xs text-gray-500 mt-1">
+															{new Date(
+																notif.createdAt,
+															).toLocaleString()}
+														</p>
+													</div>
+												))
+										)}
+									</div>
+								</div>
+							)}
+						</div>
 					)}
-					
+
 					{auth.isAuthenticated ? (
 						<div className="relative" ref={userMenuRef}>
 							<button
-								onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+								onClick={() =>
+									setIsUserMenuOpen(!isUserMenuOpen)
+								}
 								className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
 							>
-								<span className="font-(family-name:--font-crimson) text-xl">
-									Hello,{" "}
-								</span>
-								<span className="font-(family-name:--font-crimson) text-lime-800 font-bold text-xl">
-									{auth.username}
-								</span>
-								<IconChevronDown 
-									size={20} 
-									className={`text-gray-600 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`}
+									<span className="font-(family-name:--font-crimson) text-xl">
+										Hello,
+									</span>
+									<span className="font-(family-name:--font-crimson) text-lime-800 font-bold text-xl capitalize">
+										{greetingLabel} {auth.user?.username ?? auth.username}
+									</span>
+								<IconChevronDown
+									size={20}
+									className={`text-gray-600 transition-transform duration-200 ${isUserMenuOpen ? "rotate-180" : ""}`}
 								/>
 							</button>
 
@@ -151,12 +297,17 @@ export default function Header() {
 									<button
 										onClick={() => {
 											setIsUserMenuOpen(false);
-											// Navigate to my events
+											navigate("/my-events");
 										}}
 										className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left text-gray-700"
 									>
-										<IconCalendarEvent size={20} className="text-[#556b2f]" />
-										<span className="font-medium">My Events</span>
+										<IconCalendarEvent
+											size={20}
+											className="text-[#556b2f]"
+										/>
+										<span className="font-medium">
+											My Events
+										</span>
 									</button>
 
 									<button
@@ -166,8 +317,13 @@ export default function Header() {
 										}}
 										className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left text-gray-700"
 									>
-										<IconUser size={20} className="text-[#556b2f]" />
-										<span className="font-medium">Profile</span>
+										<IconUser
+											size={20}
+											className="text-[#556b2f]"
+										/>
+										<span className="font-medium">
+											Profile
+										</span>
 									</button>
 
 									<div className="border-t border-gray-200 my-2"></div>
@@ -180,7 +336,9 @@ export default function Header() {
 										className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-left text-red-600"
 									>
 										<IconLogout size={20} />
-										<span className="font-medium">Logout</span>
+										<span className="font-medium">
+											Logout
+										</span>
 									</button>
 								</div>
 							)}
@@ -202,31 +360,46 @@ export default function Header() {
 				</div>
 
 				{/* Mobile Menu Button */}
-				<button 
+				<button
 					className="md:hidden p-2 text-gray-600 hover:text-[#556b2f] transition-colors"
 					onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
 				>
-					{isMobileMenuOpen ? <IconX size={28} /> : <IconMenu2 size={28} />}
+					{isMobileMenuOpen ? (
+						<IconX size={28} />
+					) : (
+						<IconMenu2 size={28} />
+					)}
 				</button>
 			</header>
 
 			{/* Mobile Menu Backdrop & Container */}
-			<div className={`fixed inset-0 z-[999] md:hidden transition-all duration-300 ${isMobileMenuOpen ? "visible" : "invisible"}`}>
+			<div
+				className={`fixed inset-0 z-[999] md:hidden transition-all duration-300 ${isMobileMenuOpen ? "visible" : "invisible"}`}
+			>
 				{/* Backdrop */}
-				<div 
+				<div
 					className={`absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${isMobileMenuOpen ? "opacity-100" : "opacity-0"}`}
 					onClick={() => setIsMobileMenuOpen(false)}
 				/>
-				
+
 				{/* Sliding Menu (Right Side, 3/4 Width) */}
-				<div className={`absolute top-0 right-0 w-3/4 h-full bg-white shadow-2xl transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}`}>
+				<div
+					className={`absolute top-0 right-0 w-3/4 h-full bg-white shadow-2xl transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}`}
+				>
 					<div className="flex flex-col h-full">
 						{/* Mobile Menu Header */}
 						<div className="flex justify-between items-center p-4 border-b border-gray-100">
-							<NavLink to="/" onClick={() => setIsMobileMenuOpen(false)}>
-								<img src={logo} alt="VolunteerHub Logo" className="h-10 w-auto object-contain" />
+							<NavLink
+								to="/"
+								onClick={() => setIsMobileMenuOpen(false)}
+							>
+								<img
+									src={logo}
+									alt="VolunteerHub Logo"
+									className="h-10 w-auto object-contain"
+								/>
 							</NavLink>
-							<button 
+							<button
 								onClick={() => setIsMobileMenuOpen(false)}
 								className="p-2 text-gray-500 hover:text-gray-700"
 							>

@@ -1,4 +1,5 @@
 import mainImg from "../assets/hands-unite.jpg";
+import { createClient } from "@supabase/supabase-js";
 import { IconArrowUpRight, IconHeart, IconUsers, IconCalendar } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -11,53 +12,19 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { RestClient } from "@/api/RestClient";
 
-const role = "user";
-
-const exampleEventsList = [
-	{
-		eventName: "Beach Cleanup Drive",
-		time: "08:30",
-		date: "12/12/2025",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1679689587683-4147eddacebc?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8YmVhY2glMjBjbGVhbnxlbnwwfHwwfHx8MA%3D%3D",
-	},
-	{
-		eventName: "Community Food Distribution",
-		time: "14:00",
-		date: "15/12/2025",
-		imageUrl:
-			"https://images.unsplash.com/photo-1600880292089-90a7e086ee0c",
-	},
-	{
-		eventName: "Tree Planting Day",
-		time: "07:45",
-		date: "18/12/2025",
-		imageUrl:
-			"https://images.unsplash.com/photo-1501004318641-b39e6451bec6",
-	},
-	{
-		eventName: "Elderly Home Visit",
-		time: "09:00",
-		date: "20/12/2025",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1663036976879-4baf18adfd5b?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZWxkZXJseSUyMGNhcmV8ZW58MHx8MHx8fDA%3D",
-	},
-	{
-		eventName: "Blood Donation Camp",
-		time: "10:30",
-		date: "22/12/2025",
-		imageUrl:
-			"https://images.unsplash.com/photo-1615461066159-fea0960485d5?q=80&w=2216&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-	},
-	{
-		eventName: "Charity Marathon",
-		time: "06:00",
-		date: "05/01/2026",
-		imageUrl:
-			"https://plus.unsplash.com/premium_photo-1663090417989-b399378d45ac?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bWFyYXRob258ZW58MHx8MHx8fDA%3D",
-	},
-];
+interface Event {
+	id: number;
+	type: string;
+	title: string;
+	startTime: string;
+	endTime: string;
+	location: string;
+	description: string;
+	imageUrl: string;
+	status: string;
+}
 
 // Scroll animation hook
 function useScrollAnimation() {
@@ -91,10 +58,75 @@ function useScrollAnimation() {
 }
 
 export default function LandingPage() {
+	// Supabase client (uses Vite env vars from frontend/.env)
+	const supabase = createClient(
+		import.meta.env.VITE_SUPABASE_URL,
+		import.meta.env.VITE_SUPABASE_ANON_KEY
+	);
+
+	// Image state: will hold Supabase public URL or fallback to local asset
+	const [mainImgUrl, setMainImgUrl] = useState<string>(mainImg);
+	const [events, setEvents] = useState<Event[]>([]);
+	const [eventsWithImages, setEventsWithImages] = useState<(Event & { fullImageUrl: string })[]>([]);
+
+	// Helper function to get Supabase public URL for event images
+	const getSupabaseImageUrl = (imageUrl: string): string => {
+		if (!imageUrl) return "";
+		// If already a full URL, return as-is
+		if (imageUrl.startsWith("http")) return imageUrl;
+		// Otherwise, get from Supabase storage
+		const { data } = supabase.storage.from("volunteer").getPublicUrl(imageUrl);
+		return data?.publicUrl || "";
+	};
+
+	useEffect(() => {
+		// Get public URL for the hero image
+		try {
+			const { data } = supabase.storage
+				.from("volunteer")
+				.getPublicUrl("general/test.jpg");
+
+			if (data?.publicUrl) {
+				setMainImgUrl(data.publicUrl);
+			}
+		} catch (err) {
+			console.error("Failed to get Supabase image URL:", err);
+		}
+	}, []);
+
+	// Fetch events from API
+	useEffect(() => {
+		const fetchEvents = async () => {
+			try {
+				const result = await RestClient.getEvents();
+				if (result.data) {
+					// Filter only ACCEPTED events
+					const acceptedEvents = result.data.filter(
+						(event: Event) => event.status === "ACCEPTED"
+					);
+					setEvents(acceptedEvents);
+				}
+			} catch (err) {
+				console.error("Failed to fetch events:", err);
+			}
+		};
+		fetchEvents();
+	}, []);
+
+	// Load Supabase images for events
+	useEffect(() => {
+		if (events.length > 0) {
+			const eventsWithFullUrls = events.map((event) => ({
+				...event,
+				fullImageUrl: getSupabaseImageUrl(event.imageUrl),
+			}));
+			setEventsWithImages(eventsWithFullUrls);
+		}
+	}, [events]);
 	const hero = useScrollAnimation();
 	const stats = useScrollAnimation();
 	const mission = useScrollAnimation();
-	const events = useScrollAnimation();
+	const eventsSection = useScrollAnimation();
 	const cta = useScrollAnimation();
 
 	const [emblaRef] = useEmblaCarousel({ loop: true, align: "start" });
@@ -107,7 +139,7 @@ export default function LandingPage() {
 				{/* Background Image */}
 				<div className="absolute inset-0">
 					<img
-						src={mainImg}
+						src={mainImgUrl}
 						alt="Volunteers united"
 						className="w-full h-full object-cover"
 					/>
@@ -219,7 +251,7 @@ export default function LandingPage() {
 						</div>
 						<div className="relative h-96 rounded-2xl overflow-hidden shadow-2xl">
 							<img
-								src={mainImg}
+								src={mainImgUrl}
 								alt="Volunteers helping"
 								className="w-full h-full object-cover"
 							/>
@@ -231,9 +263,9 @@ export default function LandingPage() {
 			{/* Events Carousel */}
 			<section className="py-20 bg-gray-50">
 				<div
-					ref={events.ref}
+					ref={eventsSection.ref}
 					className={`max-w-7xl mx-auto px-4 transition-all duration-1000 ${
-						events.isVisible
+						eventsSection.isVisible
 							? "opacity-100 translate-y-0"
 							: "opacity-0 translate-y-10"
 					}`}
@@ -257,44 +289,51 @@ export default function LandingPage() {
 					{/* Carousel */}
 					<div className="overflow-hidden" ref={emblaRef}>
 						<div className="flex gap-6">
-							{exampleEventsList.map((event, index) => (
-								<div
-									key={index}
-									className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_33.333%]"
-								>
-									<Card className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-full">
-										<div className="aspect-video w-full overflow-hidden">
-											<img
-												src={event.imageUrl}
-												alt={event.eventName}
-												className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-											/>
-										</div>
-
-										<CardHeader>
-											<CardTitle className="font-(family-name:--font-crimson) text-2xl">
-												{event.eventName}
-											</CardTitle>
-											<CardDescription className="text-base">
-												{event.date} at {event.time}
-											</CardDescription>
-										</CardHeader>
-
-										<CardContent>
-											<Link
-												to="/events"
-												className="inline-flex items-center gap-2 text-[#556b2f] hover:text-[#8e9c78] font-semibold group"
-											>
-												Learn more
-												<IconArrowUpRight
-													className="group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform"
-													size={16}
+							{eventsWithImages.length > 0 ? (
+								eventsWithImages.map((event) => (
+									<div
+										key={event.id}
+										className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_33.333%]"
+									>
+										<Card className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-full">
+											<div className="aspect-video w-full overflow-hidden">
+												<img
+													src={event.fullImageUrl}
+													alt={event.title}
+													className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
 												/>
-											</Link>
-										</CardContent>
-									</Card>
+											</div>
+
+											<CardHeader>
+												<CardTitle className="font-(family-name:--font-crimson) text-2xl">
+													{event.title}
+												</CardTitle>
+												<CardDescription className="text-base">
+													{new Date(event.startTime).toLocaleString()}
+													{event.location ? ` · ${event.location}` : ""}
+												</CardDescription>
+											</CardHeader>
+
+											<CardContent>
+												<Link
+													to="/events"
+													className="inline-flex items-center gap-2 text-[#556b2f] hover:text-[#8e9c78] font-semibold group"
+												>
+													Learn more
+													<IconArrowUpRight
+														className="group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform"
+														size={16}
+													/>
+												</Link>
+											</CardContent>
+										</Card>
+									</div>
+								))
+							) : (
+								<div className="w-full text-center py-12 text-gray-500">
+									Loading events...
 								</div>
-							))}
+							)}
 						</div>
 					</div>
 				</div>

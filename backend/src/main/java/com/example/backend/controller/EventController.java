@@ -24,6 +24,27 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @GetMapping("/admin/all")
+    public ResponseEntity<ApiResponse> getAllEventsForAdmin() {
+        ApiResponse response =
+                new ApiResponse("All events retrieved successfully", eventService.getAllEventsForAdmin());
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse> getEventById(@PathVariable Long id) {
+        ApiResponse response =
+                new ApiResponse("Event retrieved successfully", eventService.getEventDetailById(id));
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/hosted/{userId}")
+    public ResponseEntity<ApiResponse> getHostedEvents(@PathVariable Long userId) {
+        ApiResponse response =
+                new ApiResponse("Hosted events retrieved successfully", eventService.getHostedEvents(userId));
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
     @GetMapping("/search/")
     public ResponseEntity<ApiResponse> getEvents(
             @RequestParam(value = "q", required = false) String q,

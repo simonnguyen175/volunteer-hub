@@ -15,4 +15,5 @@ public class EventUpdateRequest {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String description;
+    private String imageUrl;
 }

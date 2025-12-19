@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { RestClient } from "../api/RestClient";
 import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "./ui/Toast";
 
 interface Props {
 	setRegisterOpen: (isOpen: boolean) => void;
@@ -11,6 +12,7 @@ interface Props {
 export default function Register({ setRegisterOpen }: Props) {
 	const navigate = useNavigate();
 	const auth = useAuth();
+	const { showToast } = useToast();
 	const [formData, setFormData] = useState({
 		username: "",
 		email: "",
@@ -28,7 +30,7 @@ export default function Register({ setRegisterOpen }: Props) {
 		
 		// Validate passwords match
 		if (formData.password !== formData.confirmPassword) {
-			alert("Passwords do not match!");
+			showToast("Passwords do not match!", "error");
 			return;
 		}
 		
@@ -39,19 +41,20 @@ export default function Register({ setRegisterOpen }: Props) {
 			formData.role
 		)
 			.then((result) => {
-				if (result.username) {
+				if (result.data && result.data.user) {
 					// Registration successful, log them in
-					auth.login(result.username);
+					auth.login(result.data.user.username, result.data.token, result.data.user);
+					showToast("Registration successful! Welcome to VolunteerHub!", "success");
 					setRegisterOpen(false);
 				} else {
 					// Handle error
 					console.error("Registration failed:", result);
-					alert("Registration failed. Please try again.");
+					showToast(result.message || "Registration failed. Please try again.", "error");
 				}
 			})
 			.catch((error) => {
 				console.error("Registration error:", error);
-				alert("An error occurred during registration.");
+				showToast("An error occurred during registration.", "error");
 			});
 	};
 

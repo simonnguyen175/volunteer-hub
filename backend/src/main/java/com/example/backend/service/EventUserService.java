@@ -1,15 +1,16 @@
 package com.example.backend.service;
 
+import com.example.backend.dto.EventUserResponse;
 import com.example.backend.model.Event;
 import com.example.backend.model.EventUser;
 import com.example.backend.model.User;
 import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.EventUserRepository;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +19,7 @@ public class EventUserService {
     private final EventService eventService;
     private final UserService userService;
     private final NotificationService notificationService;
+    private final EventRepository eventRepository;
 
     public EventUser registerUserToEvent(Long userId, Long eventId) {
         EventUser eventUser = new EventUser();
@@ -42,7 +44,7 @@ public class EventUserService {
                     userId,
                     "Bạn đã được chấp nhận tham gia sự kiện "
                             + "<b>" + eventUser.getEvent().getTitle() + "</b>",
-                    "/event/" + eventId);
+                    "/events/" + eventId);
             return eventUserRepository.save(eventUser);
         }
         return null;
@@ -58,9 +60,59 @@ public class EventUserService {
                     userId,
                     "Bạn đã bị từ chối tham gia sự kiện "
                             + "<b>" + eventUser.getEvent().getTitle() + "</b>",
-                    "/event/" + eventId);
+                    "/events/" + eventId);
             return eventUser;
         }
         return null;
+    }
+
+    // Get events user has joined (accepted)
+    public List<EventUserResponse> getJoinedEvents(Long userId) {
+        User user = userService.getUserById(userId);
+        return eventUserRepository.findByUserAndStatus(user, true).stream()
+                .map(EventUserResponse::fromEventUser)
+                .collect(Collectors.toList());
+    }
+
+    // Get events user is pending to join
+    public List<EventUserResponse> getPendingEvents(Long userId) {
+        User user = userService.getUserById(userId);
+        return eventUserRepository.findByUserAndStatus(user, false).stream()
+                .map(EventUserResponse::fromEventUser)
+                .collect(Collectors.toList());
+    }
+
+    // Get all registrations for an event (for host management)
+    public List<EventUserResponse> getEventParticipants(Long eventId) {
+        Event event = eventService.getEventById(eventId);
+        return eventUserRepository.findByEvent(event).stream()
+                .map(EventUserResponse::fromEventUser)
+                .collect(Collectors.toList());
+    }
+
+    // Get pending participants for an event (for host to approve)
+    public List<EventUserResponse> getPendingParticipants(Long eventId) {
+        Event event = eventService.getEventById(eventId);
+        return eventUserRepository.findByEventAndStatus(event, false).stream()
+                .map(EventUserResponse::fromEventUser)
+                .collect(Collectors.toList());
+    }
+
+    // Get accepted participants for an event
+    public List<EventUserResponse> getAcceptedParticipants(Long eventId) {
+        Event event = eventService.getEventById(eventId);
+        return eventUserRepository.findByEventAndStatus(event, true).stream()
+                .map(EventUserResponse::fromEventUser)
+                .collect(Collectors.toList());
+    }
+
+    // Get user's registration status for a specific event
+    public EventUserResponse getUserEventStatus(Long userId, Long eventId) {
+        User user = userService.getUserById(userId);
+        Event event = eventService.getEventById(eventId);
+        
+        return eventUserRepository.findByUserAndEvent(user, event)
+                .map(EventUserResponse::fromEventUser)
+                .orElse(null);
     }
 }
