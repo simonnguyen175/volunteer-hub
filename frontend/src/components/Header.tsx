@@ -111,16 +111,13 @@ export default function Header() {
 		if (!auth.user?.id) return;
 
 		try {
-			const [notifResult, countResult] = await Promise.all([
-				RestClient.getUserNotifications(auth.user.id),
-				RestClient.getUnreadNotificationCount(auth.user.id),
-			]);
+			const notifResult = await RestClient.getUserNotifications(auth.user.id);
 
 			if (notifResult.data) {
 				setNotifications(notifResult.data);
-			}
-			if (countResult.data !== undefined) {
-				setUnreadCount(countResult.data);
+				// Count unread notifications manually
+				const unreadNotifications = notifResult.data.filter((n: any) => !n.read);
+				setUnreadCount(unreadNotifications.length);
 			}
 		} catch (err) {
 			console.error("Failed to fetch notifications:", err);
@@ -151,10 +148,9 @@ export default function Header() {
 
 	const handleMarkAsRead = async (notificationId: number) => {
 		try {
-			await RestClient.markNotificationAsRead(notificationId);
+			const result = await RestClient.markNotificationAsRead(notificationId);
 			fetchNotifications();
 		} catch (err) {
-			console.error("Failed to mark notification as read:", err);
 		}
 	};
 
@@ -248,12 +244,13 @@ export default function Header() {
 										</h3>
 									</div>
 									<div className="divide-y divide-gray-100">
-										{notifications.length === 0 ? (
+										{notifications.filter(notif => !notif.read).length === 0 ? (
 											<div className="px-4 py-8 text-center text-gray-500 text-sm font-(family-name:--font-dmsans)">
-												No notifications yet
+												No new notifications...
 											</div>
 										) : (
 											notifications
+												.filter(notif => !notif.read)
 												.slice(0, 10)
 												.map((notif) => (
 													<div
@@ -263,8 +260,8 @@ export default function Header() {
 																? "bg-[#747e59]/10 border-l-4 border-[#747e59]"
 																: ""
 														}`}
-														onClick={() => {
-															handleMarkAsRead(
+													onClick={async () => {
+														await handleMarkAsRead(
 																notif.id,
 															);
 														if (notif.link)

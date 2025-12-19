@@ -288,11 +288,19 @@ export class RestClient {
 
 	static async markNotificationAsRead(notificationId: number): Promise<any> {
 		const url = `${RestClient.baseUrl}/notifications/read/${notificationId}`;
+		const headers = this.getHeaders(true);
+		
 
 		const result = await fetch(url, {
 			method: "PUT",
-			headers: this.getHeaders(true),
+			headers: headers,
 		});
+
+		if (!result.ok) {
+			const error = await result.text();
+			console.error('Failed to mark notification as read:', error);
+			throw new Error(`Failed to mark notification as read: ${result.status}`);
+		}
 
 		return await result.json();
 	}
