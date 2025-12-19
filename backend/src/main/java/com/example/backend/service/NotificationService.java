@@ -49,10 +49,6 @@ public class NotificationService {
         return notificationRepo.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    public Long getUnreadNotifications(Long userId) {
-        return notificationRepo.countByUserIdAndIsReadFalse(userId);
-    }
-
     public void markAsRead(Long notificationId) {
         Notification noti =
                 notificationRepo
