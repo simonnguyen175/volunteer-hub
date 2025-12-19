@@ -24,13 +24,6 @@ public class NotificationController {
         );
     }
 
-    @GetMapping("/count/{userId}")
-    public ResponseEntity<ApiResponse> getUnreadCount(@PathVariable Long userId) {
-        return ResponseEntity.ok(
-                new ApiResponse("Success", notificationService.getUnreadNotifications(userId))
-        );
-    }
-
     @PutMapping("/read/{notificationId}")
     public ResponseEntity<ApiResponse> markAsRead(@PathVariable Long notificationId) {
         notificationService.markAsRead(notificationId);
