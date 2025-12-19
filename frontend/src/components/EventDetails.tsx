@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router";
+import { useParams, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { IconArrowLeft, IconUsers, IconCalendar, IconClock } from "@tabler/icons-react";
 import { createClient } from "@supabase/supabase-js";
@@ -244,23 +244,23 @@ export default function EventDetails() {
 					{/* Main Content - Tabs */}
 					<div className="lg:col-span-2 space-y-6">
 						{/* Tab Navigation */}
-						<div className="flex gap-4 border-b border-gray-200">
+						<div className="flex gap-6 border-b-2 border-gray-200">
 							<button
 								onClick={() => setActiveTab("details")}
-								className={`pb-3 px-4 font-semibold transition-colors relative ${
+								className={`pb-3 px-2 font-(family-name:--font-dmsans) font-bold transition-all relative ${
 									activeTab === "details"
-										? "text-[#556b2f] border-b-2 border-[#556b2f]"
-										: "text-gray-500 hover:text-gray-700"
+										? "text-[#556b2f] border-b-3 border-[#556b2f] -mb-0.5"
+										: "text-gray-500 hover:text-[#556b2f]"
 								}`}
 							>
 								Details
 							</button>
 							<button
 								onClick={() => setActiveTab("discussion")}
-								className={`pb-3 px-4 font-semibold transition-colors relative ${
+								className={`pb-3 px-2 font-(family-name:--font-dmsans) font-bold transition-all relative ${
 									activeTab === "discussion"
-										? "text-[#556b2f] border-b-2 border-[#556b2f]"
-										: "text-gray-500 hover:text-gray-700"
+										? "text-[#556b2f] border-b-3 border-[#556b2f] -mb-0.5"
+										: "text-gray-500 hover:text-[#556b2f]"
 								}`}
 							>
 								Discussion
@@ -285,23 +285,18 @@ export default function EventDetails() {
 					<div className="lg:col-span-1">
 						<div className="sticky top-24 space-y-6">
 							{/* Event Info Card */}
-							<div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
-								<div className="space-y-3">
-									<div className="flex justify-between">
-										<span className="text-gray-600">Type</span>
-										<span className="font-semibold text-gray-900">
+							<div className="bg-gradient-to-br from-[#556b2f]/5 to-[#747e59]/5 p-6 rounded-xl border border-[#556b2f]/20 shadow-sm">
+								<h3 className="font-(family-name:--font-dmsans) font-bold text-[#556b2f] text-sm uppercase tracking-wide mb-4">Event Details</h3>
+								<div className="space-y-4">
+									<div className="flex justify-between items-center">
+										<span className="text-gray-600 font-(family-name:--font-dmsans) text-sm">Type</span>
+										<span className="font-bold text-gray-900 font-(family-name:--font-dmsans) bg-white px-3 py-1 rounded-lg text-sm">
 											{event.type}
 										</span>
 									</div>
-									<div className="flex justify-between">
-										<span className="text-gray-600">Status</span>
-										<span className="font-semibold text-[#556b2f]">
-											{event.status}
-										</span>
-									</div>
-									<div className="flex justify-between">
-										<span className="text-gray-600">End Time</span>
-										<span className="font-semibold text-gray-900">
+									<div className="flex justify-between items-center">
+										<span className="text-gray-600 font-(family-name:--font-dmsans) text-sm">End Time</span>
+										<span className="font-bold text-gray-900 font-(family-name:--font-dmsans) bg-white px-3 py-1 rounded-lg text-sm">
 											{formatDateTime(event.endTime).time}
 										</span>
 									</div>
@@ -313,14 +308,20 @@ export default function EventDetails() {
 								<button 
 									onClick={handleJoinEvent}
 									disabled={isJoining || !user || registrationStatus.isRegistered}
-									className="w-full bg-[#556b2f] text-white text-lg font-semibold py-4 rounded-xl hover:bg-[#6d8c3a] transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+									className={`w-full font-(family-name:--font-dmsans) text-white text-lg font-bold py-4 rounded-xl transition-all shadow-md hover:shadow-lg disabled:cursor-not-allowed ${
+										registrationStatus.isAccepted 
+											? 'bg-[#747e59] hover:bg-[#747e59]'
+											: registrationStatus.isPending
+											? 'bg-[#8e9c78] hover:bg-[#8e9c78]'
+											: 'bg-[#556b2f] hover:bg-[#6d8c3a]'
+									}`}
 								>
 									{isJoining 
 										? "Joining..." 
 										: registrationStatus.isAccepted 
-										? "Already Joined ✓" 
+										? "✓ Already Joined" 
 										: registrationStatus.isPending 
-										? "Pending Approval..." 
+										? "⏳ Pending Approval" 
 										: user 
 										? "Join Event" 
 										: "Login to Join"}
@@ -328,18 +329,18 @@ export default function EventDetails() {
 							</div>
 
 							{/* Share Section */}
-							<div className="bg-gray-50 p-6 rounded-xl border border-gray-200">
-								<h4 className="font-semibold mb-3 text-gray-900">
+							<div className="bg-gradient-to-br from-[#556b2f]/5 to-[#747e59]/5 p-6 rounded-xl border border-[#556b2f]/20">
+								<h4 className="font-(family-name:--font-dmsans) font-bold text-[#556b2f] text-sm uppercase tracking-wide mb-4">
 									Share this event
 								</h4>
 								<div className="flex gap-2">
-									<button className="flex-1 bg-white border border-gray-300 py-2 px-3 rounded-lg text-sm hover:bg-gray-100 transition-colors">
+									<button className="flex-1 bg-white border border-[#556b2f]/30 py-2 px-3 rounded-lg text-xs font-(family-name:--font-dmsans) font-semibold text-gray-700 hover:bg-[#556b2f]/10 hover:border-[#556b2f] transition-all">
 										Facebook
 									</button>
-									<button className="flex-1 bg-white border border-gray-300 py-2 px-3 rounded-lg text-sm hover:bg-gray-100 transition-colors">
+									<button className="flex-1 bg-white border border-[#556b2f]/30 py-2 px-3 rounded-lg text-xs font-(family-name:--font-dmsans) font-semibold text-gray-700 hover:bg-[#556b2f]/10 hover:border-[#556b2f] transition-all">
 										Twitter
 									</button>
-									<button className="flex-1 bg-white border border-gray-300 py-2 px-3 rounded-lg text-sm hover:bg-gray-100 transition-colors">
+									<button className="flex-1 bg-white border border-[#556b2f]/30 py-2 px-3 rounded-lg text-xs font-(family-name:--font-dmsans) font-semibold text-gray-700 hover:bg-[#556b2f]/10 hover:border-[#556b2f] transition-all">
 										Copy Link
 									</button>
 								</div>

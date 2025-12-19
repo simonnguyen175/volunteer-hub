@@ -1,6 +1,7 @@
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { RestClient } from "../api/RestClient";
 import { useState } from "react";
+import type { FormEvent } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "./ui/Toast";
 
@@ -14,6 +15,34 @@ export default function Login({ setLoginOpen }: Props) {
 	const auth = useAuth();
 	const navigate = useNavigate();
 	const { showToast } = useToast();
+
+	const handleLogin = (e?: FormEvent) => {
+		e?.preventDefault();
+		RestClient.handleLogin(username, password)
+			.then((result) => {
+				if (result.data && result.data.user) {
+					const userData = result.data.user;
+					auth.login(username, result.data.token, userData);
+					setLoginOpen(false);
+					
+					// Check if admin and redirect to dashboard
+					const rawRole = userData.role;
+					const roleName = typeof rawRole === "string" 
+						? rawRole 
+						: (rawRole as { name?: string } | undefined)?.name ?? "";
+					
+					if (roleName.toUpperCase() === "ADMIN") {
+						navigate("/admin");
+					}
+				} else {
+					showToast("Login failed: " + (result.message || "Unknown error"), "error");
+				}
+			})
+			.catch((err) => {
+				console.error("Login error:", err);
+				showToast("Login failed", "error");
+			});
+	};
 
 	return (
 		<>
@@ -32,7 +61,7 @@ export default function Login({ setLoginOpen }: Props) {
 					Welcome back
 				</p>
 
-				<form className="flex flex-col gap-3 mt-4">
+				<form onSubmit={handleLogin} className="flex flex-col gap-3 mt-4">
 					<input
 						type="text"
 						placeholder="Username or Email"
@@ -51,6 +80,7 @@ export default function Login({ setLoginOpen }: Props) {
 							onChange={(e) => {
 								setPassword(e.target.value);
 							}}
+							value={password}
 						/>
 						<Link
 							to="/forgor"
@@ -59,39 +89,14 @@ export default function Login({ setLoginOpen }: Props) {
 							Forgot?
 						</Link>
 					</div>
+				
+					<button
+						type="submit"
+						className="w-full h-12 bg-[#747e59] text-white text-xl cursor-pointer mt-8 p-2 rounded-2xl border-[none] hover:opacity-90"
+					>
+						Log in
+					</button>
 				</form>
-
-				<button
-					className="w-full h-12 bg-[#747e59] text-white text-xl cursor-pointer mt-8 p-2 rounded-2xl border-[none] hover:opacity-90"
-					onClick={() => {
-						RestClient.handleLogin(username, password)
-							.then((result) => {
-								if (result.data && result.data.user) {
-									const userData = result.data.user;
-									auth.login(username, result.data.token, userData);
-									setLoginOpen(false);
-									
-									// Check if admin and redirect to dashboard
-									const rawRole = userData.role;
-									const roleName = typeof rawRole === "string" 
-										? rawRole 
-										: (rawRole as { name?: string } | undefined)?.name ?? "";
-									
-									if (roleName.toUpperCase() === "ADMIN") {
-										navigate("/admin");
-									}
-								} else {
-									showToast("Login failed: " + (result.message || "Unknown error"), "error");
-								}
-							})
-							.catch((err) => {
-								console.error("Login error:", err);
-								showToast("Login failed", "error");
-							});
-					}}
-				>
-					Log in
-				</button>
 
 				<p className="text-base text-[#747E59] mt-6">
 					Don't have an account? &nbsp;

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
 import { IconSearch, IconGridDots, IconList, IconFilter, IconArrowsSort, IconPlus } from "@tabler/icons-react";

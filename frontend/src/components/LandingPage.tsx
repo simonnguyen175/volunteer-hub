@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { IconArrowUpRight, IconHeart, IconUsers, IconCalendar } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import useEmblaCarousel from "embla-carousel-react";
 import {
 	Card,

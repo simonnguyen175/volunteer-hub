@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink, Outlet, useNavigate } from "react-router";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { IconLayoutDashboard, IconCalendarEvent, IconUsers, IconLogout, IconMenu2 } from "@tabler/icons-react";
 import logo from "../../assets/VolunteerHub.png";
 import { useAuth } from "../../contexts/AuthContext";

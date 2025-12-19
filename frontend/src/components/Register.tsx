@@ -1,6 +1,6 @@
 import { IconBrandGoogle, IconBrandFacebook } from "@tabler/icons-react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { RestClient } from "../api/RestClient";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "./ui/Toast";
@@ -41,11 +41,13 @@ export default function Register({ setRegisterOpen }: Props) {
 			formData.role
 		)
 			.then((result) => {
-				if (result.data && result.data.user) {
-					// Registration successful, log them in
-					auth.login(result.data.user.username, result.data.token, result.data.user);
-					showToast("Registration successful! Welcome to VolunteerHub!", "success");
+				if (result.data) {
+					// Registration successful - redirect to login
+					showToast("Registration successful! Please log in.", "success");
 					setRegisterOpen(false);
+					
+					// Redirect to login modal
+					navigate("/?login=true");
 				} else {
 					// Handle error
 					console.error("Registration failed:", result);
