@@ -17,6 +17,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -93,6 +94,9 @@ public class NotificationService {
         PushSubscription entity = new PushSubscription();
         entity.setUserId(userId);
         entity.setEndpoint(endpoint);
+        if ( subscriptionRepo.existsByUserIdAndEndpoint(userId, endpoint)) {
+            return;
+        }
         entity.setP256dh(request.getP256dh());
         entity.setAuth(request.getAuth());
         subscriptionRepo.save(entity);
