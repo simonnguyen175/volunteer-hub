@@ -26,6 +26,10 @@ public class EventUserService {
         User user = userService.getUserById(userId);
         Event event = eventService.getEventById(eventId);
 
+        if (eventUserRepository.existsByUserIdAndEventId(userId, eventId)) {
+            return null; // User has already registered for this event
+        }
+
         eventUser.setUser(user);
         eventUser.setEvent(event);
         eventUser.setStatus(false);
@@ -64,6 +68,30 @@ public class EventUserService {
             return eventUser;
         }
         return null;
+    }
+
+    public EventUser leaveEvent(Long userId, Long eventId) {
+        User user = userService.getUserById(userId);
+        Event event = eventService.getEventById(eventId);
+        if (event.getStartTime().isBefore(java.time.LocalDateTime.now())) {
+            return null;
+        }
+
+        System.out.println(user.getUsername() + " " + event.getTitle());
+
+        EventUser eventUser = eventUserRepository.findByUserAndEvent(user, event).orElse(null);
+        if (eventUser != null) {
+            eventUserRepository.delete(eventUser);
+            return eventUser;
+        }
+        return null;
+    }
+
+    public List<EventUserResponse> getUserbyEvent(Long eventId) {
+        Event event = eventService.getEventById(eventId);
+        return eventUserRepository.findByEvent(event).stream()
+                .map(EventUserResponse::fromEventUser)
+                .collect(Collectors.toList());
     }
 
     // Get events user has joined (accepted)

@@ -28,4 +28,6 @@ public interface EventUserRepository extends JpaRepository<EventUser, Long> {
     
     // Find registration by user and event
     Optional<EventUser> findByUserAndEvent(User user, Event event);
+
+    boolean existsByUserIdAndEventId(Long userId, Long eventId);
 }

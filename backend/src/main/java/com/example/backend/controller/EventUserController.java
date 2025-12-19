@@ -46,6 +46,25 @@ public class EventUserController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @DeleteMapping("/leave/")
+    public ResponseEntity<ApiResponse> leaveEvent(
+            @RequestParam(value="user_id", required = false) Long userId,
+            @RequestParam(value="event_id", required = false) Long eventId){
+        ApiResponse response =
+                new ApiResponse(
+                        "User has left the event successfully",
+                        eventUserService.leaveEvent(userId, eventId));
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/{eventId}")
+    public ResponseEntity<ApiResponse> getUserbyEvent(@PathVariable Long eventId) {
+        ApiResponse response =
+                new ApiResponse("Users related to current event retrieved successfully",
+                        eventUserService.getUserbyEvent(eventId));
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
     // Get events that user has joined (accepted)
     @GetMapping("/joined/{userId}")
     public ResponseEntity<ApiResponse> getJoinedEvents(@PathVariable Long userId) {
