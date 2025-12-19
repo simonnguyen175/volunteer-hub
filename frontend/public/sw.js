@@ -1,5 +1,12 @@
 console.log('Service Worker: Script loaded');
 
+// Helper function to strip HTML tags from text
+function stripHtmlTags(html) {
+    if (!html) return '';
+    // Remove HTML tags but preserve the text content
+    return html.replace(/<[^>]*>/g, '');
+}
+
 self.addEventListener('install', function(event) {
     console.log('Service Worker: Installing...');
     self.skipWaiting();
@@ -16,6 +23,7 @@ self.addEventListener('push', function(event) {
     let notificationData = {
         title: 'VolunteerHub',
         body: 'You have a new notification',
+        bodyWithHtml: 'You have a new notification', // Keep original HTML for frontend
         url: '/'
     };
 
@@ -24,9 +32,11 @@ self.addEventListener('push', function(event) {
             const data = event.data.json();
             console.log('📄 Push data:', data);
 
+            const bodyWithHtml = data.body || 'You have a new notification';
             notificationData = {
                 title: data.title || 'VolunteerHub',
-                body: data.body || 'You have a new notification',
+                body: stripHtmlTags(bodyWithHtml), // Strip HTML for browser notification
+                bodyWithHtml: bodyWithHtml, // Keep original HTML for frontend
                 url: data.url || '/'
             };
         } catch (error) {
@@ -40,13 +50,17 @@ self.addEventListener('push', function(event) {
             clients.forEach(function(client) {
                 client.postMessage({
                     type: 'NEW_NOTIFICATION',
-                    data: notificationData
+                    data: {
+                        title: notificationData.title,
+                        body: notificationData.bodyWithHtml, // Send HTML version to frontend
+                        url: notificationData.url
+                    }
                 });
             });
 
-            // Show system notification
+            // Show system notification with stripped HTML
             return self.registration.showNotification(notificationData.title, {
-                body: notificationData.body,
+                body: notificationData.body, // Use stripped version for browser notification
                 icon: '/volunteer-hub-icon.png',
                 badge: '/volunteer-hub-badge.png',
                 data: { url: notificationData.url },
