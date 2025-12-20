@@ -79,8 +79,8 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 		fetchPosts();
 	}, [fetchPosts]);
 
-	const handleSubmitPost = async (e: React.FormEvent) => {
-		e.preventDefault();
+	const handleSubmitPost = async (e?: React.FormEvent) => {
+		if (e) e.preventDefault();
 		
 		if (!newPostContent.trim()) {
 			showToast("Post content cannot be empty!", "warning");
@@ -264,6 +264,12 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 						...prev,
 						[actualParentId]: [...(prev[actualParentId] || []), result.data]
 					}));
+					// Auto-expand replies to show the new reply instantly
+					setExpandedReplies(prev => {
+						const newSet = new Set(prev);
+						newSet.add(actualParentId);
+						return newSet;
+					});
 				} else {
 					// Add to comments
 					setPostComments(prev => ({
@@ -371,6 +377,12 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 						<input
 							type="text"
 							value={replyContent}
+							onKeyDown={(e) => {
+								if (e.key === 'Enter') {
+									e.preventDefault();
+									handleSubmitComment(postId, comment.id);
+								}
+							}}
 							onChange={(e) => setReplyContent(e.target.value)}
 							placeholder="Write a reply..."
 							className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f]"
@@ -397,9 +409,9 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 				))}
 			</div>
 		</div>
-	);
+);
 
-	if (loading) {
+if (loading) {
 		return (
 			<div className="flex justify-center items-center py-12">
 				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#556b2f]"></div>
@@ -420,6 +432,12 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 							<textarea
 								value={newPostContent}
 								onChange={(e) => setNewPostContent(e.target.value)}
+								onKeyDown={(e) => {
+									if (e.key === 'Enter' && !e.shiftKey) {
+										e.preventDefault();
+										void handleSubmitPost();
+									}
+								}}
 								placeholder="Share your thoughts, questions, or updates about this event..."
 								className="w-full border border-gray-300 rounded-lg p-3 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-[#556b2f] focus:border-transparent resize-none font-(family-name:--font-dmsans)"
 								required
@@ -544,6 +562,12 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 														<input
 															type="text"
 															value={replyingTo?.postId === post.id && !replyingTo?.commentId ? replyContent : ""}
+															onKeyDown={(e) => {
+																if (e.key === 'Enter') {
+																	e.preventDefault();
+																	handleSubmitComment(post.id);
+																}
+															}}
 															onChange={(e) => {
 																setReplyContent(e.target.value);
 																if (!replyingTo || replyingTo.postId !== post.id) {

@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { IconArrowLeft, IconUsers, IconCalendar, IconClock } from "@tabler/icons-react";
 import { createClient } from "@supabase/supabase-js";
@@ -45,11 +45,17 @@ export default function EventDetails() {
 	const { eventId } = useParams();
 	const { user } = useAuth();
 	const { showToast } = useToast();
+	const navigate = useNavigate();
+	const location = useLocation();
 	const [event, setEvent] = useState<Event | null>(null);
 	const [hostName, setHostName] = useState<string>("Loading...");
 	const [loading, setLoading] = useState(true);
 	const [fullImageUrl, setFullImageUrl] = useState("");
-	const [activeTab, setActiveTab] = useState<"details" | "discussion">("details");
+	
+	// Initialize tab from URL query params
+	const queryParams = new URLSearchParams(location.search);
+	const tabFromUrl = queryParams.get('tab') as "details" | "discussion" | null;
+	const [activeTab, setActiveTab] = useState<"details" | "discussion">(tabFromUrl || "details");
 	const [isJoining, setIsJoining] = useState(false);
 	const [registrationStatus, setRegistrationStatus] = useState<{
 		isRegistered: boolean;
@@ -266,24 +272,30 @@ export default function EventDetails() {
 						{/* Tab Navigation */}
 						<div className="flex gap-6 border-b-2 border-gray-200">
 							<button
-								onClick={() => setActiveTab("details")}
+							onClick={() => {
+								setActiveTab("details");
+								navigate(`/events/${eventId}?tab=details`, { replace: true });
+							}}
+							className={`pb-3 px-2 font-(family-name:--font-dmsans) font-bold transition-all relative ${
+								activeTab === "details"
+									? "text-[#556b2f] border-b-3 border-[#556b2f] -mb-0.5"
+									: "text-gray-500 hover:text-[#556b2f]"
+							}`}
+						>
+							Details
+						</button>
+						{registrationStatus.isAccepted && (
+							<button
+								onClick={() => {
+									setActiveTab("discussion");
+									navigate(`/events/${eventId}?tab=discussion`, { replace: true });
+								}}
 								className={`pb-3 px-2 font-(family-name:--font-dmsans) font-bold transition-all relative ${
-									activeTab === "details"
+									activeTab === "discussion"
 										? "text-[#556b2f] border-b-3 border-[#556b2f] -mb-0.5"
 										: "text-gray-500 hover:text-[#556b2f]"
 								}`}
 							>
-								Details
-							</button>
-							{registrationStatus.isAccepted && (
-								<button
-									onClick={() => setActiveTab("discussion")}
-									className={`pb-3 px-2 font-(family-name:--font-dmsans) font-bold transition-all relative ${
-										activeTab === "discussion"
-											? "text-[#556b2f] border-b-3 border-[#556b2f] -mb-0.5"
-											: "text-gray-500 hover:text-[#556b2f]"
-									}`}
-								>
 									Discussion
 								</button>
 							)}

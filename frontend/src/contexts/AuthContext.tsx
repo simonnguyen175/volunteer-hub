@@ -80,7 +80,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setIsAuthenticated(false);
 
+        // Clear storage and force a full page reload so the app resets (like F5)
         localStorage.clear();
+        // Use reload to ensure all in-memory state (context, caches) is reset
+        window.location.reload();
     };
 
     // Register service worker on mount (for existing sessions)
