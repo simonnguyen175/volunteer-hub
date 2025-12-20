@@ -6,26 +6,26 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "posts")
 @Data
-@Table(name="notifications")
-public class Notification {
+public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id", referencedColumnName = "id")
+    private Event event;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
+    private String imageUrl;
 
-    @Column(nullable = true)
-    private String link;
+    private Integer likesCount;
+    private Integer commentsCount;
 
-    @Column(nullable = false)
-    private boolean isRead = false;
-
-    @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 }
