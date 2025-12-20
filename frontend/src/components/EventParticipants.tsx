@@ -271,6 +271,21 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 											Accepted
 										</span>
 									)}
+									{/* Remove button for hosts (only before event ends) */}
+									{isHost && !isPastEvent && (
+										<button
+											onClick={() => {
+												if (confirm(`Remove ${p.username} from this event?`)) {
+													handleDeny(p.id);
+												}
+											}}
+											disabled={actionLoading === p.id}
+											className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
+											title="Remove participant"
+										>
+											<IconX size={16} />
+										</button>
+									)}
 								</div>
 							</div>
 						))
