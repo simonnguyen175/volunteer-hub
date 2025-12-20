@@ -283,7 +283,9 @@ export default function AdminEvents() {
 						<div 
 							key={event.id} 
 							className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300 group"
-							style={{ animationDelay: `${index * 50}ms` }}
+							style={{ 
+						animation: `fadeInUp 0.4s ease-out ${index * 50}ms both`,
+					}}
 						>
 							<div className="flex">
 								{/* Event Image */}
@@ -376,6 +378,20 @@ export default function AdminEvents() {
 					))}
 				</div>
 			)}
+
+			{/* Animation keyframes */}
+			<style>{`
+				@keyframes fadeInUp {
+					from {
+						opacity: 0;
+						transform: translateY(20px);
+					}
+					to {
+						opacity: 1;
+						transform: translateY(0);
+					}
+				}
+			`}</style>
 		</div>
 	);
 }

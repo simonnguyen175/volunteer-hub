@@ -336,6 +336,29 @@ export class RestClient {
 		return await result.json();
 	}
 
+	static async markAllNotificationsAsRead(userId: number): Promise<any> {
+		// First get all notifications, then mark unread ones as read
+		const notifications = await this.getUserNotifications(userId);
+		
+		if (!notifications.data) {
+			return { success: false, message: "Failed to get notifications" };
+		}
+		
+		const unreadNotifications = notifications.data.filter((n: any) => !n.read);
+		
+		// Mark each unread notification as read
+		const promises = unreadNotifications.map((notif: any) => 
+			this.markNotificationAsRead(notif.id).catch(err => {
+				console.error(`Failed to mark notification ${notif.id} as read:`, err);
+				return null;
+			})
+		);
+		
+		await Promise.all(promises);
+		
+		return { success: true, markedCount: unreadNotifications.length };
+	}
+
 	static async subscribeToPushNotifications(userId: number, subscription: any): Promise<any> {
 		const url = `${RestClient.baseUrl}/notifications/subscribe/${userId}`;
 

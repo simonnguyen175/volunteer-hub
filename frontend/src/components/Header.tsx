@@ -154,6 +154,17 @@ export default function Header() {
 		}
 	};
 
+	const handleMarkAllAsRead = async () => {
+		if (!auth.user?.id) return;
+		
+		try {
+			await RestClient.markAllNotificationsAsRead(auth.user.id);
+			fetchNotifications();
+		} catch (err) {
+			console.error("Failed to mark all notifications as read:", err);
+		}
+	};
+
 	// Close notification menu when clicking outside
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -238,10 +249,18 @@ export default function Header() {
 							{/* Notification Dropdown */}
 							{isNotificationOpen && (
 								<div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 z-[1001] max-h-96 overflow-y-auto">
-									<div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-[#556b2f]/5 to-[#747e59]/5">
+									<div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-[#556b2f]/5 to-[#747e59]/5 flex items-center justify-between">
 										<h3 className="font-bold text-[#556b2f] text-base font-(family-name:--font-dmsans)">
 											Notifications
 										</h3>
+										{unreadCount > 0 && (
+											<button
+												onClick={handleMarkAllAsRead}
+												className="text-xs text-[#556b2f] hover:text-[#6d8c3a] font-semibold font-(family-name:--font-dmsans) hover:underline transition-colors"
+											>
+												Mark all as read
+											</button>
+										)}
 									</div>
 									<div className="divide-y divide-gray-100">
 										{notifications.filter(notif => !notif.read).length === 0 ? (

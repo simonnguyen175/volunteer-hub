@@ -442,11 +442,11 @@ export default function Events() {
 							</h2>
 							{viewMode === "grid" ? (
 								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-									{myHostedEvents.map((event) => {
+									{myHostedEvents.map((event, index) => {
 										const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
 										const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
 										return (
-											<Link key={event.id} to={`/events/${event.id}`}>
+											<Link key={event.id} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
 												<Card className="group relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer ring-2 ring-[#556b2f]/30">
 													<div className="absolute top-2 right-2 z-20 px-2 py-1 bg-[#556b2f] text-white text-xs font-semibold rounded-lg">
 														Hosted by you
@@ -478,11 +478,11 @@ export default function Events() {
 								</div>
 							) : (
 								<div className="flex flex-col gap-4">
-									{myHostedEvents.map((event) => {
+									{myHostedEvents.map((event, index) => {
 										const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
 										const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
 										return (
-											<Link key={event.id} to={`/events/${event.id}`}>
+											<Link key={event.id} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
 												<Card className="group relative overflow-hidden hover:shadow-lg transition-all cursor-pointer ring-2 ring-[#556b2f]/30">
 													<div className="flex flex-row">
 														<div className="w-64 h-40 shrink-0 overflow-hidden relative">
@@ -532,11 +532,11 @@ export default function Events() {
 
 				{viewMode === "grid" ? (
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{otherEvents.map((event) => {
+						{otherEvents.map((event, index) => {
 							const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
 							const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
 							return (
-								<Link key={event.id} to={`/events/${event.id}`}>
+								<Link key={event.id} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
 											<Card className="group relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
 												<div className="aspect-video w-full overflow-hidden">
 														<img
@@ -574,11 +574,11 @@ export default function Events() {
 					</div>
 				) : (
 					<div className="flex flex-col gap-4">
-						{otherEvents.map((event) => {
+						{otherEvents.map((event, index) => {
 							const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
 							const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
 							return (
-								<Link key={event.id} to={`/events/${event.id}`}>
+								<Link key={event.id} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
 									<Card className="group relative overflow-hidden hover:shadow-lg transition-all cursor-pointer">
 										<div className="flex flex-row">
 											<div className="w-64 h-40 shrink-0 overflow-hidden">
@@ -630,6 +630,20 @@ export default function Events() {
 				onClose={() => setIsCreateModalOpen(false)}
 				onEventCreated={fetchEvents}
 			/>
+
+			{/* Animation keyframes */}
+			<style>{`
+				@keyframes fadeInUp {
+					from {
+						opacity: 0;
+						transform: translateY(20px);
+					}
+					to {
+						opacity: 1;
+						transform: translateY(0);
+					}
+				}
+			`}</style>
 		</div>
 	);
 }
