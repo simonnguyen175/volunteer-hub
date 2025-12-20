@@ -7,6 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "./ui/Toast";
 import EventDescription from "./EventDescription";
 import EventDiscussion from "./EventDiscussion";
+import EventParticipants from "./EventParticipants";
 
 const supabase = createClient(
 	import.meta.env.VITE_SUPABASE_URL,
@@ -54,8 +55,13 @@ export default function EventDetails() {
 	
 	// Initialize tab from URL query params
 	const queryParams = new URLSearchParams(location.search);
-	const tabFromUrl = queryParams.get('tab') as "details" | "discussion" | null;
-	const [activeTab, setActiveTab] = useState<"details" | "discussion">(tabFromUrl || "details");
+	const tabFromUrl = queryParams.get('tab') as "details" | "discussion" | "participants" | null;
+	const [activeTab, setActiveTab] = useState<"details" | "discussion" | "participants">(tabFromUrl || "details");
+
+	// Check if user is host of this event
+	const rawRole = user?.role;
+	const roleName = typeof rawRole === "string" ? rawRole : (rawRole as { name?: string } | undefined)?.name ?? "";
+	const isHost = event?.managerId === user?.id || roleName === "ADMIN";
 	const [isJoining, setIsJoining] = useState(false);
 	const [registrationStatus, setRegistrationStatus] = useState<{
 		isRegistered: boolean;
@@ -297,6 +303,22 @@ export default function EventDetails() {
 						>
 							Discussion
 						</button>
+						{isHost && (
+							<button
+								onClick={() => {
+									setActiveTab("participants");
+									navigate(`/events/${eventId}?tab=participants`, { replace: true });
+								}}
+								className={`pb-3 px-2 font-(family-name:--font-dmsans) font-bold transition-all relative flex items-center gap-2 ${
+									activeTab === "participants"
+										? "text-[#556b2f] border-b-3 border-[#556b2f] -mb-0.5"
+										: "text-gray-500 hover:text-[#556b2f]"
+								}`}
+							>
+								<IconUsers size={18} />
+								Participants
+							</button>
+						)}
 						</div>
 
 						{/* Tab Content */}
@@ -307,8 +329,10 @@ export default function EventDetails() {
 									requirements={[]}
 									organizer={hostName}
 								/>
-							) : (
+							) : activeTab === "discussion" ? (
 								<EventDiscussion eventId={event.id.toString()} />
+							) : (
+								<EventParticipants eventId={event.id} isHost={isHost} />
 							)}
 						</div>
 					</div>

@@ -5,12 +5,15 @@ import com.example.backend.dto.EventDetailResponse;
 import com.example.backend.dto.EventUpdateRequest;
 import com.example.backend.model.Event;
 import com.example.backend.model.EventStatus;
+import com.example.backend.model.Post;
 import com.example.backend.model.User;
 import com.example.backend.repository.EventRepository;
+import com.example.backend.repository.PostRepository;
 import com.example.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,6 +22,7 @@ public class EventService {
     @Autowired private EventRepository eventRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private NotificationService notificationService;
+    @Autowired private PostRepository postRepository;
 
     public List<EventDetailResponse> getAllEvents() {
         return eventRepository.findByStatus(EventStatus.ACCEPTED).stream()
@@ -102,13 +106,51 @@ public class EventService {
                                                 "Event with id " + id + " not found"));
 
         existingEvent.setStatus(EventStatus.ACCEPTED);
+        Event savedEvent = eventRepository.save(existingEvent);
+        
+        // Notify the event manager
         notificationService.createAndSendNotification(
                 existingEvent.getManager().getId(),
                 "Sự kiện "
                         + "<b>" + existingEvent.getTitle() + "</b>"
                         + " đã được chấp nhận",
                 "/events/" + existingEvent.getId());
-        return eventRepository.save(existingEvent);
+        
+        // Create a global news feed post to announce the new event
+        createNewEventAnnouncement(savedEvent);
+        
+        return savedEvent;
+    }
+
+    /**
+     * Creates a global news feed post announcing a new event.
+     * This post will appear in everyone's news feed.
+     */
+    private void createNewEventAnnouncement(Event event) {
+        Post post = new Post();
+        post.setEvent(null); // Global post (null event = appears in everyone's feed)
+        post.setUser(event.getManager());
+        
+        // Format the event date
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy 'at' HH:mm");
+        String startDate = event.getStartTime() != null ? event.getStartTime().format(formatter) : "TBD";
+        
+        // Create announcement content
+        String content = "🎉 New Event Announcement!\n\n" +
+                "📢 " + event.getTitle() + "\n\n" +
+                "📍 Location: " + event.getLocation() + "\n" +
+                "📅 Date: " + startDate + "\n\n" +
+                (event.getDescription() != null && event.getDescription().length() > 150 
+                    ? event.getDescription().substring(0, 150) + "..." 
+                    : event.getDescription()) + "\n\n" +
+                "Join us and make a difference! Click to learn more and register.";
+        
+        post.setContent(content);
+        post.setImageUrl(event.getImageUrl()); // Use the event's image
+        post.setLikesCount(0);
+        post.setCommentsCount(0);
+        
+        postRepository.save(post);
     }
 
     public void deleteEvent(Long id) {

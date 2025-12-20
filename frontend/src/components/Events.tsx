@@ -141,6 +141,14 @@ export default function Events() {
 		return 0;
 	});
 
+	// For hosts, split events into "My Events" and "Other Events"
+	const myHostedEvents = isHost && user?.id 
+		? filteredEvents.filter(event => event.managerName === user?.username)
+		: [];
+	const otherEvents = isHost && user?.id
+		? filteredEvents.filter(event => event.managerName !== user?.username)
+		: filteredEvents;
+
 	return (
 		<div className="min-h-screen bg-white">
 
@@ -332,9 +340,110 @@ export default function Events() {
 				</div>
 
 				{/* Events Grid/List Toggle */}
+				{isHost && myHostedEvents.length > 0 && (
+					<>
+						{/* My Hosted Events Section */}
+						<div className="mb-8">
+							<h2 className="font-(family-name:--font-crimson) text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+								<span className="w-2 h-2 bg-[#556b2f] rounded-full"></span>
+								My Hosted Events
+								<span className="ml-2 px-2 py-0.5 bg-[#556b2f]/10 text-[#556b2f] rounded-full text-sm font-medium">
+									{myHostedEvents.length}
+								</span>
+							</h2>
+							{viewMode === "grid" ? (
+								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+									{myHostedEvents.map((event) => {
+										const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
+										const { timeStr: endTimeStr } = formatDateTime(event.endTime);
+										return (
+											<Link key={event.id} to={`/events/${event.id}`}>
+												<Card className="group relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer ring-2 ring-[#556b2f]/30">
+													<div className="absolute top-2 right-2 z-20 px-2 py-1 bg-[#556b2f] text-white text-xs font-semibold rounded-lg">
+														Hosted by you
+													</div>
+													<div className="aspect-video w-full overflow-hidden">
+														<img
+															src={event.fullImageUrl}
+															alt={event.title}
+															className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+														/>
+													</div>
+													<div className="relative">
+														<div className="relative z-10 p-4 bg-white group-hover:bg-transparent transition-colors">
+															<CardHeader className="p-0">
+																<CardTitle className="font-(family-name:--font-crimson) text-xl text-gray-900 group-hover:text-white transition-colors">
+																	{event.title}
+																</CardTitle>
+																<CardDescription className="font-(family-name:--font-dmsans) text-sm text-gray-700 group-hover:text-white/90 transition-colors">
+																	{startDate} • {startTimeStr} - {endTimeStr}
+																</CardDescription>
+															</CardHeader>
+														</div>
+														<div className="absolute bottom-0 left-0 w-full h-[110%] transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
+													</div>
+												</Card>
+											</Link>
+										);
+									})}
+								</div>
+							) : (
+								<div className="flex flex-col gap-4">
+									{myHostedEvents.map((event) => {
+										const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
+										const { timeStr: endTimeStr } = formatDateTime(event.endTime);
+										return (
+											<Link key={event.id} to={`/events/${event.id}`}>
+												<Card className="group relative overflow-hidden hover:shadow-lg transition-all cursor-pointer ring-2 ring-[#556b2f]/30">
+													<div className="flex flex-row">
+														<div className="w-64 h-40 shrink-0 overflow-hidden relative">
+															<div className="absolute top-2 left-2 z-20 px-2 py-1 bg-[#556b2f] text-white text-xs font-semibold rounded-lg">
+																Hosted by you
+															</div>
+															<img
+																src={event.fullImageUrl}
+																alt={event.title}
+																className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+															/>
+														</div>
+														<div className="flex-1 relative h-40">
+															<div className="absolute bottom-0 left-0 w-full p-4 z-10 bg-white group-hover:bg-transparent transition-colors">
+																<CardHeader className="p-0">
+																	<CardTitle className="font-(family-name:--font-crimson) text-2xl text-gray-900 group-hover:text-white transition-colors">
+																		{event.title}
+																	</CardTitle>
+																	<CardDescription className="font-(family-name:--font-dmsans) text-gray-700 group-hover:text-white/90 transition-colors">
+																		{startDate} • {startTimeStr} - {endTimeStr}
+																	</CardDescription>
+																</CardHeader>
+															</div>
+															<div className="absolute bottom-0 left-0 w-full h-[150%] transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
+														</div>
+													</div>
+												</Card>
+											</Link>
+										);
+									})}
+								</div>
+							)}
+						</div>
+
+						{/* Other Events Section Header */}
+						{otherEvents.length > 0 && (
+							<h2 className="font-(family-name:--font-crimson) text-2xl font-bold text-gray-900 mb-4 mt-8 flex items-center gap-2">
+								<span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+								Other Events
+								<span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
+									{otherEvents.length}
+								</span>
+							</h2>
+						)}
+					</>
+				)}
+
 				{viewMode === "grid" ? (
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{filteredEvents.map((event) => {
+						{otherEvents.map((event) => {
 							const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
 							const { timeStr: endTimeStr } = formatDateTime(event.endTime);
 							return (
@@ -376,7 +485,7 @@ export default function Events() {
 					</div>
 				) : (
 					<div className="flex flex-col gap-4">
-						{filteredEvents.map((event) => {
+						{otherEvents.map((event) => {
 							const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
 							const { timeStr: endTimeStr } = formatDateTime(event.endTime);
 							return (
