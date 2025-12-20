@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { IconArrowLeft, IconUsers, IconCalendar, IconClock, IconTrash } from "@tabler/icons-react";
+import { IconArrowLeft, IconUsers, IconCalendar, IconClock, IconTrash, IconEdit } from "@tabler/icons-react";
 import { createClient } from "@supabase/supabase-js";
 import { RestClient } from "../api/RestClient";
 import { useAuth } from "../contexts/AuthContext";
@@ -8,6 +8,7 @@ import { useToast } from "./ui/Toast";
 import EventDescription from "./EventDescription";
 import EventDiscussion from "./EventDiscussion";
 import EventParticipants from "./EventParticipants";
+import CreateEventModal from "./CreateEventModal";
 
 const supabase = createClient(
 	import.meta.env.VITE_SUPABASE_URL,
@@ -70,6 +71,7 @@ export default function EventDetails() {
 		isPending: boolean;
 		isAccepted: boolean;
 	}>({ isRegistered: false, isPending: false, isAccepted: false });
+	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
 	useEffect(() => {
 		const fetchEvent = async () => {
@@ -394,18 +396,27 @@ export default function EventDetails() {
 							</div>
 
 							{/* Action Buttons */}
-							<div className="space-y-3">
-								{/* Show Delete button for event owner */}
-								{isEventOwner ? (
-									<button 
-										onClick={handleDeleteEvent}
-										disabled={isDeleting}
-										className="w-full font-(family-name:--font-dmsans) text-white bg-red-600 hover:bg-red-700 text-lg font-bold py-4 rounded-xl transition-all shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
-									>
-										<IconTrash size={20} />
-										{isDeleting ? "Deleting..." : "Delete Event"}
-									</button>
-								) : (
+				<div className="space-y-3">
+					{/* Show Edit and Delete buttons for event owner */}
+					{isEventOwner ? (
+						<>
+							<button 
+								onClick={() => setIsEditModalOpen(true)}
+								className="w-full font-(family-name:--font-dmsans) text-white bg-[#556b2f] hover:bg-[#6d8c3a] text-lg font-bold py-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+							>
+								<IconEdit size={20} />
+								Edit Event
+							</button>
+							<button 
+								onClick={handleDeleteEvent}
+								disabled={isDeleting}
+								className="w-full font-(family-name:--font-dmsans) text-white bg-red-600 hover:bg-red-700 text-lg font-bold py-4 rounded-xl transition-all shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
+							>
+								<IconTrash size={20} />
+								{isDeleting ? "Deleting..." : "Delete Event"}
+							</button>
+						</>
+					) : (
 									<>
 										{/* Hide join button for past events, show for future and ongoing */}
 										{!isPastEvent && (
@@ -472,6 +483,35 @@ export default function EventDetails() {
 					</div>
 				</div>
 			</section>
+
+			{/* Edit Event Modal */}
+			{event && (
+				<CreateEventModal
+					isOpen={isEditModalOpen}
+					onClose={() => setIsEditModalOpen(false)}
+					onEventCreated={async () => {
+						// Refetch event data
+						const result = await RestClient.getEventById(parseInt(eventId || "0"));
+						if (result.data) {
+							setEvent(result.data);
+							if (result.data.imageUrl) {
+								setFullImageUrl(getSupabaseImageUrl(result.data.imageUrl));
+							}
+						}
+					}}
+					editMode={true}
+					initialEventData={{
+						id: event.id,
+						type: event.type,
+						title: event.title,
+						startTime: event.startTime,
+						endTime: event.endTime,
+						location: event.location,
+						description: event.description,
+						imageUrl: event.imageUrl,
+					}}
+				/>
+			)}
 		</div>
 	);
 }

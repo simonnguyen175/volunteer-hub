@@ -100,6 +100,7 @@ public class EventService {
                                         new IllegalArgumentException(
                                                 "Event with id " + id + " not found"));
 
+        existingEvent.setTitle(request.getTitle());
         existingEvent.setType(request.getType());
         existingEvent.setStartTime(request.getStartTime());
         existingEvent.setEndTime(request.getEndTime());
