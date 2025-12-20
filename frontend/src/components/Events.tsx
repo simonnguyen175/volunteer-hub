@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
 import { IconSearch, IconGridDots, IconList, IconFilter, IconArrowsSort, IconPlus } from "@tabler/icons-react";
@@ -140,17 +140,17 @@ export default function Events() {
 	});
 
 	return (
-		<div className="min-h-screen bg-gray-50">
+		<div className="min-h-screen bg-white">
 
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				<div className="relative top-10 mb-10 flex items-center justify-center">
-					<h1 className="font-(family-name:--font-crimson) font-medium text-[5rem] text-center m-4">
+					<h1 className="font-(family-name:--font-crimson) font-medium text-[5rem] text-center m-4 text-gray-900">
 						Our Events.
 					</h1>
 					{isHost && (
 						<button
 							onClick={() => setIsCreateModalOpen(true)}
-							className="absolute right-0 flex items-center gap-2 px-6 py-3 bg-[#556b2f] text-white rounded-xl font-semibold hover:bg-[#6d8c3a] transition-all shadow-md hover:shadow-lg"
+							className="absolute right-0 flex items-center gap-2 px-6 py-3 bg-[#556b2f] text-white rounded-xl font-semibold font-(family-name:--font-dmsans) hover:bg-[#6d8c3a] transition-all shadow-md hover:shadow-lg"
 						>
 							<IconPlus size={20} />
 							Create Event
@@ -165,10 +165,10 @@ export default function Events() {
 							<IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
 							<input
 								type="text"
-								placeholder="Search"
+								placeholder="Search events..."
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
-								className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-700"
+								className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#556b2f] font-(family-name:--font-dmsans)"
 							/>
 						</div>
 
@@ -177,7 +177,7 @@ export default function Events() {
 								size={22}
 								className={
 									viewMode === "grid"
-										? "text-lime-700"
+										? "text-[#556b2f]"
 										: "text-gray-400"
 								}
 							/>
@@ -186,13 +186,13 @@ export default function Events() {
 								onCheckedChange={(checked) =>
 									setViewMode(checked ? "list" : "grid")
 								}
-								className="data-[state=checked]:bg-lime-700"
+								className="data-[state=checked]:bg-[#556b2f]"
 							/>
 							<IconList
 								size={22}
 								className={
 									viewMode === "list"
-										? "text-lime-700"
+										? "text-[#556b2f]"
 										: "text-gray-400"
 								}
 							/>
@@ -200,70 +200,125 @@ export default function Events() {
 					</div>
 
 					{/* Sort and Filter Controls */}
-					<div className="flex flex-wrap items-center gap-4 p-4 bg-white rounded-lg border border-gray-200">
-						{/* Event Type Filter */}
-						<div className="flex items-center gap-2">
-							<IconFilter className="text-gray-600 w-5 h-5" />
-							<label className="text-sm font-semibold text-gray-700">Type:</label>
-							<select
-								value={typeFilter}
-								onChange={(e) => setTypeFilter(e.target.value)}
-								className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-700"
-							>
-								<option value="">All Types</option>
-								<option value="HELPING">Helping</option>
-								<option value="PLANTING">Planting</option>
-								<option value="MEDICAL">Medical</option>
-								<option value="FUNDRAISER">Fundraiser</option>
-								<option value="FOOD">Food</option>
-							</select>
+					<div className="flex flex-col gap-4 p-6 bg-gradient-to-br from-[#556b2f]/5 to-[#747e59]/5 rounded-xl border border-[#556b2f]/20">
+						{/* Event Type Filter - Visual Badges */}
+						<div className="flex flex-col gap-2">
+							<label className="text-sm font-bold text-[#556b2f] font-(family-name:--font-dmsans) uppercase tracking-wide flex items-center gap-2">
+								<IconFilter className="w-4 h-4" />
+								Filter by Type
+							</label>
+							<div className="flex flex-wrap gap-2">
+								<button
+									onClick={() => setTypeFilter("")}
+									className={`px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
+										typeFilter === ""
+											? "bg-[#556b2f] text-white shadow-md"
+											: "bg-white text-gray-700 border border-gray-300 hover:border-[#556b2f] hover:text-[#556b2f]"
+									}`}
+								>
+									All Types
+								</button>
+								<button
+									onClick={() => setTypeFilter("HELPING")}
+									className={`px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
+										typeFilter === "HELPING"
+											? "bg-[#556b2f] text-white shadow-md"
+											: "bg-white text-gray-700 border border-gray-300 hover:border-[#556b2f] hover:text-[#556b2f]"
+									}`}
+								>
+									Helping
+								</button>
+								<button
+									onClick={() => setTypeFilter("PLANTING")}
+									className={`px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
+										typeFilter === "PLANTING"
+											? "bg-[#556b2f] text-white shadow-md"
+											: "bg-white text-gray-700 border border-gray-300 hover:border-[#556b2f] hover:text-[#556b2f]"
+									}`}
+								>
+									Planting
+								</button>
+								<button
+									onClick={() => setTypeFilter("MEDICAL")}
+									className={`px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
+										typeFilter === "MEDICAL"
+											? "bg-[#556b2f] text-white shadow-md"
+											: "bg-white text-gray-700 border border-gray-300 hover:border-[#556b2f] hover:text-[#556b2f]"
+									}`}
+								>
+									Medical
+								</button>
+								<button
+									onClick={() => setTypeFilter("FUNDRAISER")}
+									className={`px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
+										typeFilter === "FUNDRAISER"
+											? "bg-[#556b2f] text-white shadow-md"
+											: "bg-white text-gray-700 border border-gray-300 hover:border-[#556b2f] hover:text-[#556b2f]"
+									}`}
+								>
+									Fundraiser
+								</button>
+								<button
+									onClick={() => setTypeFilter("FOOD")}
+									className={`px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
+										typeFilter === "FOOD"
+											? "bg-[#556b2f] text-white shadow-md"
+											: "bg-white text-gray-700 border border-gray-300 hover:border-[#556b2f] hover:text-[#556b2f]"
+									}`}
+								>
+									Food
+								</button>
+							</div>
 						</div>
 
-						{/* Sort By */}
-						<div className="flex items-center gap-2">
-							<IconArrowsSort className="text-gray-600 w-5 h-5" />
-							<label className="text-sm font-semibold text-gray-700">Sort by:</label>
-							<select
-								value={sortBy}
-							onChange={(e) => setSortBy(e.target.value as "title" | "startTime" | "endTime")}
-							className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-700"
-						>
-							<option value="title">Name</option>
-								<option value="startTime">Start Time</option>
-								<option value="endTime">End Time</option>
-							</select>
-						</div>
-
-						{/* Date Range Filter */}
-						<div className="flex items-center gap-2 flex-1">
-							<label className="text-sm font-semibold text-gray-700">Date:</label>
+						{/* Sort and Date Controls */}
+						<div className="flex flex-wrap items-center gap-4 pt-4 border-t border-[#556b2f]/20">
+							{/* Sort By */}
 							<div className="flex items-center gap-2">
-								<input
-									type="date"
-									value={startDateFilter}
-									onChange={(e) => setStartDateFilter(e.target.value)}
-									className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-700"
-									placeholder="Start date"
-								/>
-				<span className="text-gray-500">to</span>
-								<input
-									type="date"
-									value={endDateFilter}
-									onChange={(e) => setEndDateFilter(e.target.value)}
-									className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-lime-700"
-									placeholder="End date"
-								/>
-								{(startDateFilter || endDateFilter) && (
-									<button
-										onClick={() => {
-											setStartDateFilter("");
-											setEndDateFilter("");
-										}}
-										className="text-sm text-lime-700 hover:text-lime-800 font-semibold"
-									>
-										Clear
-									</button>
-								)}
+								<IconArrowsSort className="text-[#556b2f] w-5 h-5" />
+								<label className="text-sm font-semibold text-gray-700 font-(family-name:--font-dmsans)">Sort by:</label>
+								<select
+									value={sortBy}
+									onChange={(e) => setSortBy(e.target.value as "title" | "startTime" | "endTime")}
+									className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f] font-(family-name:--font-dmsans)"
+								>
+									<option value="title">Name</option>
+									<option value="startTime">Start Time</option>
+									<option value="endTime">End Time</option>
+								</select>
+							</div>
+
+							{/* Date Range Filter */}
+							<div className="flex items-center gap-2 flex-1">
+								<label className="text-sm font-semibold text-gray-700 font-(family-name:--font-dmsans)">Date:</label>
+								<div className="flex items-center gap-2">
+									<input
+										type="date"
+										value={startDateFilter}
+										onChange={(e) => setStartDateFilter(e.target.value)}
+										className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f] font-(family-name:--font-dmsans)"
+										placeholder="Start date"
+									/>
+									<span className="text-gray-500 font-(family-name:--font-dmsans)">to</span>
+									<input
+										type="date"
+										value={endDateFilter}
+										onChange={(e) => setEndDateFilter(e.target.value)}
+										className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f] font-(family-name:--font-dmsans)"
+										placeholder="End date"
+									/>
+									{(startDateFilter || endDateFilter) && (
+										<button
+											onClick={() => {
+												setStartDateFilter("");
+												setEndDateFilter("");
+											}}
+											className="text-sm text-[#556b2f] hover:text-[#6d8c3a] font-semibold font-(family-name:--font-dmsans)"
+										>
+											Clear
+										</button>
+									)}
+								</div>
 							</div>
 						</div>
 					</div>
@@ -277,24 +332,31 @@ export default function Events() {
 							const { timeStr: endTimeStr } = formatDateTime(event.endTime);
 							return (
 								<Link key={event.id} to={`/events/${event.id}`}>
-									<Card className="overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
-										<div className="aspect-video w-full overflow-hidden">
-											<img
-												src={event.fullImageUrl}
-												alt={event.title}
-												className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-											/>
-										</div>
+											<Card className="group relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
+												<div className="aspect-video w-full overflow-hidden">
+														<img
+															src={event.fullImageUrl}
+															alt={event.title}
+															className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+														/>
+													</div>
 
-										<CardHeader className="">
-											<CardTitle className="font-(family-name:--font-crimson) text-2xl">
-												{event.title}
-											</CardTitle>
-											<CardDescription>
-												{startDate} • {startTimeStr} - {endTimeStr}
-											</CardDescription>
-										</CardHeader>
-									</Card>
+													{/* White info strip remains visible; overlay slides up behind it */}
+													<div className="relative">
+														<div className="relative z-10 p-4 bg-white group-hover:bg-transparent transition-colors">
+															<CardHeader className="p-0">
+																<CardTitle className="font-(family-name:--font-crimson) text-xl text-gray-900 group-hover:text-white transition-colors">
+																	{event.title}
+																</CardTitle>
+																<CardDescription className="font-(family-name:--font-dmsans) text-sm text-gray-700 group-hover:text-white/90 transition-colors">
+																	{startDate} • {startTimeStr} - {endTimeStr}
+																</CardDescription>
+															</CardHeader>
+														</div>
+
+														<div className="absolute bottom-0 left-0 w-full h-full transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
+													</div>
+											</Card>
 								</Link>
 							);
 						})}
@@ -306,7 +368,7 @@ export default function Events() {
 							const { timeStr: endTimeStr } = formatDateTime(event.endTime);
 							return (
 								<Link key={event.id} to={`/events/${event.id}`}>
-									<Card className="overflow-hidden hover:shadow-lg transition-all cursor-pointer">
+									<Card className="group relative overflow-hidden hover:shadow-lg transition-all cursor-pointer">
 										<div className="flex flex-row">
 											<div className="w-64 h-40 shrink-0 overflow-hidden">
 												<img
@@ -315,16 +377,20 @@ export default function Events() {
 													className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
 												/>
 											</div>
+											<div className="flex-1 relative h-40">
+												<div className="absolute bottom-0 left-0 w-full p-4 z-10 bg-white group-hover:bg-transparent transition-colors">
+													<CardHeader className="p-0">
+														<CardTitle className="font-(family-name:--font-crimson) text-2xl text-gray-900 group-hover:text-white transition-colors">
+															{event.title}
+														</CardTitle>
+														<CardDescription className="font-(family-name:--font-dmsans) text-gray-700 group-hover:text-white/90 transition-colors">
+															{startDate} • {startTimeStr} - {endTimeStr}
+														</CardDescription>
+													</CardHeader>
+												</div>
 
-											<div className="flex-1">
-												<CardHeader>
-													<CardTitle className="font-(family-name:--font-crimson) text-2xl">
-														{event.title}
-													</CardTitle>
-													<CardDescription>
-														{startDate} • {startTimeStr} - {endTimeStr}
-													</CardDescription>
-												</CardHeader>
+												{/* Sliding overlay for list view (behind the white strip) */}
+												<div className="absolute bottom-0 left-0 w-full h-full transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
 											</div>
 										</div>
 									</Card>
@@ -335,8 +401,8 @@ export default function Events() {
 				)}
 
 				{filteredEvents.length === 0 && (
-					<div className="text-center py-12 text-gray-500">
-						Found no event matches your search.
+					<div className="text-center py-12 text-gray-500 font-(family-name:--font-dmsans)">
+						No events match your search criteria.
 					</div>
 				)}
 			</div>

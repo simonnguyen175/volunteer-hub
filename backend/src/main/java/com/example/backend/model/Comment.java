@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "comments")
 @Data
@@ -29,4 +31,6 @@ public class Comment {
 
     private Integer likesCount;
     private Integer repliesCount;
+    
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

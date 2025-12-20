@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/like/")
+@RequestMapping("/like")
 public class LikeController {
     private final LikeService likeService;
 
@@ -50,7 +50,7 @@ public class LikeController {
     @GetMapping("/post/check")
     public ResponseEntity<ApiResponse> checkLikePost(
             @RequestParam Long user_id, @RequestParam Long post_id) {
-        LikePost likePost = likeService.likePost(user_id, post_id);
+        LikePost likePost = likeService.checkLikePost(user_id, post_id);
         if (likePost == null) {
             ApiResponse apiResponse = new ApiResponse("Check like post successfully", false);
             return ResponseEntity.ok(apiResponse);
@@ -62,7 +62,7 @@ public class LikeController {
     @GetMapping("/comment/check")
     public ResponseEntity<ApiResponse> checkLikeComment(
             @RequestParam Long user_id, @RequestParam Long comment_id) {
-        LikeComment likeComment = likeService.likeComment(user_id, comment_id);
+        LikeComment likeComment = likeService.checkLikeComment(user_id, comment_id);
         if (likeComment == null) {
             ApiResponse apiResponse = new ApiResponse("Check like comment successfully", false);
             return ResponseEntity.ok(apiResponse);

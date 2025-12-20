@@ -8,9 +8,10 @@ import {
 	IconLogout,
 	IconChevronDown,
 } from "@tabler/icons-react";
-import { useState, useEffect, useRef } from "react";
-import { NavLink, useSearchParams, useNavigate } from "react-router";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { NavLink, useSearchParams, useNavigate } from "react-router-dom";
 import { RestClient } from "../api/RestClient";
+import { onPushMessage } from "../utils/pushNotifications";
 
 import logo from "../assets/VolunteerHub.png";
 import Login from "./Login";
@@ -106,6 +107,23 @@ export default function Header() {
 	});
 
 	// Fetch notifications
+	const fetchNotifications = useCallback(async () => {
+		if (!auth.user?.id) return;
+
+		try {
+			const notifResult = await RestClient.getUserNotifications(auth.user.id);
+
+			if (notifResult.data) {
+				setNotifications(notifResult.data);
+				// Count unread notifications manually
+				const unreadNotifications = notifResult.data.filter((n: any) => !n.read);
+				setUnreadCount(unreadNotifications.length);
+			}
+		} catch (err) {
+			console.error("Failed to fetch notifications:", err);
+		}
+	}, [auth.user?.id]);
+
 	useEffect(() => {
 		if (auth.isAuthenticated && auth.user?.id) {
 			fetchNotifications();
@@ -113,34 +131,26 @@ export default function Header() {
 			const interval = setInterval(fetchNotifications, 30000);
 			return () => clearInterval(interval);
 		}
-	}, [auth.isAuthenticated, auth.user]);
+	}, [auth.isAuthenticated, auth.user?.id, fetchNotifications]);
 
-	const fetchNotifications = async () => {
-		if (!auth.user?.id) return;
+	// Listen for push notifications from service worker
+	useEffect(() => {
+		if (!auth.isAuthenticated) return;
 
-		try {
-			const [notifResult, countResult] = await Promise.all([
-				RestClient.getUserNotifications(auth.user.id),
-				RestClient.getUnreadNotificationCount(auth.user.id),
-			]);
+		const cleanup = onPushMessage((data) => {
+			console.log('🔔 Push notification received in Header:', data);
+			// Immediately refresh notifications when a push is received
+			fetchNotifications();
+		});
 
-			if (notifResult.data) {
-				setNotifications(notifResult.data);
-			}
-			if (countResult.data !== undefined) {
-				setUnreadCount(countResult.data);
-			}
-		} catch (err) {
-			console.error("Failed to fetch notifications:", err);
-		}
-	};
+		return cleanup;
+	}, [auth.isAuthenticated, fetchNotifications]);
 
 	const handleMarkAsRead = async (notificationId: number) => {
 		try {
-			await RestClient.markNotificationAsRead(notificationId);
+			const result = await RestClient.markNotificationAsRead(notificationId);
 			fetchNotifications();
 		} catch (err) {
-			console.error("Failed to mark notification as read:", err);
 		}
 	};
 
@@ -170,6 +180,9 @@ export default function Header() {
 		{ name: "News Feed", path: "/newsfeed" },
 	];
 
+	// Get current path to highlight active link
+	const currentPath = window.location.pathname;
+
 	return (
 		<>
 			<header
@@ -186,21 +199,22 @@ export default function Header() {
 
 				{/* Navigation Links - Centered & Clean */}
 				<nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center gap-10">
-					{navLinks.map((link) => (
-						<NavLink
-							key={link.path}
-							to={link.path}
-							className={({ isActive }) =>
-								`relative text-base font-bold transition-colors duration-300 ${
-									isActive
-										? "text-[#556b2f]"
+					{navLinks.map((link) => {
+						const isActive = currentPath === link.path || (link.path !== "/" && currentPath.startsWith(link.path));
+						return (
+							<a
+								key={link.path}
+								href={link.path}
+								className={`relative text-base font-bold transition-colors duration-300 ${
+									isActive 
+										? "text-[#556b2f]" 
 										: "text-gray-600 hover:text-[#556b2f]"
-								} after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-[#556b2f] after:transition-all after:duration-300 hover:after:w-full`
-							}
-						>
-							{link.name}
-						</NavLink>
-					))}
+								} after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-[#556b2f] after:transition-all after:duration-300 hover:after:w-full`}
+							>
+								{link.name}
+							</a>
+						);
+					})}
 				</nav>
 
 				{/* Sign in button & Notification */}
@@ -211,42 +225,43 @@ export default function Header() {
 								onClick={() =>
 									setIsNotificationOpen(!isNotificationOpen)
 								}
-								className="p-2 text-gray-600 hover:text-[#556b2f] transition-colors cursor-pointer relative"
-							>
-								<IconBell size={24} />
-								{unreadCount > 0 && (
-									<span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 bg-red-500 rounded-full border border-white text-white text-xs flex items-center justify-center px-1">
-										{unreadCount > 9 ? "9+" : unreadCount}
-									</span>
-								)}
-							</button>
+							className="p-2 text-gray-600 hover:text-[#556b2f] hover:bg-[#556b2f]/10 rounded-lg transition-all duration-300 cursor-pointer relative"
+						>
+							<IconBell size={24} stroke={1.5} />
+							{unreadCount > 0 && (
+								<span className="absolute top-0 right-0 min-w-[18px] h-[18px] bg-[#747e59] rounded-full border-2 border-white text-white text-[10px] font-bold flex items-center justify-center px-1 shadow-sm font-(family-name:--font-dmsans)">
+									{unreadCount > 9 ? "9+" : unreadCount}
+								</span>
+							)}
+						</button>
 
 							{/* Notification Dropdown */}
 							{isNotificationOpen && (
-								<div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-[1001] max-h-96 overflow-y-auto">
-									<div className="px-4 py-3 border-b border-gray-200">
-										<h3 className="font-semibold text-gray-800">
+								<div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 z-[1001] max-h-96 overflow-y-auto">
+									<div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-[#556b2f]/5 to-[#747e59]/5">
+										<h3 className="font-bold text-[#556b2f] text-base font-(family-name:--font-dmsans)">
 											Notifications
 										</h3>
 									</div>
 									<div className="divide-y divide-gray-100">
-										{notifications.length === 0 ? (
-											<div className="px-4 py-8 text-center text-gray-500 text-sm">
-												No notifications yet
+										{notifications.filter(notif => !notif.read).length === 0 ? (
+											<div className="px-4 py-8 text-center text-gray-500 text-sm font-(family-name:--font-dmsans)">
+												No new notifications...
 											</div>
 										) : (
 											notifications
+												.filter(notif => !notif.read)
 												.slice(0, 10)
 												.map((notif) => (
 													<div
 														key={notif.id}
-														className={`px-4 py-3 hover:bg-gray-50 cursor-pointer ${
+														className={`px-4 py-3 hover:bg-[#556b2f]/5 cursor-pointer transition-colors duration-200 ${
 															!notif.read
-																? "bg-blue-50"
+																? "bg-[#747e59]/10 border-l-4 border-[#747e59]"
 																: ""
 														}`}
-														onClick={() => {
-															handleMarkAsRead(
+													onClick={async () => {
+														await handleMarkAsRead(
 																notif.id,
 															);
 														if (notif.link)
@@ -254,10 +269,11 @@ export default function Header() {
 																notif.link;
 														}}
 													>
-														<p className="text-sm text-gray-800">
-															{notif.content}
-														</p>
-														<p className="text-xs text-gray-500 mt-1">
+														<p 
+															className="text-sm text-gray-800 font-(family-name:--font-dmsans)"
+															dangerouslySetInnerHTML={{ __html: notif.content }}
+														/>
+														<p className="text-xs text-[#556b2f]/70 mt-1 font-(family-name:--font-dmsans)">
 															{new Date(
 																notif.createdAt,
 															).toLocaleString()}
@@ -409,22 +425,23 @@ export default function Header() {
 
 						{/* Mobile Menu Links */}
 						<nav className="flex flex-col p-4 gap-2">
-							{navLinks.map((link) => (
-								<NavLink
-									key={link.path}
-									to={link.path}
-									className={({ isActive }) =>
-										`text-lg font-medium px-4 py-3 rounded-lg transition-colors duration-200 flex items-center justify-between group ${
+							{navLinks.map((link) => {
+								const isActive = currentPath === link.path || (link.path !== "/" && currentPath.startsWith(link.path));
+								return (
+									<a
+										key={link.path}
+										href={link.path}
+										className={`text-lg font-medium px-4 py-3 rounded-lg transition-colors duration-200 flex items-center justify-between group ${
 											isActive
 												? "bg-blue-50 text-[#556b2f] font-bold"
 												: "text-gray-600 hover:bg-gray-50 hover:text-[#556b2f]"
-										}`
-									}
-									onClick={() => setIsMobileMenuOpen(false)}
-								>
-									{link.name}
-								</NavLink>
-							))}
+										}`}
+										onClick={() => setIsMobileMenuOpen(false)}
+									>
+										{link.name}
+									</a>
+								);
+							})}
 						</nav>
 
 						{/* Mobile Menu Footer (Login) */}

@@ -46,11 +46,11 @@ public class LikeService {
         likeComment = new LikeComment();
 
         User user = userService.getUserById(userId);
-        commentService.incLikesCount(likeComment.getComment());
         likeComment.setUser(user);
 
         Comment comment = commentService.getCommentById(commentId);
         likeComment.setComment(comment);
+        commentService.incLikesCount(comment);
 
         return likeCommentRepository.save(likeComment);
     }

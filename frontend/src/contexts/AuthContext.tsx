@@ -1,5 +1,6 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
+import { setupPushNotifications, unsubscribeFromPush, registerServiceWorker } from "../utils/pushNotifications";
 
 interface Role {
     id: number;
@@ -42,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return localStorage.getItem("isAuthenticated") === "true";
     });
 
-    const login = (username: string, token: string, userData: User) => {
+    const login = async (username: string, token: string, userData: User) => {
         setUsername(username);
         setToken(token);
         setUser(userData);
@@ -52,16 +53,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(userData));
         localStorage.setItem("isAuthenticated", "true");
+
+        // Setup push notifications after login
+        try {
+            const pushSetup = await setupPushNotifications(userData.id, token);
+            if (pushSetup) {
+                console.log('✅ Push notifications enabled');
+            } else {
+                console.log('ℹ️ Push notifications not enabled (permission denied or not supported)');
+            }
+        } catch (error) {
+            console.error('Failed to setup push notifications:', error);
+        }
     };
 
-    const logout = () => {
+    const logout = async () => {
+        // Unsubscribe from push notifications
+        try {
+            await unsubscribeFromPush();
+        } catch (error) {
+            console.error('Failed to unsubscribe from push:', error);
+        }
+
         setUsername(null);
         setToken(null);
         setUser(null);
         setIsAuthenticated(false);
 
+        // Clear storage and force a full page reload so the app resets (like F5)
         localStorage.clear();
+        // Use reload to ensure all in-memory state (context, caches) is reset
+        window.location.reload();
     };
+
+    // Register service worker on mount (for existing sessions)
+    useEffect(() => {
+        registerServiceWorker();
+        
+        // If user is already logged in, setup push notifications
+        if (isAuthenticated && user?.id && token) {
+            setupPushNotifications(user.id, token).catch(console.error);
+        }
+    }, []);
 
     return (
         <AuthContext.Provider value={{ username, isAuthenticated, token, user, login, logout }}>
