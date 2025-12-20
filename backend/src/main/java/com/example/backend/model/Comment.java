@@ -3,6 +3,8 @@ package com.example.backend.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "comments")
 @Data
@@ -28,4 +30,6 @@ public class Comment {
 
     private Integer likesCount;
     private Integer repliesCount;
+    
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

@@ -443,7 +443,7 @@ export class RestClient {
 	// ========== POST APIs ==========
 
 	static async getPostsByEventId(eventId: number): Promise<any> {
-		const url = `${RestClient.baseUrl}/post/by-event/?event_id=${eventId}`;
+		const url = `${RestClient.baseUrl}/post/by-event?event_id=${eventId}`;
 
 		const result = await fetch(url, {
 			method: "GET",
@@ -472,7 +472,6 @@ export class RestClient {
 		return await result.json();
 	}
 
-	// ========== COMMENT APIs ==========
 
 	static async getCommentsByPostId(postId: number): Promise<any> {
 		const url = `${RestClient.baseUrl}/comment/byPost/${postId}`;

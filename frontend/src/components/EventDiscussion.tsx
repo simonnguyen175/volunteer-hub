@@ -15,6 +15,7 @@ interface Comment {
 	content: string;
 	likesCount: number;
 	repliesCount: number;
+	createdAt: string;
 	user: User;
 	parentComment?: Comment;
 }
@@ -311,9 +312,19 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 			</div>
 			<div className="flex-1">
 				<div className="bg-gray-50 rounded-lg px-3 py-2">
-					<span className="font-semibold text-sm text-gray-900">
-						{comment.user?.fullName || comment.user?.username || "Unknown"}
-					</span>
+					<div className="flex items-center gap-2">
+						<span className="font-semibold text-sm text-gray-900">
+							{comment.user?.fullName || comment.user?.username || "Unknown"}
+						</span>
+						{comment.createdAt && (
+							<>
+								<span className="text-xs text-gray-400">•</span>
+								<span className="text-xs text-gray-500">
+									{formatTimeAgo(comment.createdAt)}
+								</span>
+							</>
+						)}
+					</div>
 					<p className="text-sm text-gray-700 mt-1">{comment.content}</p>
 				</div>
 				<div className="flex items-center gap-4 mt-1 ml-1">
@@ -327,12 +338,18 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 						{comment.likesCount > 0 && comment.likesCount}
 					</button>
 					<button
-						onClick={() => setReplyingTo({ 
-							postId, 
-							commentId: comment.id,
-							// If this is a reply, use the rootCommentId; otherwise this comment becomes the root
-							rootCommentId: isReply ? rootCommentId : comment.id
-						})}
+						onClick={() => {
+							if (!auth.user?.id) {
+								showToast("You must be logged in to comment!", "error");
+								return;
+							}
+							setReplyingTo({ 
+								postId, 
+								commentId: comment.id,
+								// If this is a reply, use the rootCommentId; otherwise this comment becomes the root
+								rootCommentId: isReply ? rootCommentId : comment.id
+							});
+						}}
 						className="text-xs text-gray-500 hover:text-[#556b2f] transition-colors"
 					>
 						Reply

@@ -75,12 +75,12 @@ public class CommentService {
 
     public List<Comment> getCommentsByPostId(Long postId) {
         Post post = postService.getPostById(postId);
-        return commentRepository.findByPostAndParentComment(post, null);
+        return commentRepository.findByPostAndParentCommentOrderByCreatedAtDesc(post, null);
     }
 
     public List<Comment> getCommentsByParentId(Long parentId){
         Comment parentComment = getCommentById(parentId);
-        return commentRepository.findByParentComment(parentComment);
+        return commentRepository.findByParentCommentOrderByCreatedAtDesc(parentComment);
     }
 
     public Comment updateComment(Long commentId, CommentUpdateRequest commentUpdateRequest) {

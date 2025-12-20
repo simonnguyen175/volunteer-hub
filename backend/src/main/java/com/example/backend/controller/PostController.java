@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/post/")
+@RequestMapping("/post")
 public class PostController {
     private final PostService postService;
 
@@ -16,28 +16,28 @@ public class PostController {
         this.postService = postService;
     }
 
-    @PostMapping("/create/")
+    @PostMapping("/create")
     public ResponseEntity<ApiResponse> createPost(@RequestBody PostCreateRequest request) {
         ApiResponse apiResponse =
                 new ApiResponse("Post created successfully", postService.createPost(request));
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
-    @GetMapping("/{postId}/")
+    @GetMapping("/{postId}")
     public ResponseEntity<ApiResponse> getPostById(@PathVariable Long postId) {
         ApiResponse apiResponse =
                 new ApiResponse("Post retrieved successfully", postService.getPostById(postId));
         return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping("/by-user/")
+    @GetMapping("/by-user")
     public ResponseEntity<ApiResponse> getPostsByUserId(@RequestParam Long user_id) {
         ApiResponse apiResponse =
                 new ApiResponse("Posts retrieved successfully", postService.getPostsByUserId(user_id));
         return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping("/by-event/")
+    @GetMapping("/by-event")
     public ResponseEntity<ApiResponse> getPostsByEventId(@RequestParam Long event_id) {
         ApiResponse apiResponse =
                 new ApiResponse("Posts retrieved successfully", postService.getPostsByEventId(event_id));
@@ -51,7 +51,7 @@ public class PostController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @PutMapping("/update/{postId}/")
+    @PutMapping("/update/{postId}")
     public ResponseEntity<ApiResponse> updatePost(
             @PathVariable Long postId, @RequestBody PostUpdateRequest request) {
         ApiResponse apiResponse =
@@ -59,7 +59,7 @@ public class PostController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @DeleteMapping("/{postId}/")
+    @DeleteMapping("/{postId}")
     public ResponseEntity<ApiResponse> deletePost(@PathVariable Long postId) {
         postService.deletePost(postId);
         ApiResponse apiResponse =
