@@ -7,6 +7,11 @@ import {
 	IconCheck,
 	IconX,
 	IconChevronRight,
+	IconHistory,
+	IconPlayerPlay,
+	IconCalendarTime,
+	IconCircleCheck,
+	IconCircleX,
 } from "@tabler/icons-react";
 import { createClient } from "@supabase/supabase-js";
 import { RestClient } from "../api/RestClient";
@@ -25,6 +30,8 @@ interface EventUser {
 	eventId: number;
 	eventTitle: string;
 	eventImageUrl: string;
+	eventStartTime: string;
+	eventEndTime: string;
 	status: boolean;
 	completed: boolean;
 }
@@ -68,20 +75,22 @@ const formatDateTime = (isoString: string) => {
 	};
 };
 
-// Event Card Component
 function EventCard({
 	event,
 	type,
+	subType,
 	onManage,
 }: {
 	event: EventUser | HostedEvent;
 	type: "joined" | "pending" | "hosted";
+	subType?: "past" | "ongoing" | "going";
 	onManage?: () => void;
 }) {
 	const isHostedEvent = "managerName" in event;
 	const imageUrl = isHostedEvent ? event.imageUrl : (event as EventUser).eventImageUrl;
 	const title = isHostedEvent ? event.title : (event as EventUser).eventTitle;
 	const eventId = isHostedEvent ? event.id : (event as EventUser).eventId;
+	const isCompleted = !isHostedEvent && (event as EventUser).completed;
 
 	return (
 		<div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
@@ -107,15 +116,38 @@ function EventCard({
 							)}
 						</div>
 						<span
-							className={`px-3 py-1 rounded-full text-xs font-medium ${
-								type === "joined"
+							className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
+								subType === "past" 
+									? isCompleted 
+										? "bg-green-100 text-green-700" 
+										: "bg-red-100 text-red-700"
+									: subType === "ongoing"
+									? "bg-blue-100 text-blue-700"
+									: subType === "going"
+									? "bg-green-100 text-green-700"
+									: type === "joined"
 									? "bg-green-100 text-green-700"
 									: type === "pending"
 									? "bg-yellow-100 text-yellow-700"
 									: "bg-blue-100 text-blue-700"
 							}`}
 						>
-							{type === "joined" ? "Joined" : type === "pending" ? "Pending" : (event as HostedEvent).status}
+							{subType === "past" ? (
+								<>
+									{isCompleted ? <IconCircleCheck size={14} /> : <IconCircleX size={14} />}
+									{isCompleted ? "Completed" : "Not Completed"}
+								</>
+							) : subType === "ongoing" ? (
+								"In Progress"
+							) : subType === "going" ? (
+								"Upcoming"
+							) : type === "joined" ? (
+								"Joined"
+							) : type === "pending" ? (
+								"Pending"
+							) : (
+								(event as HostedEvent).status
+							)}
 						</span>
 					</div>
 					<div className="flex items-center gap-2 mt-3">
@@ -315,6 +347,7 @@ function ParticipantModal({
 export default function MyEvents() {
 	const { user } = useAuth();
 	const [activeTab, setActiveTab] = useState<"joined" | "pending" | "hosted">("joined");
+	const [joinedSubTab, setJoinedSubTab] = useState<"past" | "ongoing" | "going">("going");
 	const [joinedEvents, setJoinedEvents] = useState<EventUser[]>([]);
 	const [pendingEvents, setPendingEvents] = useState<EventUser[]>([]);
 	const [hostedEvents, setHostedEvents] = useState<HostedEvent[]>([]);
@@ -440,27 +473,90 @@ export default function MyEvents() {
 					<div className="space-y-4">
 						{activeTab === "joined" && (
 							<>
-								{joinedEvents.length === 0 ? (
-									<div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-										<IconCalendarEvent size={48} className="mx-auto text-gray-400 mb-4" />
-										<h3 className="text-lg font-semibold text-gray-900 mb-2">
-											No Joined Events
-										</h3>
-										<p className="text-gray-600 mb-4">
-											You haven't joined any events yet.
-										</p>
-										<Link
-											to="/events"
-											className="inline-block px-6 py-2 bg-[#556b2f] text-white rounded-lg hover:bg-[#6d8c3a] transition-colors"
-										>
-											Browse Events
-										</Link>
-									</div>
-								) : (
-									joinedEvents.map((event) => (
-										<EventCard key={event.id} event={event} type="joined" />
-									))
-								)}
+								{/* Sub-tabs for joined events */}
+								<div className="flex gap-2 mb-6 bg-white rounded-xl p-2 border border-gray-200">
+									<button
+										onClick={() => setJoinedSubTab("going")}
+										className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+											joinedSubTab === "going"
+												? "bg-[#556b2f] text-white"
+												: "text-gray-600 hover:bg-gray-100"
+										}`}
+									>
+										<IconCalendarTime size={18} />
+										Going ({joinedEvents.filter(e => new Date(e.eventStartTime) > new Date()).length})
+									</button>
+									<button
+										onClick={() => setJoinedSubTab("ongoing")}
+										className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+											joinedSubTab === "ongoing"
+												? "bg-[#556b2f] text-white"
+												: "text-gray-600 hover:bg-gray-100"
+										}`}
+									>
+										<IconPlayerPlay size={18} />
+										Ongoing ({joinedEvents.filter(e => {
+											const now = new Date();
+											const start = new Date(e.eventStartTime);
+											const end = new Date(e.eventEndTime);
+											return start <= now && end >= now;
+										}).length})
+									</button>
+									<button
+										onClick={() => setJoinedSubTab("past")}
+										className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+											joinedSubTab === "past"
+												? "bg-[#556b2f] text-white"
+												: "text-gray-600 hover:bg-gray-100"
+										}`}
+									>
+										<IconHistory size={18} />
+										Past ({joinedEvents.filter(e => new Date(e.eventEndTime) < new Date()).length})
+									</button>
+								</div>
+
+								{/* Filter events based on selected sub-tab */}
+								{(() => {
+									const now = new Date();
+									const filteredEvents = joinedEvents.filter(e => {
+										const start = new Date(e.eventStartTime);
+										const end = new Date(e.eventEndTime);
+										if (joinedSubTab === "past") return end < now;
+										if (joinedSubTab === "ongoing") return start <= now && end >= now;
+										if (joinedSubTab === "going") return start > now;
+										return true;
+									});
+
+									if (filteredEvents.length === 0) {
+										return (
+											<div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+												<IconCalendarEvent size={48} className="mx-auto text-gray-400 mb-4" />
+												<h3 className="text-lg font-semibold text-gray-900 mb-2">
+													{joinedSubTab === "past" ? "No Past Events" 
+														: joinedSubTab === "ongoing" ? "No Ongoing Events" 
+														: "No Upcoming Events"}
+												</h3>
+												<p className="text-gray-600 mb-4">
+													{joinedSubTab === "past" ? "You don't have any past events." 
+														: joinedSubTab === "ongoing" ? "You're not currently participating in any event." 
+														: "You haven't joined any upcoming events yet."}
+												</p>
+												{joinedSubTab === "going" && (
+													<Link
+														to="/events"
+														className="inline-block px-6 py-2 bg-[#556b2f] text-white rounded-lg hover:bg-[#6d8c3a] transition-colors"
+													>
+														Browse Events
+													</Link>
+												)}
+											</div>
+										);
+									}
+
+									return filteredEvents.map((event) => (
+										<EventCard key={event.id} event={event} type="joined" subType={joinedSubTab} />
+									));
+								})()}
 							</>
 						)}
 

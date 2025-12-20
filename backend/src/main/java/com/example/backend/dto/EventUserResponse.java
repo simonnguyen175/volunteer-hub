@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,6 +20,8 @@ public class EventUserResponse {
     private Long eventId;
     private String eventTitle;
     private String eventImageUrl;
+    private LocalDateTime eventStartTime;
+    private LocalDateTime eventEndTime;
     private boolean status;
     private boolean isCompleted;
 
@@ -35,6 +39,8 @@ public class EventUserResponse {
             response.setEventId(eventUser.getEvent().getId());
             response.setEventTitle(eventUser.getEvent().getTitle());
             response.setEventImageUrl(eventUser.getEvent().getImageUrl());
+            response.setEventStartTime(eventUser.getEvent().getStartTime());
+            response.setEventEndTime(eventUser.getEvent().getEndTime());
         }
         
         response.setStatus(eventUser.isStatus());
