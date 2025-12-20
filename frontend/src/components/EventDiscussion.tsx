@@ -1,8 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
-import { IconSend, IconUser, IconPhoto, IconHeart, IconHeartFilled, IconMessage, IconChevronDown, IconChevronUp, IconTrash } from "@tabler/icons-react";
+import { IconSend, IconUser, IconPhoto, IconHeart, IconHeartFilled, IconMessage, IconChevronDown, IconChevronUp, IconTrash, IconX } from "@tabler/icons-react";
+import { createClient } from "@supabase/supabase-js";
 import { useToast } from "./ui/Toast";
 import { RestClient } from "@/api/RestClient";
 import { useAuth } from "@/contexts/AuthContext";
+
+const supabase = createClient(
+	import.meta.env.VITE_SUPABASE_URL,
+	import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 interface User {
 	id: number;
@@ -37,7 +43,9 @@ interface EventDiscussionProps {
 export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 	const [posts, setPosts] = useState<Post[]>([]);
 	const [newPostContent, setNewPostContent] = useState("");
-	const [newPostImage, setNewPostImage] = useState("");
+	const [imageFile, setImageFile] = useState<File | null>(null);
+	const [imagePreview, setImagePreview] = useState<string>("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
 	const [likedComments, setLikedComments] = useState<Set<number>>(new Set());
@@ -79,6 +87,54 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 		fetchPosts();
 	}, [fetchPosts]);
 
+	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			setImageFile(file);
+			const reader = new FileReader();
+			reader.onloadend = () => {
+				setImagePreview(reader.result as string);
+			};
+			reader.readAsDataURL(file);
+		}
+	};
+
+	const clearImage = () => {
+		setImageFile(null);
+		setImagePreview("");
+	};
+
+	const uploadImage = async (): Promise<string | null> => {
+		if (!imageFile) return null;
+
+		try {
+			const fileExt = imageFile.name.split(".").pop();
+			const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+			const filePath = `posts/${fileName}`;
+
+			const { error } = await supabase.storage
+				.from("volunteer")
+				.upload(filePath, imageFile, {
+					cacheControl: '3600',
+					upsert: false
+				});
+
+			if (error) {
+				console.error("Supabase upload error:", error);
+				showToast(`Upload failed: ${error.message}`, "error");
+				return null;
+			}
+
+			// Get public URL
+			const { data: urlData } = supabase.storage.from("volunteer").getPublicUrl(filePath);
+			return urlData?.publicUrl || filePath;
+		} catch (err) {
+			console.error("Image upload exception:", err);
+			showToast("Failed to upload image", "error");
+			return null;
+		}
+	};
+
 	const handleSubmitPost = async (e?: React.FormEvent) => {
 		if (e) e.preventDefault();
 		
@@ -92,23 +148,36 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 			return;
 		}
 
+		setIsSubmitting(true);
+
 		try {
+			// Upload image if provided
+			let imageUrl: string | undefined;
+			if (imageFile) {
+				const uploadedUrl = await uploadImage();
+				if (uploadedUrl) {
+					imageUrl = uploadedUrl;
+				}
+			}
+
 			const result = await RestClient.createPost(
 				parseInt(eventId),
 				auth.user.id,
 				newPostContent,
-				newPostImage || undefined
+				imageUrl
 			);
 			
 			if (result.data) {
 				setPosts([result.data, ...posts]);
 				setNewPostContent("");
-				setNewPostImage("");
+				clearImage();
 				showToast("Post created successfully!", "success");
 			}
 		} catch (error) {
 			console.error("Failed to create post:", error);
 			showToast("Failed to create post", "error");
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -516,24 +585,45 @@ if (loading) {
 							/>
 						</div>
 						
-						<div className="flex items-center gap-2">
-							<IconPhoto size={20} className="text-gray-500" />
-							<input
-								type="url"
-								value={newPostImage}
-								onChange={(e) => setNewPostImage(e.target.value)}
-								placeholder="Image URL (optional)"
-								className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#556b2f] focus:border-transparent font-(family-name:--font-dmsans)"
-							/>
+						{/* Image Upload */}
+						<div className="space-y-2">
+							{imagePreview ? (
+								<div className="relative inline-block">
+									<img
+										src={imagePreview}
+										alt="Preview"
+										className="max-h-40 rounded-lg object-cover"
+									/>
+									<button
+										type="button"
+										onClick={clearImage}
+										className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+									>
+										<IconX size={14} />
+									</button>
+								</div>
+							) : (
+								<label className="flex items-center gap-2 cursor-pointer text-gray-500 hover:text-[#556b2f] transition-colors">
+									<IconPhoto size={20} />
+									<span className="text-sm font-(family-name:--font-dmsans)">Add image (optional)</span>
+									<input
+										type="file"
+										accept="image/*"
+										onChange={handleImageChange}
+										className="hidden"
+									/>
+								</label>
+							)}
 						</div>
 
 						<div className="flex justify-end">
 							<button
 								type="submit"
-								className="flex items-center gap-2 bg-[#556b2f] text-white px-6 py-2 rounded-lg hover:bg-[#6d8c3a] transition-colors font-semibold font-(family-name:--font-dmsans)"
+								disabled={isSubmitting}
+								className="flex items-center gap-2 bg-[#556b2f] text-white px-6 py-2 rounded-lg hover:bg-[#6d8c3a] transition-colors font-semibold font-(family-name:--font-dmsans) disabled:opacity-50 disabled:cursor-not-allowed"
 							>
 								<IconSend size={18} />
-								Post
+								{isSubmitting ? "Posting..." : "Post"}
 							</button>
 						</div>
 					</form>
