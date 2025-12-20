@@ -453,6 +453,39 @@ export class RestClient {
 		return await result.json();
 	}
 
+	static async getNewsFeedPosts(userId?: number): Promise<any> {
+		const url = userId 
+			? `${RestClient.baseUrl}/post/news-feed?user_id=${userId}`
+			: `${RestClient.baseUrl}/post/news-feed`;
+
+		// Always try to include auth headers if available (for personalized feed)
+		const result = await fetch(url, {
+			method: "GET",
+			headers: this.getHeaders(true),
+		});
+
+		return await result.json();
+	}
+
+	static async createNewsFeedPost(userId: number, content: string, imageUrl?: string): Promise<any> {
+		const url = `${RestClient.baseUrl}/post/create`;
+
+		const body = {
+			eventId: null,
+			userId,
+			content,
+			imageUrl: imageUrl || null,
+		};
+
+		const result = await fetch(url, {
+			method: "POST",
+			headers: this.getHeaders(true),
+			body: JSON.stringify(body),
+		});
+
+		return await result.json();
+	}
+
 	static async createPost(eventId: number, userId: number, content: string, imageUrl?: string): Promise<any> {
 		const url = `${RestClient.baseUrl}/post/create`;
 

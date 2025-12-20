@@ -26,6 +26,7 @@ interface Event {
 	description: string;
 	imageUrl: string;
 	status: string;
+	managerName?: string;
 }
 
 export default function Events() {
@@ -351,16 +352,22 @@ export default function Events() {
 													<div className="relative">
 														<div className="relative z-10 p-4 bg-white group-hover:bg-transparent transition-colors">
 															<CardHeader className="p-0">
+																{event.managerName && (
+																	<CardDescription className="font-(family-name:--font-crimson) text-sm text-gray-600 group-hover:text-white/80 transition-colors mt-1">
+																		Host: {event.managerName}
+																	</CardDescription>
+																)}
 																<CardTitle className="font-(family-name:--font-crimson) text-xl text-gray-900 group-hover:text-white transition-colors">
 																	{event.title}
 																</CardTitle>
 																<CardDescription className="font-(family-name:--font-dmsans) text-sm text-gray-700 group-hover:text-white/90 transition-colors">
 																	{startDate} • {startTimeStr} - {endTimeStr}
 																</CardDescription>
+																
 															</CardHeader>
 														</div>
 
-														<div className="absolute bottom-0 left-0 w-full h-full transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
+														<div className="absolute bottom-0 left-0 w-full h-[110%] transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
 													</div>
 											</Card>
 								</Link>
@@ -386,21 +393,27 @@ export default function Events() {
 											<div className="flex-1 relative h-40">
 												<div className="absolute bottom-0 left-0 w-full p-4 z-10 bg-white group-hover:bg-transparent transition-colors">
 													<CardHeader className="p-0">
+														{event.managerName && (
+														<CardDescription className="font-(family-name:--font-crimson) text-md text-gray-600 group-hover:text-white/80 transition-colors mt-1">
+															Host: {event.managerName}
+														</CardDescription>
+													)}
 														<CardTitle className="font-(family-name:--font-crimson) text-2xl text-gray-900 group-hover:text-white transition-colors">
 															{event.title}
 														</CardTitle>
 														<CardDescription className="font-(family-name:--font-dmsans) text-gray-700 group-hover:text-white/90 transition-colors">
 															{startDate} • {startTimeStr} - {endTimeStr}
 														</CardDescription>
-													</CardHeader>
-												</div>
-
-												{/* Sliding overlay for list view (behind the white strip) */}
-												<div className="absolute bottom-0 left-0 w-full h-full transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
+													
+												</CardHeader>
 											</div>
+
+											{/* Sliding overlay for list view (behind the white strip) */}
+											<div className="absolute bottom-0 left-0 w-full h-[150%] transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
 										</div>
-									</Card>
-								</Link>
+									</div>
+								</Card>
+							</Link>
 							);
 						})}
 					</div>

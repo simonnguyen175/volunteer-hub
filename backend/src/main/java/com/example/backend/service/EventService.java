@@ -20,30 +20,38 @@ public class EventService {
     @Autowired private UserRepository userRepository;
     @Autowired private NotificationService notificationService;
 
-    public List<Event> getAllEvents() {
-        return eventRepository.findByStatus(EventStatus.ACCEPTED);
-    }
-
-    // For admin panel - get all events regardless of status
-    public List<Event> getAllEventsForAdmin() {
-        return eventRepository.findAll();
-    }
-
-    public List<Event> getEventsByName(String name) {
-        String lower = name == null ? "" : name.toLowerCase();
-        return eventRepository.findAll().stream()
-                .filter(e -> e.getTitle() != null && e.getTitle().toLowerCase().contains(lower))
+    public List<EventDetailResponse> getAllEvents() {
+        return eventRepository.findByStatus(EventStatus.ACCEPTED).stream()
+                .map(EventDetailResponse::fromEvent)
                 .collect(Collectors.toList());
     }
 
-    public List<Event> getEventsByType(String type) {
-        return eventRepository.findByType(type);
+    // For admin panel - get all events regardless of status
+    public List<EventDetailResponse> getAllEventsForAdmin() {
+        return eventRepository.findAll().stream()
+                .map(EventDetailResponse::fromEvent)
+                .collect(Collectors.toList());
     }
 
-    public List<Event> getEventsByNameAndType(String name, String type) {
+    public List<EventDetailResponse> getEventsByName(String name) {
+        String lower = name == null ? "" : name.toLowerCase();
+        return eventRepository.findAll().stream()
+                .filter(e -> e.getTitle() != null && e.getTitle().toLowerCase().contains(lower))
+                .map(EventDetailResponse::fromEvent)
+                .collect(Collectors.toList());
+    }
+
+    public List<EventDetailResponse> getEventsByType(String type) {
+        return eventRepository.findByType(type).stream()
+                .map(EventDetailResponse::fromEvent)
+                .collect(Collectors.toList());
+    }
+
+    public List<EventDetailResponse> getEventsByNameAndType(String name, String type) {
         String lower = name == null ? "" : name.toLowerCase();
         return eventRepository.findByType(type).stream()
                 .filter(e -> e.getTitle() != null && e.getTitle().toLowerCase().contains(lower))
+                .map(EventDetailResponse::fromEvent)
                 .collect(Collectors.toList());
     }
 

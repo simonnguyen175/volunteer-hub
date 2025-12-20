@@ -7,8 +7,6 @@ import com.example.backend.repository.CommentRepository;
 import com.example.backend.repository.LikePostRepository;
 import com.example.backend.repository.PostRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authorization.method.AuthorizeReturnObject;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,9 +24,16 @@ public class PostService {
 
     public Post createPost(PostCreateRequest request) {
         Post post = new Post();
-        Event event = eventService.getEventById(request.getEventId());
+        
+        // Handle null eventId for general news feed posts
+        if (request.getEventId() != null) {
+            Event event = eventService.getEventById(request.getEventId());
+            post.setEvent(event);
+        } else {
+            post.setEvent(null);
+        }
+        
         User user = userService.getUserById(request.getUserId());
-        post.setEvent(event);
         post.setUser(user);
         post.setContent(request.getContent());
         post.setImageUrl(request.getImageUrl());
@@ -71,6 +76,29 @@ public class PostService {
             posts.addAll(postRepository.findByEventOrderByCreatedAtDesc(event));
         }
         return posts;
+    }
+
+    /**
+     * Get news feed posts for a logged-in user.
+     * Includes: global posts (eventId = null) + posts from events the user has joined
+     */
+    public List<Post> getNewsFeedPostsForUser(Long userId) {
+        List<Event> joinedEvents = eventUserService.getEventsByUser(userId);
+        
+        if (joinedEvents.isEmpty()) {
+            // Only return global posts if user hasn't joined any events
+            return postRepository.findByEventIsNullOrderByCreatedAtDesc();
+        }
+        
+        return postRepository.findNewsFeedPosts(joinedEvents);
+    }
+
+    /**
+     * Get news feed posts for non-logged users.
+     * Only includes global posts (eventId = null)
+     */
+    public List<Post> getGlobalNewsFeedPosts() {
+        return postRepository.findByEventIsNullOrderByCreatedAtDesc();
     }
 
     public Post updatePost(Long postId, PostUpdateRequest request) {

@@ -51,6 +51,7 @@ public class SecurityConfig {
                                 .requestMatchers("/", "/index.html", "/sw.js", "/push-notifications.js").permitAll()
                                 .requestMatchers("/*.png", "/*.ico", "/*.css", "/*.js").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/event", "/event/search/**", "/event/*").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/post/news-feed").permitAll()
                                         .anyRequest()
                                         .authenticated())
                 .authenticationProvider(authenticationProvider())
