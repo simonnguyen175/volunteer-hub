@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { setupPushNotifications, unsubscribeFromPush, registerServiceWorker } from "../utils/pushNotifications";
+import { RestClient } from "../api/RestClient";
 
 interface Role {
     id: number;
@@ -21,6 +22,9 @@ interface AuthContextType {
     user: User | null;
     login: (username: string, token: string, user: User) => void;
     logout: () => void;
+    showLockedModal: boolean;
+    setShowLockedModal: (show: boolean) => void;
+    handleLockedAccount: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,6 +46,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
         return localStorage.getItem("isAuthenticated") === "true";
     });
+
+    // Locked account modal state
+    const [showLockedModal, setShowLockedModal] = useState(false);
+
+    // Handle locked account - logout user and show modal
+    const handleLockedAccount = () => {
+        // Clear auth state without reloading
+        setUsername(null);
+        setToken(null);
+        setUser(null);
+        setIsAuthenticated(false);
+        localStorage.clear();
+        
+        // Show the locked modal
+        setShowLockedModal(true);
+    };
 
     const login = async (username: string, token: string, userData: User) => {
         setUsername(username);
@@ -87,17 +107,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     // Register service worker on mount (for existing sessions)
+    // Also register the locked account handler with RestClient
     useEffect(() => {
         registerServiceWorker();
         
-        // If user is already logged in, setup push notifications
+        // Register the global locked account handler
+        RestClient.onLockedAccount = handleLockedAccount;
+        
+        // If user is already logged in, verify session and setup push notifications
         if (isAuthenticated && user?.id && token) {
-            setupPushNotifications(user.id, token).catch(console.error);
+            // Verify the user is still valid by making a simple API call
+            RestClient.getUserNotifications(user.id)
+                .then((result: any) => {
+                    if (RestClient.isLockedResponse(result)) {
+                        handleLockedAccount();
+                    } else {
+                        setupPushNotifications(user.id, token).catch(console.error);
+                    }
+                })
+                .catch((err: any) => {
+                    console.error('Session verification failed:', err);
+                });
         }
+        
+        // Cleanup handler on unmount
+        return () => {
+            RestClient.onLockedAccount = null;
+        };
     }, []);
 
     return (
-        <AuthContext.Provider value={{ username, isAuthenticated, token, user, login, logout }}>
+        <AuthContext.Provider value={{ 
+            username, 
+            isAuthenticated, 
+            token, 
+            user, 
+            login, 
+            logout,
+            showLockedModal,
+            setShowLockedModal,
+            handleLockedAccount
+        }}>
             {children}
         </AuthContext.Provider>
     );

@@ -28,4 +28,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .authorities(roleName)
                 .build();
     }
+
+    public boolean isUserLocked(String username) {
+        return userRepository
+                .findByUsername(username)
+                .map(User::isLocked)
+                .orElse(false);
+    }
 }

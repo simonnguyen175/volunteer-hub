@@ -75,6 +75,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 System.out.println(">> Load user thành công: " + userDetails.getUsername() + " | Authorities: " + userDetails.getAuthorities());
 
+                // Check if user is locked
+                if (userDetailsService.isUserLocked(username)) {
+                    System.out.println(">> User is LOCKED! Returning 403...");
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    Map<String, Object> body = new HashMap<>();
+                    body.put("message", "ACCOUNT_LOCKED");
+                    response.getWriter().write(objectMapper.writeValueAsString(body));
+                    return;
+                }
+
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails, null, userDetails.getAuthorities());

@@ -20,6 +20,13 @@ export default function Login({ setLoginOpen }: Props) {
 		e?.preventDefault();
 		RestClient.handleLogin(username, password)
 			.then((result) => {
+				// Check if account is locked
+				if (result.message === "ACCOUNT_LOCKED") {
+					auth.setShowLockedModal(true);
+					setLoginOpen(false);
+					return;
+				}
+
 				if (result.data && result.data.user) {
 					const userData = result.data.user;
 					auth.login(username, result.data.token, userData);

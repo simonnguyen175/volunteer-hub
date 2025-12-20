@@ -72,6 +72,11 @@ public class AuthService {
                                                     "User doesn't exist", HttpStatus.NOT_FOUND));
         }
 
+        // Check if user is locked
+        if (user.isLocked()) {
+            throw new AppException("ACCOUNT_LOCKED", HttpStatus.FORBIDDEN);
+        }
+
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(

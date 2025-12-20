@@ -25,6 +25,26 @@ export class RestClient {
 		return headers;
 	}
 
+	// Handler for locked account - set by AuthContext
+	static onLockedAccount: (() => void) | null = null;
+
+	// Check if response indicates a locked account
+	static isLockedResponse(response: any): boolean {
+		return response?.message === "ACCOUNT_LOCKED";
+	}
+
+	// Process response and handle locked account
+	private static async processResponse(result: Response): Promise<any> {
+		const json = await result.json();
+		
+		// Check if account is locked and handler is set
+		if (this.isLockedResponse(json) && this.onLockedAccount) {
+			this.onLockedAccount();
+		}
+		
+		return json;
+	}
+
 	// ========== AUTH APIs ==========
 	
 	static async handleLogin(username: string, password: string): Promise<any> {
