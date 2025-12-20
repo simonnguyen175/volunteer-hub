@@ -60,15 +60,15 @@ public class PostService {
 
     public List<Post> getPostsByEventId(Long eventId) {
         Event event = eventService.getEventById(eventId);
-        return postRepository.findByEventOrderByCreatedAtDesc(event);
+        return postRepository.findByEvent(event);
     }
 
     public List<Post> getPostsByUserId(Long userId) {
         User user = userService.getUserById(userId);
-        List<Post> posts = postRepository.findByUserOrderByCreatedAtDesc(user);
+        List<Post> posts = postRepository.findByUser(user);
         List<Event> events = eventUserService.getEventsByUser(userId);
         for (Event event : events) {
-            posts.addAll(postRepository.findByEventOrderByCreatedAtDesc(event));
+            posts.addAll(postRepository.findByEvent(event));
         }
         return posts;
     }

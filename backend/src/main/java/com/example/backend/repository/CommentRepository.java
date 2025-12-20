@@ -12,4 +12,10 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByPostAndParentCommentOrderByCreatedAtDesc(Post post, Object o);
 
     List<Comment> findByPostOrderByCreatedAtDesc(Post post);
+
+    List<Comment> findByPost(Post post);
+
+    List<Comment> findByParentComment(Comment parentComment);
+
+    List<Comment> findByPostAndParentComment(Post post, Object o);
 }

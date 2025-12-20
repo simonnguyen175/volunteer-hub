@@ -11,4 +11,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByEventOrderByCreatedAtDesc(Event event);
 
     List<Post> findByUserOrderByCreatedAtDesc(User user);
+
+    List<Post> findByEvent(Event event);
+
+    List<Post> findByUser(User user);
 }
