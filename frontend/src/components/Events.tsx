@@ -444,7 +444,7 @@ export default function Events() {
 								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 									{myHostedEvents.map((event) => {
 										const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
-										const { timeStr: endTimeStr } = formatDateTime(event.endTime);
+										const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
 										return (
 											<Link key={event.id} to={`/events/${event.id}`}>
 												<Card className="group relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer ring-2 ring-[#556b2f]/30">
@@ -465,7 +465,7 @@ export default function Events() {
 																	{event.title}
 																</CardTitle>
 																<CardDescription className="font-(family-name:--font-dmsans) text-sm text-gray-700 group-hover:text-white/90 transition-colors">
-																	{startDate} • {startTimeStr} - {endTimeStr}
+																	{startDate} {startTimeStr} - {endDate} {endTimeStr}
 																</CardDescription>
 															</CardHeader>
 														</div>
@@ -480,7 +480,7 @@ export default function Events() {
 								<div className="flex flex-col gap-4">
 									{myHostedEvents.map((event) => {
 										const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
-										const { timeStr: endTimeStr } = formatDateTime(event.endTime);
+										const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
 										return (
 											<Link key={event.id} to={`/events/${event.id}`}>
 												<Card className="group relative overflow-hidden hover:shadow-lg transition-all cursor-pointer ring-2 ring-[#556b2f]/30">
@@ -502,7 +502,7 @@ export default function Events() {
 																		{event.title}
 																	</CardTitle>
 																	<CardDescription className="font-(family-name:--font-dmsans) text-gray-700 group-hover:text-white/90 transition-colors">
-																		{startDate} • {startTimeStr} - {endTimeStr}
+																		{startDate} {startTimeStr} - {endDate} {endTimeStr}
 																	</CardDescription>
 																</CardHeader>
 															</div>
@@ -534,7 +534,7 @@ export default function Events() {
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 						{otherEvents.map((event) => {
 							const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
-							const { timeStr: endTimeStr } = formatDateTime(event.endTime);
+							const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
 							return (
 								<Link key={event.id} to={`/events/${event.id}`}>
 											<Card className="group relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
@@ -559,7 +559,7 @@ export default function Events() {
 																	{event.title}
 																</CardTitle>
 																<CardDescription className="font-(family-name:--font-dmsans) text-sm text-gray-700 group-hover:text-white/90 transition-colors">
-																	{startDate} • {startTimeStr} - {endTimeStr}
+																	{startDate} {startTimeStr} - {endDate} {endTimeStr}
 																</CardDescription>
 																
 															</CardHeader>
@@ -576,7 +576,7 @@ export default function Events() {
 					<div className="flex flex-col gap-4">
 						{otherEvents.map((event) => {
 							const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
-							const { timeStr: endTimeStr } = formatDateTime(event.endTime);
+							const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
 							return (
 								<Link key={event.id} to={`/events/${event.id}`}>
 									<Card className="group relative overflow-hidden hover:shadow-lg transition-all cursor-pointer">
@@ -600,7 +600,7 @@ export default function Events() {
 															{event.title}
 														</CardTitle>
 														<CardDescription className="font-(family-name:--font-dmsans) text-gray-700 group-hover:text-white/90 transition-colors">
-															{startDate} • {startTimeStr} - {endTimeStr}
+															{startDate} {startTimeStr} - {endDate} {endTimeStr}
 														</CardDescription>
 													
 												</CardHeader>

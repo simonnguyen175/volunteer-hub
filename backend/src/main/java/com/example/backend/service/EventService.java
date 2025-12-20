@@ -3,19 +3,29 @@ package com.example.backend.service;
 import com.example.backend.dto.EventCreateRequest;
 import com.example.backend.dto.EventDetailResponse;
 import com.example.backend.dto.EventUpdateRequest;
+import com.example.backend.model.Comment;
 import com.example.backend.model.Event;
 import com.example.backend.model.EventStatus;
+import com.example.backend.model.EventUser;
+import com.example.backend.model.LikeComment;
+import com.example.backend.model.LikePost;
 import com.example.backend.model.Post;
 import com.example.backend.model.User;
+import com.example.backend.repository.CommentRepository;
 import com.example.backend.repository.EventRepository;
+import com.example.backend.repository.EventUserRepository;
+import com.example.backend.repository.LikeCommentRepository;
+import com.example.backend.repository.LikePostRepository;
 import com.example.backend.repository.PostRepository;
 import com.example.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
+import jakarta.transaction.Transactional;
 
 @Service
 public class EventService {
@@ -23,6 +33,10 @@ public class EventService {
     @Autowired private UserRepository userRepository;
     @Autowired private NotificationService notificationService;
     @Autowired private PostRepository postRepository;
+    @Autowired private EventUserRepository eventUserRepository;
+    @Autowired private CommentRepository commentRepository;
+    @Autowired private LikePostRepository likePostRepository;
+    @Autowired private LikeCommentRepository likeCommentRepository;
 
     public List<EventDetailResponse> getAllEvents() {
         return eventRepository.findByStatus(EventStatus.ACCEPTED).stream()
@@ -153,11 +167,53 @@ public class EventService {
         postRepository.save(post);
     }
 
+    @Transactional
     public void deleteEvent(Long id) {
-        if (!eventRepository.existsById(id)) {
-            throw new IllegalArgumentException("Event with id " + id + " not found");
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Event with id " + id + " not found"));
+        
+        // 1. Delete all EventUser registrations for this event
+        List<EventUser> eventUsers = eventUserRepository.findByEvent(event);
+        eventUserRepository.deleteAll(eventUsers);
+        
+        // 2. Get all posts associated with this event
+        List<Post> posts = postRepository.findByEvent(event);
+        
+        // 3. For each post, delete comments and likes
+        for (Post post : posts) {
+            // Get all comments for this post
+            List<Comment> comments = commentRepository.findByPost(post);
+            
+            // Delete likes on comments
+            for (Comment comment : comments) {
+                List<LikeComment> commentLikes = likeCommentRepository.findByComment(comment);
+                likeCommentRepository.deleteAll(commentLikes);
+            }
+            
+            // Delete child comments first (replies), then parent comments
+            for (Comment comment : comments) {
+                List<Comment> replies = commentRepository.findByParentComment(comment);
+                // Delete likes on replies
+                for (Comment reply : replies) {
+                    List<LikeComment> replyLikes = likeCommentRepository.findByComment(reply);
+                    likeCommentRepository.deleteAll(replyLikes);
+                }
+                commentRepository.deleteAll(replies);
+            }
+            
+            // Now delete all parent comments
+            commentRepository.deleteAll(comments);
+            
+            // Delete likes on post
+            List<LikePost> postLikes = likePostRepository.findByPost(post);
+            likePostRepository.deleteAll(postLikes);
         }
-        eventRepository.deleteById(id);
+        
+        // 4. Delete all posts for this event
+        postRepository.deleteAll(posts);
+        
+        // 5. Finally delete the event
+        eventRepository.delete(event);
     }
 
     public Event getEventById(Long eventId) {

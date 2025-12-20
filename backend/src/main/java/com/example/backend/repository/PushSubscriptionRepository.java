@@ -10,5 +10,5 @@ public interface PushSubscriptionRepository extends JpaRepository<PushSubscripti
 
     Optional<PushSubscription> findByEndpoint(String endpoint);
 
-    boolean existsByUserIdAndEndpoint(Integer userId, String endpoint);
+    boolean existsByUserIdAndEndpoint(Long userId, String endpoint);
 }

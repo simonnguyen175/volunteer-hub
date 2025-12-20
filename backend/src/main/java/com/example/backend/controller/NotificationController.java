@@ -32,7 +32,7 @@ public class NotificationController {
 
     @PostMapping("/subscribe/{userId}")
     public ResponseEntity<ApiResponse> subscribe(
-            @PathVariable Integer userId,
+            @PathVariable Long userId,
             @RequestBody PushSubscriptionRequest request) {
         notificationService.subscribe(userId, request);
         return ResponseEntity.ok(new ApiResponse("Subscription saved", null));
