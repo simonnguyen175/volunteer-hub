@@ -70,6 +70,16 @@ public class CommentService {
         commentRepository.save(comment);
     }
 
+    public void incRepliesCount(Comment comment) {
+        comment.setRepliesCount(comment.getRepliesCount() + 1);
+        commentRepository.save(comment);
+    }
+
+    public void decRepliesCount(Comment comment) {
+        comment.setRepliesCount(comment.getRepliesCount() - 1);
+        commentRepository.save(comment);
+    }
+
     public Comment getCommentById(Long commentId) {
         return commentRepository
                 .findById(commentId)
@@ -78,12 +88,12 @@ public class CommentService {
 
     public List<Comment> getCommentsByPostId(Long postId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("Invalid post ID"));
-        return commentRepository.findByPostAndParentComment(post, null);
+        return commentRepository.findByPostAndParentCommentOrderByCreatedAtDesc(post, null);
     }
 
     public List<Comment> getCommentsByParentId(Long parentId){
         Comment parentComment = getCommentById(parentId);
-        return commentRepository.findByParentComment(parentComment);
+        return commentRepository.findByParentCommentOrderByCreatedAtDesc(parentComment);
     }
 
     public Comment updateComment(Long commentId, CommentUpdateRequest commentUpdateRequest) {

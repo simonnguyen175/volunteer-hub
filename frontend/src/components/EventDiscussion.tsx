@@ -322,10 +322,10 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 			
 			if (result.data) {
 				if (actualParentId) {
-					// Add to replies of the root comment
+					// Add to replies of the root comment at the top
 					setCommentReplies(prev => ({
 						...prev,
-						[actualParentId]: [...(prev[actualParentId] || []), result.data]
+						[actualParentId]: [result.data, ...(prev[actualParentId] || [])]
 					}));
 					// Auto-expand replies to show the new reply instantly
 					setExpandedReplies(prev => {
@@ -334,10 +334,10 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 						return newSet;
 					});
 				} else {
-					// Add to comments
+					// Add to comments at the top
 					setPostComments(prev => ({
 						...prev,
-						[postId]: [...(prev[postId] || []), result.data]
+						[postId]: [result.data, ...(prev[postId] || [])]
 					}));
 				}
 				
