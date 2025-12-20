@@ -30,10 +30,40 @@ public class PostController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @GetMapping("/by-user/")
+    public ResponseEntity<ApiResponse> getPostsByUserId(@RequestParam Long user_id) {
+        ApiResponse apiResponse =
+                new ApiResponse("Posts retrieved successfully", postService.getPostsByUserId(user_id));
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/by-event/")
+    public ResponseEntity<ApiResponse> getPostsByEventId(@RequestParam Long event_id) {
+        ApiResponse apiResponse =
+                new ApiResponse("Posts retrieved successfully", postService.getPostsByEventId(event_id));
+        return ResponseEntity.ok(apiResponse);
+    }
+
     @GetMapping
     public ResponseEntity<ApiResponse> getAllPosts() {
         ApiResponse apiResponse =
                 new ApiResponse("Posts retrieved successfully", postService.getAllPosts());
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PutMapping("/update/{postId}/")
+    public ResponseEntity<ApiResponse> updatePost(
+            @PathVariable Long postId, @RequestBody PostUpdateRequest request) {
+        ApiResponse apiResponse =
+                new ApiResponse("Post updated successfully", postService.updatePost(postId, request));
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @DeleteMapping("/{postId}/")
+    public ResponseEntity<ApiResponse> deletePost(@PathVariable Long postId) {
+        postService.deletePost(postId);
+        ApiResponse apiResponse =
+                new ApiResponse("Post deleted successfully", postId);
         return ResponseEntity.ok(apiResponse);
     }
 }

@@ -94,6 +94,15 @@ public class EventUserService {
                 .collect(Collectors.toList());
     }
 
+    // Get all events a user is associated with
+    public List<Event> getEventsByUser(Long userId) {
+        User user = userService.getUserById(userId);
+        List<EventUser> eventUsers = eventUserRepository.findByUserAndStatus(user, true);
+        return eventUsers.stream()
+                .map(EventUser::getEvent)
+                .collect(Collectors.toList());
+    }
+
     // Get events user has joined (accepted)
     public List<EventUserResponse> getJoinedEvents(Long userId) {
         User user = userService.getUserById(userId);
