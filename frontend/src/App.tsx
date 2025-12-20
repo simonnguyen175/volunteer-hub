@@ -45,9 +45,10 @@ function AppContent() {
 							<AdminLayout />
 						</ProtectedRoute>
 					}>
-						<Route index element={<AdminDashboard />} />
+						<Route index element={<AdminEvents />} />
 						<Route path="events" element={<AdminEvents />} />
 						<Route path="users" element={<AdminUsers />} />
+						<Route path="dashboard" element={<AdminDashboard />} />
 					</Route>
 				</Routes>
 			</BrowserRouter>

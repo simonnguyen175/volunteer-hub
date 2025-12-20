@@ -42,7 +42,7 @@ export default function Login({ setLoginOpen }: Props) {
 						: (rawRole as { name?: string } | undefined)?.name ?? "";
 					
 					if (roleName.toUpperCase() === "ADMIN") {
-						navigate("/admin");
+						navigate("/admin/events");
 					}
 				} else {
 					showToast("Login failed: " + (result.message || "Unknown error"), "error");

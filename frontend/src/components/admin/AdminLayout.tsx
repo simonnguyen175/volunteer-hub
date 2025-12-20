@@ -17,9 +17,9 @@ export default function AdminLayout() {
 	};
 
 	const navItems = [
-		{ name: "Dashboard", path: "/admin", icon: <IconLayoutDashboard size={20} /> },
 		{ name: "Event Approvals", path: "/admin/events", icon: <IconCalendarEvent size={20} /> },
 		{ name: "User Management", path: "/admin/users", icon: <IconUsers size={20} /> },
+		{ name: "News Feed", path: "/admin/dashboard", icon: <IconLayoutDashboard size={20} /> },
 	];
 
 	return (
@@ -44,7 +44,6 @@ export default function AdminLayout() {
 							<NavLink
 								key={item.path}
 								to={item.path}
-								end={item.path === "/admin"}
 								className={({ isActive }) =>
 									`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
 										isActive

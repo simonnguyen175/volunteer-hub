@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { IconLock, IconLockOpen, IconTrash, IconSearch } from "@tabler/icons-react";
+import { IconLock, IconLockOpen, IconTrash, IconSearch, IconDownload, IconChevronDown } from "@tabler/icons-react";
 import { RestClient } from "@/api/RestClient";
 import { useToast } from "@/components/ui/Toast";
 
@@ -20,6 +20,7 @@ export default function AdminUsers() {
 	const [users, setUsers] = useState<User[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [searchQuery, setSearchQuery] = useState("");
+	const [showExportMenu, setShowExportMenu] = useState(false);
 	const { showToast } = useToast();
 
 	useEffect(() => {
@@ -119,6 +120,63 @@ export default function AdminUsers() {
 		return role?.name || 'USER';
 	};
 
+	// Export helper functions
+	const downloadFile = (content: string, filename: string, mimeType: string) => {
+		const blob = new Blob([content], { type: mimeType });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = filename;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
+	};
+
+	const exportToCSV = () => {
+		const headers = ['ID', 'Username', 'Email', 'Role', 'Status'];
+		const rows = users.map(user => [
+			user.id,
+			user.username,
+			user.email,
+			getRoleName(user.role),
+			user.locked ? 'Locked' : 'Active'
+		]);
+		const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+		downloadFile(csvContent, `users_export_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
+		showToast("Users exported to CSV", "success");
+		setShowExportMenu(false);
+	};
+
+	const exportToTSV = () => {
+		const headers = ['ID', 'Username', 'Email', 'Role', 'Status'];
+		const rows = users.map(user => [
+			user.id,
+			user.username,
+			user.email,
+			getRoleName(user.role),
+			user.locked ? 'Locked' : 'Active'
+		]);
+		const tsvContent = [headers.join('\t'), ...rows.map(row => row.join('\t'))].join('\n');
+		downloadFile(tsvContent, `users_export_${new Date().toISOString().split('T')[0]}.tsv`, 'text/tab-separated-values');
+		showToast("Users exported to TSV", "success");
+		setShowExportMenu(false);
+	};
+
+	const exportToJSON = () => {
+		const exportData = users.map(user => ({
+			id: user.id,
+			username: user.username,
+			email: user.email,
+			role: getRoleName(user.role),
+			status: user.locked ? 'Locked' : 'Active'
+		}));
+		const jsonContent = JSON.stringify(exportData, null, 2);
+		downloadFile(jsonContent, `users_export_${new Date().toISOString().split('T')[0]}.json`, 'application/json');
+		showToast("Users exported to JSON", "success");
+		setShowExportMenu(false);
+	};
+
 	if (loading) {
 		return <div className="text-center py-12">Loading users...</div>;
 	}
@@ -129,6 +187,41 @@ export default function AdminUsers() {
 				<div>
 					<h1 className="text-2xl font-bold text-gray-800">User Management</h1>
 					<p className="text-gray-500">Manage user accounts and permissions.</p>
+				</div>
+				
+				{/* Export Dropdown */}
+				<div className="relative">
+					<button
+						onClick={() => setShowExportMenu(!showExportMenu)}
+						className="flex items-center gap-2 px-4 py-2 bg-[#556b2f] text-white rounded-lg hover:bg-[#6d8c3a] transition-colors"
+					>
+						<IconDownload size={18} />
+						Export
+						<IconChevronDown size={16} className={`transition-transform ${showExportMenu ? 'rotate-180' : ''}`} />
+					</button>
+					
+					{showExportMenu && (
+						<div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+							<button
+								onClick={exportToCSV}
+								className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+							>
+								Export as CSV
+							</button>
+							<button
+								onClick={exportToTSV}
+								className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+							>
+								Export as TSV
+							</button>
+							<button
+								onClick={exportToJSON}
+								className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+							>
+								Export as JSON
+							</button>
+						</div>
+					)}
 				</div>
 			</div>
 

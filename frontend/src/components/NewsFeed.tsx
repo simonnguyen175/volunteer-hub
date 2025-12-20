@@ -62,7 +62,11 @@ interface Post {
 	event?: Event | null;
 }
 
-export default function NewsFeed() {
+interface NewsFeedProps {
+	isEmbedded?: boolean;
+}
+
+export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 	const [posts, setPosts] = useState<Post[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [newPostContent, setNewPostContent] = useState("");
@@ -598,25 +602,29 @@ export default function NewsFeed() {
 	);
 
 	return (
-		<div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">
-			{/* Decorative background elements */}
-			<div className="fixed inset-0 overflow-hidden pointer-events-none">
-				<div className="absolute -top-40 -right-40 w-80 h-80 bg-[#556b2f]/5 rounded-full blur-3xl"></div>
-				<div className="absolute top-1/2 -left-40 w-80 h-80 bg-[#747e59]/5 rounded-full blur-3xl"></div>
-				<div className="absolute -bottom-40 right-1/4 w-80 h-80 bg-[#556b2f]/5 rounded-full blur-3xl"></div>
-			</div>
-
-			<div className="relative max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-				{/* Header with animated gradient */}
-				<div className="relative top-10 mb-16 text-center">
-					<h1 className="font-(family-name:--font-crimson) font-medium text-[4rem] sm:text-[5rem] text-gray-900 leading-tight">
-						News Feed
-						<span className="text-[#556b2f]">.</span>
-					</h1>
-					<p className="mt-2 text-gray-600 font-(family-name:--font-dmsans) text-lg animate-fadeIn">
-						Stay connected with your community
-					</p>
+		<div className={isEmbedded ? "" : "min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50"}>
+			{/* Decorative background elements - only show when not embedded */}
+			{!isEmbedded && (
+				<div className="fixed inset-0 overflow-hidden pointer-events-none">
+					<div className="absolute -top-40 -right-40 w-80 h-80 bg-[#556b2f]/5 rounded-full blur-3xl"></div>
+					<div className="absolute top-1/2 -left-40 w-80 h-80 bg-[#747e59]/5 rounded-full blur-3xl"></div>
+					<div className="absolute -bottom-40 right-1/4 w-80 h-80 bg-[#556b2f]/5 rounded-full blur-3xl"></div>
 				</div>
+			)}
+
+			<div className={isEmbedded ? "" : "relative max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8"}>
+				{/* Header with animated gradient - only show when not embedded */}
+				{!isEmbedded && (
+					<div className="relative top-10 mb-16 text-center">
+						<h1 className="font-(family-name:--font-crimson) font-medium text-[4rem] sm:text-[5rem] text-gray-900 leading-tight">
+							News Feed
+							<span className="text-[#556b2f]">.</span>
+						</h1>
+						<p className="mt-2 text-gray-600 font-(family-name:--font-dmsans) text-lg animate-fadeIn">
+							Stay connected with your community
+						</p>
+					</div>
+				)}
 
 				{/* Create Post Card (only for logged-in users) */}
 				{isAuthenticated && (
