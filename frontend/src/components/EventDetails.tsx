@@ -385,9 +385,9 @@ export default function EventDetails() {
 										</span>
 									</div>
 									<div className="flex justify-between items-center">
-										<span className="text-gray-600 font-(family-name:--font-dmsans) text-sm">End Time</span>
+										<span className="text-gray-600 font-(family-name:--font-dmsans) text-sm">End Date & Time</span>
 										<span className="font-bold text-gray-900 font-(family-name:--font-dmsans) bg-white px-3 py-1 rounded-lg text-sm">
-											{formatDateTime(event.endTime).time}
+											{formatDateTime(event.endTime).date} {formatDateTime(event.endTime).time}
 										</span>
 									</div>
 								</div>
