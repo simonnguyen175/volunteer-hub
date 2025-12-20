@@ -16,6 +16,7 @@ public class LikeService {
 
     public LikePost likePost(Long userId, Long postId) {
         LikePost likePost = checkLikePost(userId, postId);
+
         if (likePost != null) {
             postService.decLikeCount(likePost.getPost());
             likePostRepository.delete(likePost);

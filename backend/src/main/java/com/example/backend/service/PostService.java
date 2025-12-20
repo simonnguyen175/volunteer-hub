@@ -2,11 +2,9 @@ package com.example.backend.service;
 
 import com.example.backend.controller.PostUpdateRequest;
 import com.example.backend.dto.PostCreateRequest;
-import com.example.backend.model.Comment;
-import com.example.backend.model.Event;
-import com.example.backend.model.Post;
-import com.example.backend.model.User;
+import com.example.backend.model.*;
 import com.example.backend.repository.CommentRepository;
+import com.example.backend.repository.LikePostRepository;
 import com.example.backend.repository.PostRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +21,8 @@ public class PostService {
     private final EventService eventService;
     private final EventUserService eventUserService;
     private final CommentRepository commentRepository;
+    private final CommentService commentService;
+    private final LikePostRepository likePostRepository;
 
     public Post createPost(PostCreateRequest request) {
         Post post = new Post();
@@ -36,16 +36,6 @@ public class PostService {
         post.setLikesCount(0);
 
         return postRepository.save(post);
-    }
-
-    public void incCommentCount(Post post) {
-        post.setCommentsCount(post.getCommentsCount() + 1);
-        postRepository.save(post);
-    }
-
-    public void decCommentCount(Post post) {
-        post.setCommentsCount(post.getCommentsCount() - 1);
-        postRepository.save(post);
     }
 
     public void incLikeCount(Post post) {
@@ -93,8 +83,15 @@ public class PostService {
 
     public void deletePost(Long postId) {
         Post post = getPostById(postId);
+
         List<Comment> comments = commentRepository.findByPost(post);
-        commentRepository.deleteAll(comments);
+        for (Comment comment : comments) {
+            commentService.deleteComment(comment.getId());
+        }
+
+        List<LikePost> likePosts = likePostRepository.findByPost(post);
+        likePostRepository.deleteAll(likePosts);
+
         postRepository.delete(post);
     }
 }

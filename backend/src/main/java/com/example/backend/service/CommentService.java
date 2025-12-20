@@ -3,9 +3,12 @@ package com.example.backend.service;
 import com.example.backend.dto.CommentRequest;
 import com.example.backend.dto.CommentUpdateRequest;
 import com.example.backend.model.Comment;
+import com.example.backend.model.LikeComment;
 import com.example.backend.model.Post;
 import com.example.backend.model.User;
 import com.example.backend.repository.CommentRepository;
+import com.example.backend.repository.LikeCommentRepository;
+import com.example.backend.repository.PostRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,15 +19,26 @@ import java.util.List;
 @AllArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
+    private final LikeCommentRepository likeCommentRepository;
     private final UserService userService;
-    private final PostService postService;
+    private final PostRepository postRepository;
+
+    void incCommentCount(Post post) {
+        post.setCommentsCount(post.getCommentsCount() + 1);
+        postRepository.save(post);
+    }
+
+    void decCommentCount(Post post) {
+        post.setCommentsCount(post.getCommentsCount() - 1);
+        postRepository.save(post);
+    }
 
     @Transactional
     public Comment createComment(CommentRequest commentRequest) {
         Comment comment = new Comment();
 
-        Post post = postService.getPostById(commentRequest.getPostId());
-        postService.incCommentCount(post);
+        Post post = postRepository.findById(commentRequest.getPostId()).orElseThrow(() -> new IllegalArgumentException("Invalid post ID"));
+        incCommentCount(post);
         comment.setPost(post);
 
         User user = userService.getUserById(commentRequest.getUserId());
@@ -34,6 +48,10 @@ public class CommentService {
 
         Comment parentComment =
                 commentRepository.findById(commentRequest.getParentCommentId()).orElse(null);
+        if (parentComment != null) {
+            parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
+            commentRepository.save(parentComment);
+        }
         comment.setParentComment(parentComment);
 
         comment.setLikesCount(0);
@@ -59,7 +77,7 @@ public class CommentService {
     }
 
     public List<Comment> getCommentsByPostId(Long postId) {
-        Post post = postService.getPostById(postId);
+        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("Invalid post ID"));
         return commentRepository.findByPostAndParentComment(post, null);
     }
 
@@ -75,9 +93,19 @@ public class CommentService {
     }
 
     public void deleteComment(Long commentId) {
+        List<Comment> comments = getCommentsByParentId(commentId);
+
+        for (Comment c : comments) {
+            deleteComment(c.getId());
+        }
+
         Comment comment = getCommentById(commentId);
+
+        List<LikeComment> likeComments = likeCommentRepository.findByComment(comment);
+        likeCommentRepository.deleteAll(likeComments);
+
         Post post = comment.getPost();
-        postService.decCommentCount(post);
+        decCommentCount(post);
         commentRepository.delete(comment);
     }
 }

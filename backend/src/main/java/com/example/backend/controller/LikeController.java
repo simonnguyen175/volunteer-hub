@@ -16,7 +16,7 @@ public class LikeController {
         this.likeService = likeService;
     }
 
-    @PostMapping("/post/")
+    @PostMapping("/post")
     public ResponseEntity<ApiResponse> likePost(
             @RequestParam Long user_id, @RequestParam Long post_id) {
         LikePost likePost = likeService.likePost(user_id, post_id);
@@ -31,7 +31,7 @@ public class LikeController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @PostMapping("/comment/")
+    @PostMapping("/comment")
     public ResponseEntity<ApiResponse> likeComment(
             @RequestParam Long user_id, @RequestParam Long comment_id) {
         LikeComment likeComment = likeService.likeComment(user_id, comment_id);
@@ -47,7 +47,7 @@ public class LikeController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping("/post/check/")
+    @GetMapping("/post/check")
     public ResponseEntity<ApiResponse> checkLikePost(
             @RequestParam Long user_id, @RequestParam Long post_id) {
         LikePost likePost = likeService.likePost(user_id, post_id);
@@ -59,7 +59,7 @@ public class LikeController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping("/comment/check/")
+    @GetMapping("/comment/check")
     public ResponseEntity<ApiResponse> checkLikeComment(
             @RequestParam Long user_id, @RequestParam Long comment_id) {
         LikeComment likeComment = likeService.likeComment(user_id, comment_id);

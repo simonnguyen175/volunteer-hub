@@ -48,7 +48,7 @@ public class CommentController {
     }
 
     @PutMapping("/update/")
-    public ResponseEntity<ApiResponse> updateComment(@RequestParam Long commentId, @RequestBody CommentUpdateRequest commentUpdateRequest) {
+    public ResponseEntity<ApiResponse> updateComment(@RequestParam(value="commentId") Long commentId, @RequestBody CommentUpdateRequest commentUpdateRequest) {
         ApiResponse apiResponse =
                 new ApiResponse(
                         "Comment updated successfully",
@@ -58,7 +58,7 @@ public class CommentController {
     }
 
     @DeleteMapping("/delete/")
-    public ResponseEntity<ApiResponse> deleteComment(@RequestParam Long commentId) {
+    public ResponseEntity<ApiResponse> deleteComment(@RequestParam(value="commentId") Long commentId) {
         commentService.deleteComment(commentId);
         ApiResponse apiResponse =
                 new ApiResponse(
