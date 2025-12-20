@@ -1,6 +1,7 @@
 package com.example.backend.controller;
 
 import com.example.backend.dto.ApiResponse;
+import com.example.backend.model.EventUser;
 import com.example.backend.service.EventUserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,10 +51,20 @@ public class EventUserController {
     public ResponseEntity<ApiResponse> leaveEvent(
             @RequestParam(value="user_id", required = false) Long userId,
             @RequestParam(value="event_id", required = false) Long eventId){
+        EventUser eventUser = eventUserService.leaveEvent(userId, eventId);
+
+        if (eventUser == null) {
+            ApiResponse response =
+                    new ApiResponse(
+                            "The event has started", null
+                            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
         ApiResponse response =
                 new ApiResponse(
                         "User has left the event successfully",
-                        eventUserService.leaveEvent(userId, eventId));
+                        eventUser);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
