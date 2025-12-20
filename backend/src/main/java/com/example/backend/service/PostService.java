@@ -1,11 +1,16 @@
 package com.example.backend.service;
 
+import com.example.backend.controller.PostUpdateRequest;
 import com.example.backend.dto.PostCreateRequest;
+import com.example.backend.model.Comment;
 import com.example.backend.model.Event;
 import com.example.backend.model.Post;
 import com.example.backend.model.User;
+import com.example.backend.repository.CommentRepository;
 import com.example.backend.repository.PostRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authorization.method.AuthorizeReturnObject;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +21,8 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserService userService;
     private final EventService eventService;
+    private final EventUserService eventUserService;
+    private final CommentRepository commentRepository;
 
     public Post createPost(PostCreateRequest request) {
         Post post = new Post();
@@ -59,5 +66,35 @@ public class PostService {
 
     public List<Post> getAllPosts() {
         return postRepository.findAll();
+    }
+
+    public List<Post> getPostsByEventId(Long eventId) {
+        Event event = eventService.getEventById(eventId);
+        return postRepository.findByEvent(event);
+    }
+
+    public List<Post> getPostsByUserId(Long userId) {
+        User user = userService.getUserById(userId);
+        List<Post> posts = postRepository.findByUser(user);
+        List<Event> events = eventUserService.getEventsByUser(userId);
+        for (Event event : events) {
+            posts.addAll(postRepository.findByEvent(event));
+        }
+        return posts;
+    }
+
+    public Post updatePost(Long postId, PostUpdateRequest request) {
+        Post post = getPostById(postId);
+        post.setContent(request.getContent());
+        post.setImageUrl(request.getImageUrl());
+
+        return postRepository.save(post);
+    }
+
+    public void deletePost(Long postId) {
+        Post post = getPostById(postId);
+        List<Comment> comments = commentRepository.findByPost(post);
+        commentRepository.deleteAll(comments);
+        postRepository.delete(post);
     }
 }

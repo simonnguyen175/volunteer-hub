@@ -2,13 +2,14 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.ApiResponse;
 import com.example.backend.dto.CommentRequest;
+import com.example.backend.dto.CommentUpdateRequest;
 import com.example.backend.service.CommentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/comment/")
+@RequestMapping("/comment")
 public class CommentController {
     private final CommentService commentService;
 
@@ -42,6 +43,27 @@ public class CommentController {
                 new ApiResponse(
                         "Comments retrived successfully",
                         commentService.getCommentsByParentId(parentId)
+                );
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @PutMapping("/update/")
+    public ResponseEntity<ApiResponse> updateComment(@RequestParam Long commentId, @RequestBody CommentUpdateRequest commentUpdateRequest) {
+        ApiResponse apiResponse =
+                new ApiResponse(
+                        "Comment updated successfully",
+                        commentService.updateComment(commentId, commentUpdateRequest)
+                );
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @DeleteMapping("/delete/")
+    public ResponseEntity<ApiResponse> deleteComment(@RequestParam Long commentId) {
+        commentService.deleteComment(commentId);
+        ApiResponse apiResponse =
+                new ApiResponse(
+                        "Comment deleted successfully",
+                        commentId
                 );
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }

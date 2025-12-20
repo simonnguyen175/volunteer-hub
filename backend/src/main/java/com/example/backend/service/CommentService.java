@@ -1,12 +1,12 @@
 package com.example.backend.service;
 
 import com.example.backend.dto.CommentRequest;
+import com.example.backend.dto.CommentUpdateRequest;
 import com.example.backend.model.Comment;
 import com.example.backend.model.Post;
 import com.example.backend.model.User;
 import com.example.backend.repository.CommentRepository;
-import com.example.backend.repository.PostRepository;
-import com.example.backend.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +19,7 @@ public class CommentService {
     private final UserService userService;
     private final PostService postService;
 
+    @Transactional
     public Comment createComment(CommentRequest commentRequest) {
         Comment comment = new Comment();
 
@@ -65,5 +66,18 @@ public class CommentService {
     public List<Comment> getCommentsByParentId(Long parentId){
         Comment parentComment = getCommentById(parentId);
         return commentRepository.findByParentComment(parentComment);
+    }
+
+    public Comment updateComment(Long commentId, CommentUpdateRequest commentUpdateRequest) {
+        Comment comment = getCommentById(commentId);
+        comment.setContent(commentUpdateRequest.getContent());
+        return commentRepository.save(comment);
+    }
+
+    public void deleteComment(Long commentId) {
+        Comment comment = getCommentById(commentId);
+        Post post = comment.getPost();
+        postService.decCommentCount(post);
+        commentRepository.delete(comment);
     }
 }
