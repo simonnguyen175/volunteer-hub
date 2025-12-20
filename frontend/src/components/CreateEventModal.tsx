@@ -4,6 +4,43 @@ import { createClient } from "@supabase/supabase-js";
 import { RestClient } from "@/api/RestClient";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
+import * as yup from "yup";
+
+const eventValidationSchema = yup.object().shape({
+	title: yup
+		.string()
+		.required("Event title is required")
+		.min(5, "Title must be at least 5 characters")
+		.max(100, "Title must not exceed 100 characters"),
+	type: yup
+		.string()
+		.required("Event type is required")
+		.oneOf(["HELPING", "PLANTING", "MEDICAL", "FUNDRAISER", "FOOD"], "Invalid event type"),
+	startTime: yup
+		.string()
+		.required("Start date and time is required")
+		.test("is-future", "Start time must be in the future", function(value) {
+			if (!value) return false;
+			return new Date(value) > new Date();
+		}),
+	endTime: yup
+		.string()
+		.required("End date and time is required")
+		.test("after-start", "End time must be after start time", function(value) {
+			const { startTime } = this.parent;
+			if (!value || !startTime) return false;
+			return new Date(value) > new Date(startTime);
+		}),
+	location: yup
+		.string()
+		.required("Location is required")
+		.min(3, "Location must be at least 3 characters"),
+	description: yup
+		.string()
+		.required("Description is required")
+		.min(20, "Description must be at least 20 characters")
+		.max(2000, "Description must not exceed 2000 characters"),
+});
 
 const supabase = createClient(
 	import.meta.env.VITE_SUPABASE_URL,
@@ -39,6 +76,8 @@ export default function CreateEventModal({ isOpen, onClose, onEventCreated }: Cr
 		location: "",
 		description: "",
 	});
+
+	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
 		const { name, value } = e.target;
@@ -97,9 +136,29 @@ export default function CreateEventModal({ isOpen, onClose, onEventCreated }: Cr
 			return;
 		}
 
-		if (!formData.title || !formData.startTime || !formData.endTime || !formData.location || !formData.description) {
-			showToast("Please fill in all required fields", "warning");
-			return;
+		// Validate form with Yup
+		try {
+			await eventValidationSchema.validate(formData, { abortEarly: false });
+			setErrors({});
+		} catch (err) {
+			if (err instanceof yup.ValidationError) {
+				const validationErrors: Record<string, string> = {};
+				err.inner.forEach((error) => {
+					if (error.path) {
+						validationErrors[error.path] = error.message;
+					}
+				});
+				setErrors(validationErrors);
+				
+				// Show specific error message(s) in toast
+				const errorCount = err.inner.length;
+				const firstError = err.inner[0]?.message || "Please fix validation errors";
+				const toastMessage = errorCount > 1 
+					? `${firstError} (+${errorCount - 1} more error${errorCount - 1 > 1 ? 's' : ''})`
+					: firstError;
+				showToast(toastMessage, "warning");
+				return;
+			}
 		}
 
 		if (!imageFile) {
@@ -193,9 +252,9 @@ export default function CreateEventModal({ isOpen, onClose, onEventCreated }: Cr
 								value={formData.title}
 								onChange={handleInputChange}
 								placeholder="Enter event title"
-								className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#556b2f] focus:border-transparent transition-all"
-								required
+								className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#556b2f] focus:border-transparent transition-all ${errors.title ? 'border-red-500' : 'border-gray-300'}`}
 							/>
+							{errors.title && <p className="mt-1 text-sm text-red-500">{errors.title}</p>}
 						</div>
 
 						{/* Event Type */}
