@@ -114,6 +114,26 @@ export default function EventDetails() {
 		fetchEvent();
 	}, [eventId, user?.id]);
 
+	const handleLeaveEvent = async () => {
+		if (!user) return;
+
+		setIsJoining(true);
+		try {
+			await RestClient.leaveEvent(user.id, parseInt(eventId || "0"));
+			setRegistrationStatus({
+				isRegistered: false,
+				isPending: false,
+				isAccepted: false
+			});
+			showToast("You have left the event.", "success");
+		} catch (err) {
+			console.error("Failed to leave event:", err);
+			showToast("Failed to leave event.", "error");
+		} finally {
+			setIsJoining(false);
+		}
+	};
+
 	const handleJoinEvent = async () => {
 		if (!user) {
 			showToast("Please log in to join events", "warning");
@@ -255,16 +275,18 @@ export default function EventDetails() {
 							>
 								Details
 							</button>
-							<button
-								onClick={() => setActiveTab("discussion")}
-								className={`pb-3 px-2 font-(family-name:--font-dmsans) font-bold transition-all relative ${
-									activeTab === "discussion"
-										? "text-[#556b2f] border-b-3 border-[#556b2f] -mb-0.5"
-										: "text-gray-500 hover:text-[#556b2f]"
-								}`}
-							>
-								Discussion
-							</button>
+							{registrationStatus.isAccepted && (
+								<button
+									onClick={() => setActiveTab("discussion")}
+									className={`pb-3 px-2 font-(family-name:--font-dmsans) font-bold transition-all relative ${
+										activeTab === "discussion"
+											? "text-[#556b2f] border-b-3 border-[#556b2f] -mb-0.5"
+											: "text-gray-500 hover:text-[#556b2f]"
+									}`}
+								>
+									Discussion
+								</button>
+							)}
 						</div>
 
 						{/* Tab Content */}
@@ -326,6 +348,15 @@ export default function EventDetails() {
 										? "Join Event" 
 										: "Login to Join"}
 								</button>
+								{registrationStatus.isAccepted && (
+									<button 
+										onClick={handleLeaveEvent}
+										disabled={isJoining}
+										className="w-full font-(family-name:--font-dmsans) text-red-600 bg-white border-2 border-red-600 text-lg font-bold py-4 rounded-xl transition-all hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+									>
+										{isJoining ? "Leaving..." : "Leave Event"}
+									</button>
+								)}
 							</div>
 
 							{/* Share Section */}

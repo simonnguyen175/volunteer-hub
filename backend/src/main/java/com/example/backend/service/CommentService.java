@@ -35,11 +35,26 @@ public class CommentService {
         Comment parentComment =
                 commentRepository.findById(commentRequest.getParentCommentId()).orElse(null);
         comment.setParentComment(parentComment);
+        
+        // Increment repliesCount of parent comment if this is a reply
+        if (parentComment != null) {
+            incRepliesCount(parentComment);
+        }
 
         comment.setLikesCount(0);
         comment.setRepliesCount(0);
 
         return commentRepository.save(comment);
+    }
+
+    public void incRepliesCount(Comment comment) {
+        comment.setRepliesCount(comment.getRepliesCount() + 1);
+        commentRepository.save(comment);
+    }
+
+    public void decRepliesCount(Comment comment) {
+        comment.setRepliesCount(comment.getRepliesCount() - 1);
+        commentRepository.save(comment);
     }
 
     public void incLikesCount(Comment comment) {
@@ -78,6 +93,13 @@ public class CommentService {
         Comment comment = getCommentById(commentId);
         Post post = comment.getPost();
         postService.decCommentCount(post);
+        
+        // Decrement repliesCount of parent comment if this is a reply
+        Comment parentComment = comment.getParentComment();
+        if (parentComment != null) {
+            decRepliesCount(parentComment);
+        }
+        
         commentRepository.delete(comment);
     }
 }

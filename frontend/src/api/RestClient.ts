@@ -262,6 +262,17 @@ export class RestClient {
 		return await result.json();
 	}
 
+	static async leaveEvent(userId: number, eventId: number): Promise<any> {
+		const url = `${RestClient.baseUrl}/event-user/leave/?user_id=${userId}&event_id=${eventId}`;
+
+		const result = await fetch(url, {
+			method: "DELETE",
+			headers: this.getHeaders(true),
+		});
+
+		return await result.json();
+	}
+
 	// ========== NOTIFICATION APIs ==========
 
 	static async getUserNotifications(userId: number): Promise<any> {
@@ -427,5 +438,128 @@ export class RestClient {
 		const jsonResponse = await result.json();
 		console.log("getUserEventStatus raw response:", jsonResponse);
 		return jsonResponse;
+	}
+
+	// ========== POST APIs ==========
+
+	static async getPostsByEventId(eventId: number): Promise<any> {
+		const url = `${RestClient.baseUrl}/post/by-event/?event_id=${eventId}`;
+
+		const result = await fetch(url, {
+			method: "GET",
+			headers: this.getHeaders(true),
+		});
+
+		return await result.json();
+	}
+
+	static async createPost(eventId: number, userId: number, content: string, imageUrl?: string): Promise<any> {
+		const url = `${RestClient.baseUrl}/post/create`;
+
+		const body = {
+			eventId,
+			userId,
+			content,
+			imageUrl: imageUrl || null,
+		};
+
+		const result = await fetch(url, {
+			method: "POST",
+			headers: this.getHeaders(true),
+			body: JSON.stringify(body),
+		});
+
+		return await result.json();
+	}
+
+	// ========== COMMENT APIs ==========
+
+	static async getCommentsByPostId(postId: number): Promise<any> {
+		const url = `${RestClient.baseUrl}/comment/byPost/${postId}`;
+
+		const result = await fetch(url, {
+			method: "GET",
+			headers: this.getHeaders(true),
+		});
+
+		return await result.json();
+	}
+
+	static async getRepliesByCommentId(parentId: number): Promise<any> {
+		const url = `${RestClient.baseUrl}/comment/byParent/${parentId}`;
+
+		const result = await fetch(url, {
+			method: "GET",
+			headers: this.getHeaders(true),
+		});
+
+		return await result.json();
+	}
+
+	static async createComment(postId: number, userId: number, content: string, parentCommentId?: number): Promise<any> {
+		const url = `${RestClient.baseUrl}/comment/create`;
+
+		const body = {
+			postId,
+			userId,
+			content,
+			parentCommentId: parentCommentId || 0,
+		};
+
+		console.log("Creating comment with body:", body);
+
+		const result = await fetch(url, {
+			method: "POST",
+			headers: this.getHeaders(true),
+			body: JSON.stringify(body),
+		});
+
+		return await result.json();
+	}
+
+	// ========== LIKE APIs ==========
+
+	static async toggleLikePost(userId: number, postId: number): Promise<any> {
+		const url = `${RestClient.baseUrl}/like/post?user_id=${userId}&post_id=${postId}`;
+
+		const result = await fetch(url, {
+			method: "POST",
+			headers: this.getHeaders(true),
+		});
+
+		return await result.json();
+	}
+
+	static async toggleLikeComment(userId: number, commentId: number): Promise<any> {
+		const url = `${RestClient.baseUrl}/like/comment?user_id=${userId}&comment_id=${commentId}`;
+
+		const result = await fetch(url, {
+			method: "POST",
+			headers: this.getHeaders(true),
+		});
+
+		return await result.json();
+	}
+
+	static async checkLikePost(userId: number, postId: number): Promise<any> {
+		const url = `${RestClient.baseUrl}/like/post/check?user_id=${userId}&post_id=${postId}`;
+
+		const result = await fetch(url, {
+			method: "GET",
+			headers: this.getHeaders(true),
+		});
+
+		return await result.json();
+	}
+
+	static async checkLikeComment(userId: number, commentId: number): Promise<any> {
+		const url = `${RestClient.baseUrl}/like/comment/check?user_id=${userId}&comment_id=${commentId}`;
+
+		const result = await fetch(url, {
+			method: "GET",
+			headers: this.getHeaders(true),
+		});
+
+		return await result.json();
 	}
 }
