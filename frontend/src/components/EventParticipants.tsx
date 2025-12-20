@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { IconCheck, IconX, IconUsers, IconClock, IconCheckbox, IconSquare, IconSquareCheck } from "@tabler/icons-react";
+import { IconCheck, IconX, IconUsers, IconClock, IconSquare, IconSquareCheck } from "@tabler/icons-react";
 import { RestClient } from "../api/RestClient";
 import { useToast } from "./ui/Toast";
 
@@ -30,7 +30,7 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 	const [attendanceLoading, setAttendanceLoading] = useState<number | null>(null);
 	const { showToast } = useToast();
 
-	// Determine event status based on start and end times
+	// Determine event status
 	const now = new Date();
 	const eventStartTime = startTime ? new Date(startTime) : null;
 	const eventEndTime = endTime ? new Date(endTime) : null;
@@ -65,7 +65,7 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 		setActionLoading(eventUserId);
 		try {
 			await RestClient.acceptUserToEvent(eventUserId);
-			showToast("Participant accepted successfully!", "success");
+			showToast("Participant accepted!", "success");
 			fetchParticipants();
 		} catch (err) {
 			console.error("Failed to accept user:", err);
@@ -79,7 +79,7 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 		setActionLoading(eventUserId);
 		try {
 			await RestClient.denyUserToEvent(eventUserId);
-			showToast("Participant request denied", "success");
+			showToast("Request denied", "success");
 			fetchParticipants();
 		} catch (err) {
 			console.error("Failed to deny user:", err);
@@ -95,7 +95,6 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 			const newCompleted = !participant.completed;
 			await RestClient.markParticipantAttendance(participant.id, newCompleted);
 			
-			// Update local state
 			setAcceptedParticipants(prev => 
 				prev.map(p => 
 					p.id === participant.id 
@@ -118,67 +117,67 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 		}
 	};
 
+	const attendancePercentage = acceptedParticipants.length > 0 
+		? (acceptedParticipants.filter(p => p.completed).length / acceptedParticipants.length) * 100 
+		: 0;
+
 	if (loading) {
 		return (
-			<div className="text-center py-12">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#556b2f] mx-auto"></div>
-				<p className="text-gray-600 mt-2">Loading participants...</p>
+			<div className="flex items-center justify-center py-12">
+				<div className="w-8 h-8 border-2 border-[#556b2f] border-t-transparent rounded-full animate-spin"></div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="space-y-6">
-			{/* Stats Summary */}
+		<div className="space-y-6" style={{ animation: 'fadeIn 0.4s ease-out' }}>
+			{/* Stats Summary - Simple design */}
 			<div className="grid grid-cols-2 gap-4">
-				<div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
-					<div className="p-2 bg-green-100 rounded-lg">
-						<IconUsers size={24} className="text-green-600" />
+				<div className="flex items-center gap-3 p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+					<div className="p-2 bg-emerald-100 rounded-lg">
+						<IconUsers size={20} className="text-emerald-600" />
 					</div>
 					<div>
-						<p className="text-2xl font-bold text-green-700">{acceptedParticipants.length}</p>
-						<p className="text-sm text-green-600">Accepted</p>
+						<p className="text-2xl font-bold text-emerald-700 font-(family-name:--font-crimson)">{acceptedParticipants.length}</p>
+						<p className="text-xs font-medium text-emerald-600 font-(family-name:--font-dmsans)">Accepted</p>
 					</div>
 				</div>
-				<div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-center gap-3">
-					<div className="p-2 bg-yellow-100 rounded-lg">
-						<IconClock size={24} className="text-yellow-600" />
+				<div className="flex items-center gap-3 p-4 bg-amber-50 rounded-xl border border-amber-100">
+					<div className="p-2 bg-amber-100 rounded-lg">
+						<IconClock size={20} className="text-amber-600" />
 					</div>
 					<div>
-						<p className="text-2xl font-bold text-yellow-700">{pendingParticipants.length}</p>
-						<p className="text-sm text-yellow-600">Pending</p>
+						<p className="text-2xl font-bold text-amber-700 font-(family-name:--font-crimson)">{pendingParticipants.length}</p>
+						<p className="text-xs font-medium text-amber-600 font-(family-name:--font-dmsans)">Pending</p>
 					</div>
 				</div>
 			</div>
 
-			{/* Attendance Stats (for past/ongoing events) */}
+			{/* Attendance Progress - Clean bar */}
 			{showAttendanceChecklist && acceptedParticipants.length > 0 && (
-				<div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-					<div className="flex items-center gap-2 mb-2">
-						<IconCheckbox size={20} className="text-blue-600" />
-						<h3 className="font-semibold text-blue-800">Attendance Tracking</h3>
+				<div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+					<div className="flex items-center justify-between mb-3">
+						<p className="text-sm font-semibold text-blue-800 font-(family-name:--font-dmsans)">
+							Attendance
+						</p>
+						<p className="text-sm font-bold text-blue-700 font-(family-name:--font-dmsans)">
+							{acceptedParticipants.filter(p => p.completed).length} / {acceptedParticipants.length}
+						</p>
 					</div>
-					<p className="text-sm text-blue-700">
-						{acceptedParticipants.filter(p => p.completed).length} of {acceptedParticipants.length} participants attended
-					</p>
-					<div className="mt-2 bg-blue-200 rounded-full h-2 overflow-hidden">
+					<div className="h-2 bg-blue-100 rounded-full overflow-hidden">
 						<div 
-							className="h-full bg-blue-600 transition-all duration-300"
-							style={{ 
-								width: `${acceptedParticipants.length > 0 
-									? (acceptedParticipants.filter(p => p.completed).length / acceptedParticipants.length) * 100 
-									: 0}%` 
-							}}
+							className="h-full bg-blue-500 rounded-full transition-all duration-500"
+							style={{ width: `${attendancePercentage}%` }}
 						></div>
 					</div>
 				</div>
 			)}
 
-			{/* Tabs */}
+			{/* Tabs - Simple underline style */}
 			<div className="flex border-b border-gray-200">
 				<button
 					onClick={() => setActiveTab("accepted")}
-					className={`flex-1 py-3 text-center font-semibold transition-colors ${
+					className={`flex-1 py-3 text-sm font-semibold font-(family-name:--font-dmsans) transition-colors ${
 						activeTab === "accepted"
 							? "text-[#556b2f] border-b-2 border-[#556b2f]"
 							: "text-gray-500 hover:text-gray-700"
@@ -188,100 +187,90 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 				</button>
 				<button
 					onClick={() => setActiveTab("pending")}
-					className={`flex-1 py-3 text-center font-semibold transition-colors ${
+					className={`flex-1 py-3 text-sm font-semibold font-(family-name:--font-dmsans) transition-colors ${
 						activeTab === "pending"
 							? "text-[#556b2f] border-b-2 border-[#556b2f]"
 							: "text-gray-500 hover:text-gray-700"
 					}`}
 				>
-					Pending Requests ({pendingParticipants.length})
+					Pending ({pendingParticipants.length})
 				</button>
 			</div>
 
 			{/* Participants List */}
-			<div className="space-y-3">
+			<div className="space-y-2">
 				{activeTab === "accepted" ? (
 					acceptedParticipants.length === 0 ? (
-						<div className="text-center py-8 bg-gray-50 rounded-xl">
-							<IconUsers size={48} className="mx-auto text-gray-400 mb-3" />
-							<p className="text-gray-500">No accepted participants yet</p>
+						<div className="text-center py-10 text-gray-500 font-(family-name:--font-dmsans)">
+							<IconUsers size={40} className="mx-auto mb-3 text-gray-300" />
+							<p>No accepted participants yet</p>
 						</div>
 					) : (
-						acceptedParticipants.map((p) => (
+						acceptedParticipants.map((p, index) => (
 							<div
 								key={p.id}
 								className={`flex items-center justify-between p-4 rounded-xl transition-colors ${
-									showAttendanceChecklist 
-										? p.completed 
-											? 'bg-green-50 border border-green-200 hover:bg-green-100' 
-											: 'bg-gray-50 hover:bg-gray-100'
+									showAttendanceChecklist && p.completed 
+										? 'bg-emerald-50 border border-emerald-100' 
 										: 'bg-gray-50 hover:bg-gray-100'
 								}`}
+								style={{ animation: `fadeIn 0.3s ease-out ${index * 0.05}s both` }}
 							>
 								<div className="flex items-center gap-3">
-									{/* Attendance Checkbox - only for past/ongoing events */}
+									{/* Attendance Checkbox */}
 									{showAttendanceChecklist && (
 										<button
 											onClick={() => handleToggleAttendance(p)}
 											disabled={attendanceLoading === p.id}
-											className={`p-1 rounded-lg transition-all ${
-												attendanceLoading === p.id 
-													? 'opacity-50 cursor-wait' 
-													: 'hover:bg-gray-200'
-											}`}
-											title={p.completed ? "Mark as absent" : "Mark as attended"}
+											className="p-1 rounded hover:bg-white/50 transition-colors disabled:opacity-50"
 										>
 											{p.completed ? (
-												<IconSquareCheck size={24} className="text-green-600" />
+												<IconSquareCheck size={22} className="text-emerald-600" />
 											) : (
-												<IconSquare size={24} className="text-gray-400" />
+												<IconSquare size={22} className="text-gray-400" />
 											)}
 										</button>
 									)}
-									<div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+
+									{/* Avatar */}
+									<div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${
 										showAttendanceChecklist && p.completed 
-											? 'bg-green-200' 
-											: 'bg-green-100'
+											? 'bg-emerald-500' 
+											: 'bg-[#556b2f]'
 									}`}>
-										<span className={`font-semibold ${
-											showAttendanceChecklist && p.completed 
-												? 'text-green-800' 
-												: 'text-green-700'
-										}`}>
-											{p.username.charAt(0).toUpperCase()}
-										</span>
+										{p.username.charAt(0).toUpperCase()}
 									</div>
+
+									{/* User Info */}
 									<div>
-										<p className="font-medium text-gray-900">{p.username}</p>
-										<p className="text-sm text-gray-600">{p.email}</p>
+										<p className="font-semibold text-gray-900 font-(family-name:--font-dmsans) text-sm">
+											{p.username}
+										</p>
+										<p className="text-xs text-gray-500 font-(family-name:--font-dmsans)">{p.email}</p>
 									</div>
 								</div>
+
+								{/* Status / Actions */}
 								<div className="flex items-center gap-2">
 									{showAttendanceChecklist && (
-										<span className={`px-3 py-1 rounded-full text-sm font-medium ${
+										<span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
 											p.completed 
-												? 'bg-green-100 text-green-700' 
+												? 'bg-emerald-100 text-emerald-700' 
 												: 'bg-gray-200 text-gray-600'
 										}`}>
 											{p.completed ? 'Attended' : 'Absent'}
 										</span>
 									)}
-									{!showAttendanceChecklist && (
-										<span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-											Accepted
-										</span>
-									)}
-									{/* Remove button for hosts (only before event ends) */}
+									
 									{isHost && !isPastEvent && (
 										<button
 											onClick={() => {
-												if (confirm(`Remove ${p.username} from this event?`)) {
+												if (confirm(`Remove ${p.username}?`)) {
 													handleDeny(p.id);
 												}
 											}}
 											disabled={actionLoading === p.id}
-											className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
-											title="Remove participant"
+											className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
 										>
 											<IconX size={16} />
 										</button>
@@ -291,48 +280,46 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 						))
 					)
 				) : pendingParticipants.length === 0 ? (
-					<div className="text-center py-8 bg-gray-50 rounded-xl">
-						<IconClock size={48} className="mx-auto text-gray-400 mb-3" />
-						<p className="text-gray-500">No pending requests</p>
+					<div className="text-center py-10 text-gray-500 font-(family-name:--font-dmsans)">
+						<IconClock size={40} className="mx-auto mb-3 text-gray-300" />
+						<p>No pending requests</p>
 					</div>
 				) : (
-					pendingParticipants.map((p) => (
+					pendingParticipants.map((p, index) => (
 						<div
 							key={p.id}
 							className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+							style={{ animation: `fadeIn 0.3s ease-out ${index * 0.05}s both` }}
 						>
 							<div className="flex items-center gap-3">
-								<div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-									<span className="text-yellow-700 font-semibold">
-										{p.username.charAt(0).toUpperCase()}
-									</span>
+								<div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-white font-semibold text-sm">
+									{p.username.charAt(0).toUpperCase()}
 								</div>
 								<div>
-									<p className="font-medium text-gray-900">{p.username}</p>
-									<p className="text-sm text-gray-600">{p.email}</p>
+									<p className="font-semibold text-gray-900 font-(family-name:--font-dmsans) text-sm">{p.username}</p>
+									<p className="text-xs text-gray-500 font-(family-name:--font-dmsans)">{p.email}</p>
 								</div>
 							</div>
+
 							{isHost ? (
 								<div className="flex gap-2">
 									<button
 										onClick={() => handleAccept(p.id)}
 										disabled={actionLoading === p.id}
-										className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
-										title="Accept"
+										className="p-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-50"
 									>
-										<IconCheck size={20} />
+										<IconCheck size={16} />
 									</button>
 									<button
 										onClick={() => handleDeny(p.id)}
 										disabled={actionLoading === p.id}
-										className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
-										title="Deny"
+										className="p-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
 									>
-										<IconX size={20} />
+										<IconX size={16} />
 									</button>
 								</div>
 							) : (
-								<span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
+								<span className="px-2.5 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
 									Pending
 								</span>
 							)}
@@ -340,6 +327,14 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 					))
 				)}
 			</div>
+
+			{/* Simple fade animation */}
+			<style>{`
+				@keyframes fadeIn {
+					from { opacity: 0; transform: translateY(8px); }
+					to { opacity: 1; transform: translateY(0); }
+				}
+			`}</style>
 		</div>
 	);
 }

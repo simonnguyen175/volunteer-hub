@@ -40,44 +40,75 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
 	}, [toast.id, onRemove]);
 
 	const icons = {
-		success: <IconCheck size={20} />,
-		error: <IconX size={20} />,
-		warning: <IconAlertTriangle size={20} />,
-		info: <IconInfoCircle size={20} />,
+		success: <IconCheck size={18} stroke={3} />,
+		error: <IconX size={18} stroke={3} />,
+		warning: <IconAlertTriangle size={18} stroke={2.5} />,
+		info: <IconInfoCircle size={18} stroke={2.5} />,
 	};
 
-	const colors = {
-		success: "bg-green-50 border-green-200 text-green-800",
-		error: "bg-red-50 border-red-200 text-red-800",
-		warning: "bg-yellow-50 border-yellow-200 text-yellow-800",
-		info: "bg-blue-50 border-blue-200 text-blue-800",
+	// Using the site's theme (Olive/Crimson/Gray) with softer backgrounds
+	const styles = {
+		success: {
+			border: "border-[#556b2f]/20",
+			bg: "bg-[#fcfdfa]",
+			text: "text-gray-800",
+			iconBg: "bg-[#556b2f]",
+			iconText: "text-white",
+			accent: "bg-[#556b2f]"
+		},
+		error: {
+			border: "border-red-200/60",
+			bg: "bg-[#fffafa]",
+			text: "text-gray-800",
+			iconBg: "bg-red-500",
+			iconText: "text-white",
+			accent: "bg-red-500"
+		},
+		warning: {
+			border: "border-amber-200/60",
+			bg: "bg-[#fffdf5]",
+			text: "text-gray-800",
+			iconBg: "bg-amber-400",
+			iconText: "text-amber-900",
+			accent: "bg-amber-400"
+		},
+		info: {
+			border: "border-gray-200/60",
+			bg: "bg-[#fafafa]",
+			text: "text-gray-800",
+			iconBg: "bg-gray-700",
+			iconText: "text-white",
+			accent: "bg-gray-700"
+		},
 	};
 
-	const iconColors = {
-		success: "text-green-500 bg-green-100",
-		error: "text-red-500 bg-red-100",
-		warning: "text-yellow-500 bg-yellow-100",
-		info: "text-blue-500 bg-blue-100",
-	};
+	const currentStyle = styles[toast.type];
 
 	return (
 		<div
-			className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg transition-all duration-300 ${colors[toast.type]} ${
-				isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
+			className={`relative overflow-hidden flex items-center gap-3 pl-4 pr-3 py-3.5 rounded-lg border shadow-lg shadow-gray-200/40 transition-all duration-500 ease-out group min-w-[300px] ${currentStyle.bg} ${currentStyle.border} ${
+				isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8 scale-95"
 			}`}
 		>
-			<div className={`p-1.5 rounded-full ${iconColors[toast.type]}`}>
+			{/* Left accent line */}
+			<div className={`absolute top-0 left-0 w-1 h-full ${currentStyle.accent}`} />
+
+			<div className={`p-1.5 rounded-full shrink-0 ${currentStyle.iconBg} ${currentStyle.iconText}`}>
 				{icons[toast.type]}
 			</div>
-			<p className="font-medium text-sm flex-1">{toast.message}</p>
+			
+			<p className="font-(family-name:--font-dmsans) font-medium text-sm flex-1 leading-snug tracking-wide">
+				{toast.message}
+			</p>
+			
 			<button
 				onClick={() => {
 					setIsVisible(false);
 					setTimeout(() => onRemove(toast.id), 300);
 				}}
-				className="p-1 hover:bg-black/5 rounded-full transition-colors"
+				className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors opacity-0 group-hover:opacity-100"
 			>
-				<IconX size={16} />
+				<IconX size={14} />
 			</button>
 		</div>
 	);

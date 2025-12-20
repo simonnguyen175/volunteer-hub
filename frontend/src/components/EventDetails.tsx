@@ -218,10 +218,13 @@ export default function EventDetails() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
-				<div className="text-center">
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#556b2f] mx-auto mb-4"></div>
-					<p className="text-gray-600">Loading event...</p>
+			<div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+				<div className="flex flex-col items-center">
+					<div className="relative mb-6 w-16 h-16">
+						<div className="w-16 h-16 border-4 border-[#556b2f]/20 rounded-full"></div>
+						<div className="absolute top-0 left-0 w-16 h-16 border-4 border-[#556b2f] border-t-transparent rounded-full animate-spin"></div>
+					</div>
+					<p className="text-gray-500 font-(family-name:--font-dmsans) font-medium animate-pulse">Loading event...</p>
 				</div>
 			</div>
 		);
@@ -307,53 +310,61 @@ export default function EventDetails() {
 					{/* Main Content - Tabs */}
 					<div className="lg:col-span-2 space-y-6">
 						{/* Tab Navigation */}
-						<div className="flex gap-6 border-b-2 border-gray-200">
-							<button
-							onClick={() => {
-								setActiveTab("details");
-								navigate(`/events/${eventId}?tab=details`, { replace: true });
-							}}
-							className={`pb-3 px-2 font-(family-name:--font-dmsans) font-bold transition-all relative ${
-								activeTab === "details"
-									? "text-[#556b2f] border-b-3 border-[#556b2f] -mb-0.5"
-									: "text-gray-500 hover:text-[#556b2f]"
-							}`}
-						>
-							Details
-						</button>
-						<button
-							onClick={() => {
-								setActiveTab("discussion");
-								navigate(`/events/${eventId}?tab=discussion`, { replace: true });
-							}}
-							className={`pb-3 px-2 font-(family-name:--font-dmsans) font-bold transition-all relative ${
-								activeTab === "discussion"
-									? "text-[#556b2f] border-b-3 border-[#556b2f] -mb-0.5"
-									: "text-gray-500 hover:text-[#556b2f]"
-							}`}
-						>
-							Discussion
-						</button>
-						{isHost && (
+						<div className="flex items-center gap-8 border-b border-gray-100 mb-8">
 							<button
 								onClick={() => {
-									setActiveTab("participants");
-									navigate(`/events/${eventId}?tab=participants`, { replace: true });
+									setActiveTab("details");
+									navigate(`/events/${eventId}?tab=details`, { replace: true });
 								}}
-								className={`pb-3 px-2 font-(family-name:--font-dmsans) font-bold transition-all relative flex items-center gap-2 ${
-									activeTab === "participants"
-										? "text-[#556b2f] border-b-3 border-[#556b2f] -mb-0.5"
-										: "text-gray-500 hover:text-[#556b2f]"
+								className={`pb-4 text-sm font-bold tracking-wide font-(family-name:--font-dmsans) transition-all relative ${
+									activeTab === "details"
+										? "text-[#556b2f]"
+										: "text-gray-400 hover:text-gray-600"
 								}`}
 							>
-								<IconUsers size={18} />
-								Participants
+								Details
+								{activeTab === "details" && (
+									<div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#556b2f] rounded-full" />
+								)}
 							</button>
-						)}
+							<button
+								onClick={() => {
+									setActiveTab("discussion");
+									navigate(`/events/${eventId}?tab=discussion`, { replace: true });
+								}}
+								className={`pb-4 text-sm font-bold tracking-wide font-(family-name:--font-dmsans) transition-all relative ${
+									activeTab === "discussion"
+										? "text-[#556b2f]"
+										: "text-gray-400 hover:text-gray-600"
+								}`}
+							>
+								Discussion
+								{activeTab === "discussion" && (
+									<div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#556b2f] rounded-full" />
+								)}
+							</button>
+							{isHost && (
+								<button
+									onClick={() => {
+										setActiveTab("participants");
+										navigate(`/events/${eventId}?tab=participants`, { replace: true });
+									}}
+									className={`pb-4 text-sm font-bold tracking-wide font-(family-name:--font-dmsans) transition-all relative flex items-center gap-2 ${
+										activeTab === "participants"
+											? "text-[#556b2f]"
+											: "text-gray-400 hover:text-gray-600"
+									}`}
+								>
+									Participants
+									{activeTab === "participants" && (
+										<div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#556b2f] rounded-full" />
+									)}
+								</button>
+							)}
 						</div>
 
 						{/* Tab Content */}
-						<div className="py-4">
+						<div className="min-h-[400px]">
 							{activeTab === "details" ? (
 								<EventDescription
 									description={event.description}
@@ -396,13 +407,13 @@ export default function EventDetails() {
 							</div>
 
 							{/* Action Buttons */}
-				<div className="space-y-3">
+				<div className="space-y-4">
 					{/* Show Edit and Delete buttons for event owner */}
 					{isEventOwner ? (
-						<>
+						<div className="space-y-3">
 							<button 
 								onClick={() => setIsEditModalOpen(true)}
-								className="w-full font-(family-name:--font-dmsans) text-white bg-[#556b2f] hover:bg-[#6d8c3a] text-lg font-bold py-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+								className="w-full py-3 px-4 rounded-xl border border-[#556b2f] text-[#556b2f] font-bold font-(family-name:--font-dmsans) hover:bg-[#556b2f] hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
 							>
 								<IconEdit size={20} />
 								Edit Event
@@ -410,33 +421,33 @@ export default function EventDetails() {
 							<button 
 								onClick={handleDeleteEvent}
 								disabled={isDeleting}
-								className="w-full font-(family-name:--font-dmsans) text-white bg-red-600 hover:bg-red-700 text-lg font-bold py-4 rounded-xl transition-all shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
+								className="w-full py-3 px-4 rounded-xl border border-red-500 text-red-600 font-bold font-(family-name:--font-dmsans) hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
 							>
 								<IconTrash size={20} />
 								{isDeleting ? "Deleting..." : "Delete Event"}
 							</button>
-						</>
+						</div>
 					) : (
-									<>
+									<div className="space-y-3">
 										{/* Hide join button for past events, show for future and ongoing */}
 										{!isPastEvent && (
 											<button 
 												onClick={handleJoinEvent}
 												disabled={isJoining || !user || registrationStatus.isRegistered}
-												className={`w-full font-(family-name:--font-dmsans) text-white text-lg font-bold py-4 rounded-xl transition-all shadow-md hover:shadow-lg disabled:cursor-not-allowed ${
+												className={`w-full py-3.5 px-4 rounded-xl font-bold font-(family-name:--font-dmsans) text-white transition-all duration-300 shadow-sm hover:shadow-md disabled:cursor-not-allowed ${
 													registrationStatus.isAccepted 
-														? 'bg-[#747e59] hover:bg-[#747e59]'
+														? 'bg-[#747e59] cursor-default'
 														: registrationStatus.isPending
-														? 'bg-[#8e9c78] hover:bg-[#8e9c78]'
+														? 'bg-[#8e9c78] cursor-default'
 														: 'bg-[#556b2f] hover:bg-[#6d8c3a]'
 												}`}
 											>
 												{isJoining 
 													? "Joining..." 
 													: registrationStatus.isAccepted 
-													? "✓ Already Joined" 
+													? "✓ You're Going" 
 													: registrationStatus.isPending 
-													? "⏳ Pending Approval" 
+													? "⏳ Request Pending" 
 													: user 
 													? "Join Event" 
 													: "Login to Join"}
@@ -447,35 +458,35 @@ export default function EventDetails() {
 											<button 
 												onClick={handleLeaveEvent}
 												disabled={isJoining}
-												className="w-full font-(family-name:--font-dmsans) text-red-600 bg-white border-2 border-red-600 text-lg font-bold py-4 rounded-xl transition-all hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+												className="w-full py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-bold font-(family-name:--font-dmsans) hover:border-red-200 hover:text-red-600 hover:bg-red-50 transition-all duration-300 disabled:opacity-50"
 											>
 												{isJoining ? "Leaving..." : "Leave Event"}
 											</button>
 										)}
 										{/* Show event status message for past events */}
 										{isPastEvent && (
-											<div className="w-full text-center py-4 bg-gray-100 rounded-xl">
-												<p className="text-gray-600 font-(family-name:--font-dmsans) font-semibold">This event has ended</p>
+											<div className="w-full text-center py-4 bg-gray-50 rounded-xl border border-gray-100">
+												<p className="text-gray-500 font-(family-name:--font-dmsans) text-sm font-medium">This event has ended</p>
 											</div>
 										)}
-									</>
+									</div>
 								)}
 							</div>
 
-							{/* Share Section */}
-							<div className="bg-gradient-to-br from-[#556b2f]/5 to-[#747e59]/5 p-6 rounded-xl border border-[#556b2f]/20">
-								<h4 className="font-(family-name:--font-dmsans) font-bold text-[#556b2f] text-sm uppercase tracking-wide mb-4">
-									Share this event
+							{/* Share Section - Minimal */}
+							<div className="pt-6 border-t border-gray-100">
+								<h4 className="font-(family-name:--font-dmsans) font-bold text-gray-400 text-xs uppercase tracking-wider mb-3">
+									Share
 								</h4>
 								<div className="flex gap-2">
-									<button className="flex-1 bg-white border border-[#556b2f]/30 py-2 px-3 rounded-lg text-xs font-(family-name:--font-dmsans) font-semibold text-gray-700 hover:bg-[#556b2f]/10 hover:border-[#556b2f] transition-all">
+									<button className="flex-1 py-2 px-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold font-(family-name:--font-dmsans) transition-colors">
 										Facebook
 									</button>
-									<button className="flex-1 bg-white border border-[#556b2f]/30 py-2 px-3 rounded-lg text-xs font-(family-name:--font-dmsans) font-semibold text-gray-700 hover:bg-[#556b2f]/10 hover:border-[#556b2f] transition-all">
+									<button className="flex-1 py-2 px-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold font-(family-name:--font-dmsans) transition-colors">
 										Twitter
 									</button>
-									<button className="flex-1 bg-white border border-[#556b2f]/30 py-2 px-3 rounded-lg text-xs font-(family-name:--font-dmsans) font-semibold text-gray-700 hover:bg-[#556b2f]/10 hover:border-[#556b2f] transition-all">
-										Copy Link
+									<button className="flex-1 py-2 px-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold font-(family-name:--font-dmsans) transition-colors">
+										Link
 									</button>
 								</div>
 							</div>
@@ -512,6 +523,24 @@ export default function EventDetails() {
 					}}
 				/>
 			)}
+
+			{/* Animation keyframes */}
+			<style>{`
+				@keyframes fadeIn {
+					from { opacity: 0; }
+					to { opacity: 1; }
+				}
+				@keyframes fadeInUp {
+					from {
+						opacity: 0;
+						transform: translateY(20px);
+					}
+					to {
+						opacity: 1;
+						transform: translateY(0);
+					}
+				}
+			`}</style>
 		</div>
 	);
 }
