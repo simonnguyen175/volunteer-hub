@@ -11,7 +11,7 @@ public class PushSubscription {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer userId;
+    private Long userId;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String endpoint;

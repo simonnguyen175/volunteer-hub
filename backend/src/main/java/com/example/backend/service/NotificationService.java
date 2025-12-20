@@ -85,7 +85,7 @@ public class NotificationService {
     }
 
     @Transactional
-    public void subscribe(Integer userId, PushSubscriptionRequest request) {
+    public void subscribe(Long userId, PushSubscriptionRequest request) {
         String endpoint = request.getEndpoint();
         PushSubscription entity = new PushSubscription();
         entity.setUserId(userId);
@@ -97,4 +97,5 @@ public class NotificationService {
         entity.setAuth(request.getAuth());
         subscriptionRepo.save(entity);
     }
+
 }

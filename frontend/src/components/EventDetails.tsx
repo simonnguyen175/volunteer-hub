@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { IconArrowLeft, IconUsers, IconCalendar, IconClock } from "@tabler/icons-react";
+import { IconArrowLeft, IconUsers, IconCalendar, IconClock, IconTrash } from "@tabler/icons-react";
 import { createClient } from "@supabase/supabase-js";
 import { RestClient } from "../api/RestClient";
 import { useAuth } from "../contexts/AuthContext";
@@ -62,7 +62,9 @@ export default function EventDetails() {
 	const rawRole = user?.role;
 	const roleName = typeof rawRole === "string" ? rawRole : (rawRole as { name?: string } | undefined)?.name ?? "";
 	const isHost = event?.managerId === user?.id || roleName === "ADMIN";
+	const isEventOwner = event?.managerId === user?.id; // Only the actual owner can delete
 	const [isJoining, setIsJoining] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
 	const [registrationStatus, setRegistrationStatus] = useState<{
 		isRegistered: boolean;
 		isPending: boolean;
@@ -143,6 +145,24 @@ export default function EventDetails() {
 			showToast("Failed to leave event.", "error");
 		} finally {
 			setIsJoining(false);
+		}
+	};
+
+	const handleDeleteEvent = async () => {
+		if (!confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
+			return;
+		}
+
+		setIsDeleting(true);
+		try {
+			await RestClient.deleteEvent(parseInt(eventId || "0"));
+			showToast("Event deleted successfully.", "success");
+			navigate("/events");
+		} catch (err) {
+			console.error("Failed to delete event:", err);
+			showToast("Failed to delete event.", "error");
+		} finally {
+			setIsDeleting(false);
 		}
 	};
 
@@ -375,45 +395,59 @@ export default function EventDetails() {
 
 							{/* Action Buttons */}
 							<div className="space-y-3">
-								{/* Hide join button for past events, show for future and ongoing */}
-								{!isPastEvent && (
+								{/* Show Delete button for event owner */}
+								{isEventOwner ? (
 									<button 
-										onClick={handleJoinEvent}
-										disabled={isJoining || !user || registrationStatus.isRegistered}
-										className={`w-full font-(family-name:--font-dmsans) text-white text-lg font-bold py-4 rounded-xl transition-all shadow-md hover:shadow-lg disabled:cursor-not-allowed ${
-											registrationStatus.isAccepted 
-												? 'bg-[#747e59] hover:bg-[#747e59]'
-												: registrationStatus.isPending
-												? 'bg-[#8e9c78] hover:bg-[#8e9c78]'
-												: 'bg-[#556b2f] hover:bg-[#6d8c3a]'
-										}`}
+										onClick={handleDeleteEvent}
+										disabled={isDeleting}
+										className="w-full font-(family-name:--font-dmsans) text-white bg-red-600 hover:bg-red-700 text-lg font-bold py-4 rounded-xl transition-all shadow-md hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2"
 									>
-										{isJoining 
-											? "Joining..." 
-											: registrationStatus.isAccepted 
-											? "✓ Already Joined" 
-											: registrationStatus.isPending 
-											? "⏳ Pending Approval" 
-											: user 
-											? "Join Event" 
-											: "Login to Join"}
+										<IconTrash size={20} />
+										{isDeleting ? "Deleting..." : "Delete Event"}
 									</button>
-								)}
-								{/* Show leave button only for future events (not ongoing or past) */}
-								{registrationStatus.isAccepted && isFutureEvent && (
-									<button 
-										onClick={handleLeaveEvent}
-										disabled={isJoining}
-										className="w-full font-(family-name:--font-dmsans) text-red-600 bg-white border-2 border-red-600 text-lg font-bold py-4 rounded-xl transition-all hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-									>
-										{isJoining ? "Leaving..." : "Leave Event"}
-									</button>
-								)}
-								{/* Show event status message for past events */}
-								{isPastEvent && (
-									<div className="w-full text-center py-4 bg-gray-100 rounded-xl">
-										<p className="text-gray-600 font-(family-name:--font-dmsans) font-semibold">This event has ended</p>
-									</div>
+								) : (
+									<>
+										{/* Hide join button for past events, show for future and ongoing */}
+										{!isPastEvent && (
+											<button 
+												onClick={handleJoinEvent}
+												disabled={isJoining || !user || registrationStatus.isRegistered}
+												className={`w-full font-(family-name:--font-dmsans) text-white text-lg font-bold py-4 rounded-xl transition-all shadow-md hover:shadow-lg disabled:cursor-not-allowed ${
+													registrationStatus.isAccepted 
+														? 'bg-[#747e59] hover:bg-[#747e59]'
+														: registrationStatus.isPending
+														? 'bg-[#8e9c78] hover:bg-[#8e9c78]'
+														: 'bg-[#556b2f] hover:bg-[#6d8c3a]'
+												}`}
+											>
+												{isJoining 
+													? "Joining..." 
+													: registrationStatus.isAccepted 
+													? "✓ Already Joined" 
+													: registrationStatus.isPending 
+													? "⏳ Pending Approval" 
+													: user 
+													? "Join Event" 
+													: "Login to Join"}
+											</button>
+										)}
+										{/* Show leave button only for future events (not ongoing or past) */}
+										{registrationStatus.isAccepted && isFutureEvent && (
+											<button 
+												onClick={handleLeaveEvent}
+												disabled={isJoining}
+												className="w-full font-(family-name:--font-dmsans) text-red-600 bg-white border-2 border-red-600 text-lg font-bold py-4 rounded-xl transition-all hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+											>
+												{isJoining ? "Leaving..." : "Leave Event"}
+											</button>
+										)}
+										{/* Show event status message for past events */}
+										{isPastEvent && (
+											<div className="w-full text-center py-4 bg-gray-100 rounded-xl">
+												<p className="text-gray-600 font-(family-name:--font-dmsans) font-semibold">This event has ended</p>
+											</div>
+										)}
+									</>
 								)}
 							</div>
 
