@@ -332,24 +332,31 @@ export default function Events() {
 							const { timeStr: endTimeStr } = formatDateTime(event.endTime);
 							return (
 								<Link key={event.id} to={`/events/${event.id}`}>
-									<Card className="overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
-										<div className="aspect-video w-full overflow-hidden">
-											<img
-												src={event.fullImageUrl}
-												alt={event.title}
-												className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-											/>
-										</div>
+											<Card className="group relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
+												<div className="aspect-video w-full overflow-hidden">
+														<img
+															src={event.fullImageUrl}
+															alt={event.title}
+															className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+														/>
+													</div>
 
-										<CardHeader className="">
-											<CardTitle className="font-(family-name:--font-crimson) text-2xl text-gray-900">
-												{event.title}
-											</CardTitle>
-											<CardDescription className="font-(family-name:--font-dmsans)">
-												{startDate} • {startTimeStr} - {endTimeStr}
-											</CardDescription>
-										</CardHeader>
-									</Card>
+													{/* White info strip remains visible; overlay slides up behind it */}
+													<div className="relative">
+														<div className="relative z-10 p-4 bg-white group-hover:bg-transparent transition-colors">
+															<CardHeader className="p-0">
+																<CardTitle className="font-(family-name:--font-crimson) text-xl text-gray-900 group-hover:text-white transition-colors">
+																	{event.title}
+																</CardTitle>
+																<CardDescription className="font-(family-name:--font-dmsans) text-sm text-gray-700 group-hover:text-white/90 transition-colors">
+																	{startDate} • {startTimeStr} - {endTimeStr}
+																</CardDescription>
+															</CardHeader>
+														</div>
+
+														<div className="absolute bottom-0 left-0 w-full h-full transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
+													</div>
+											</Card>
 								</Link>
 							);
 						})}
@@ -361,7 +368,7 @@ export default function Events() {
 							const { timeStr: endTimeStr } = formatDateTime(event.endTime);
 							return (
 								<Link key={event.id} to={`/events/${event.id}`}>
-									<Card className="overflow-hidden hover:shadow-lg transition-all cursor-pointer">
+									<Card className="group relative overflow-hidden hover:shadow-lg transition-all cursor-pointer">
 										<div className="flex flex-row">
 											<div className="w-64 h-40 shrink-0 overflow-hidden">
 												<img
@@ -370,16 +377,20 @@ export default function Events() {
 													className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
 												/>
 											</div>
+											<div className="flex-1 relative h-40">
+												<div className="absolute bottom-0 left-0 w-full p-4 z-10 bg-white group-hover:bg-transparent transition-colors">
+													<CardHeader className="p-0">
+														<CardTitle className="font-(family-name:--font-crimson) text-2xl text-gray-900 group-hover:text-white transition-colors">
+															{event.title}
+														</CardTitle>
+														<CardDescription className="font-(family-name:--font-dmsans) text-gray-700 group-hover:text-white/90 transition-colors">
+															{startDate} • {startTimeStr} - {endTimeStr}
+														</CardDescription>
+													</CardHeader>
+												</div>
 
-											<div className="flex-1">
-												<CardHeader>
-													<CardTitle className="font-(family-name:--font-crimson) text-2xl text-gray-900">
-														{event.title}
-													</CardTitle>
-													<CardDescription className="font-(family-name:--font-dmsans)">
-														{startDate} • {startTimeStr} - {endTimeStr}
-													</CardDescription>
-												</CardHeader>
+												{/* Sliding overlay for list view (behind the white strip) */}
+												<div className="absolute bottom-0 left-0 w-full h-full transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
 											</div>
 										</div>
 									</Card>
