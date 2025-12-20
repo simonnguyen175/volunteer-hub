@@ -284,21 +284,19 @@ export default function EventDetails() {
 						>
 							Details
 						</button>
-						{registrationStatus.isAccepted && (
-							<button
-								onClick={() => {
-									setActiveTab("discussion");
-									navigate(`/events/${eventId}?tab=discussion`, { replace: true });
-								}}
-								className={`pb-3 px-2 font-(family-name:--font-dmsans) font-bold transition-all relative ${
-									activeTab === "discussion"
-										? "text-[#556b2f] border-b-3 border-[#556b2f] -mb-0.5"
-										: "text-gray-500 hover:text-[#556b2f]"
-								}`}
-							>
-									Discussion
-								</button>
-							)}
+						<button
+							onClick={() => {
+								setActiveTab("discussion");
+								navigate(`/events/${eventId}?tab=discussion`, { replace: true });
+							}}
+							className={`pb-3 px-2 font-(family-name:--font-dmsans) font-bold transition-all relative ${
+								activeTab === "discussion"
+									? "text-[#556b2f] border-b-3 border-[#556b2f] -mb-0.5"
+									: "text-gray-500 hover:text-[#556b2f]"
+							}`}
+						>
+							Discussion
+						</button>
 						</div>
 
 						{/* Tab Content */}
