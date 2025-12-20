@@ -25,6 +25,9 @@ export default function Login({ setLoginOpen }: Props) {
 					auth.login(username, result.data.token, userData);
 					setLoginOpen(false);
 					
+					// Show success toast
+					showToast(`Welcome back, ${userData.username}!`, "success");
+					
 					// Check if admin and redirect to dashboard
 					const rawRole = userData.role;
 					const roleName = typeof rawRole === "string" 
