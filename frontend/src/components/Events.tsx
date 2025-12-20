@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
-import { IconSearch, IconGridDots, IconList, IconFilter, IconArrowsSort, IconPlus } from "@tabler/icons-react";
+import { IconSearch, IconGridDots, IconList, IconFilter, IconArrowsSort, IconPlus, IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 
 import {
 	Card,
@@ -46,6 +46,7 @@ export default function Events() {
 	const [endDateFilter, setEndDateFilter] = useState("");
 	const [isSearching, setIsSearching] = useState(false);
 	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+	const [isTypeFilterExpanded, setIsTypeFilterExpanded] = useState(true);
 
 	// Check if user is a host
 	const rawRole = user?.role;
@@ -203,10 +204,14 @@ export default function Events() {
 					<div className="flex flex-col gap-4 p-6 bg-gradient-to-br from-[#556b2f]/5 to-[#747e59]/5 rounded-xl border border-[#556b2f]/20">
 						{/* Event Type Filter - Visual Badges */}
 						<div className="flex flex-col gap-2">
-							<label className="text-sm font-bold text-[#556b2f] font-(family-name:--font-dmsans) uppercase tracking-wide flex items-center gap-2">
-								<IconFilter className="w-4 h-4" />
-								Filter by Type
-							</label>
+						<button
+							onClick={() => setIsTypeFilterExpanded(!isTypeFilterExpanded)}
+							className="text-sm font-bold text-[#556b2f] font-(family-name:--font-dmsans) uppercase tracking-wide flex items-center gap-2 hover:text-[#6d8c3a] transition-colors w-fit"
+						>
+							<IconFilter className="w-4 h-4" />
+							{isTypeFilterExpanded ? <IconChevronUp className="w-4 h-4" /> : <IconChevronDown className="w-4 h-4" />}
+						</button>
+						{isTypeFilterExpanded && (
 							<div className="flex flex-wrap gap-2">
 								<button
 									onClick={() => setTypeFilter("")}
@@ -269,6 +274,7 @@ export default function Events() {
 									Food
 								</button>
 							</div>
+						)}
 						</div>
 
 						{/* Sort and Date Controls */}
