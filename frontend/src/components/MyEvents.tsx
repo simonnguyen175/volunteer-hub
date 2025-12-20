@@ -9,7 +9,6 @@ import {
 	IconChevronRight,
 	IconHistory,
 	IconPlayerPlay,
-	IconCalendarTime,
 	IconCircleCheck,
 	IconCircleX,
 } from "@tabler/icons-react";
@@ -93,75 +92,94 @@ function EventCard({
 	const isCompleted = !isHostedEvent && (event as EventUser).completed;
 
 	return (
-		<div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-			<div className="flex">
-				<div className="w-32 h-32 flex-shrink-0">
+		<div className="group relative bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300 transform hover:-translate-y-1">
+			<div className="flex flex-col sm:flex-row">
+				<div className="w-full sm:w-48 h-48 sm:h-auto shrink-0 relative overflow-hidden">
 					<img
 						src={getSupabaseImageUrl(imageUrl)}
 						alt={title}
-						className="w-full h-full object-cover"
+						className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
 					/>
+					<div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
 				</div>
-				<div className="flex-1 p-4">
-					<div className="flex items-start justify-between">
-						<div>
-							<h3 className="font-semibold text-lg text-gray-900">{title}</h3>
-							{isHostedEvent && (
-								<div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
-									<IconCalendarEvent size={16} />
+				<div className="flex-1 p-6 flex flex-col justify-between">
+					<div>
+						<div className="flex flex-wrap items-start justify-between gap-4 mb-2">
+							<h3 className="font-(family-name:--font-crimson) text-2xl font-bold text-gray-900 leading-tight group-hover:text-[#556b2f] transition-colors">
+								{title}
+							</h3>
+							<span
+								className={`shrink-0 px-3 py-1 rounded-full text-xs font-bold font-(family-name:--font-dmsans) uppercase tracking-wider flex items-center gap-1.5 ${
+									subType === "past" 
+										? isCompleted 
+											? "bg-green-50 text-green-700 border border-green-100" 
+											: "bg-red-50 text-red-700 border border-red-100"
+										: subType === "ongoing"
+										? "bg-blue-50 text-blue-700 border border-blue-100 animate-pulse"
+										: subType === "going"
+										? "bg-[#556b2f]/10 text-[#556b2f] border border-[#556b2f]/20"
+										: type === "joined"
+										? "bg-[#556b2f]/10 text-[#556b2f]"
+										: type === "pending"
+										? "bg-amber-50 text-amber-700 border border-amber-100"
+										: "bg-blue-50 text-blue-700 border border-blue-100"
+								}`}
+							>
+								{subType === "past" ? (
+									<>
+										{isCompleted ? <IconCircleCheck size={14} /> : <IconCircleX size={14} />}
+										{isCompleted ? "Completed" : "Incomplete"}
+									</>
+								) : subType === "ongoing" ? (
+									<>
+										<IconPlayerPlay size={14} /> In Progress
+									</>
+								) : subType === "going" ? (
+									<>
+										<IconCalendarEvent size={14} /> Upcoming
+									</>
+								) : type === "joined" ? (
+									"Joined"
+								) : type === "pending" ? (
+									<>
+										<IconClock size={14} /> Pending
+									</>
+								) : (
+									(event as HostedEvent).status
+								)}
+							</span>
+						</div>
+						
+						{isHostedEvent && (
+							<div className="flex items-center gap-4 text-sm text-gray-500 font-medium font-(family-name:--font-dmsans) mt-2">
+								<div className="flex items-center gap-1.5">
+									<IconCalendarEvent size={16} className="text-[#556b2f]" />
 									<span>{formatDateTime(event.startTime).date}</span>
-									<IconClock size={16} className="ml-2" />
+								</div>
+								<div className="flex items-center gap-1.5">
+									<IconClock size={16} className="text-[#556b2f]" />
 									<span>{formatDateTime(event.startTime).time}</span>
 								</div>
-							)}
-						</div>
-						<span
-							className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
-								subType === "past" 
-									? isCompleted 
-										? "bg-green-100 text-green-700" 
-										: "bg-red-100 text-red-700"
-									: subType === "ongoing"
-									? "bg-blue-100 text-blue-700"
-									: subType === "going"
-									? "bg-green-100 text-green-700"
-									: type === "joined"
-									? "bg-green-100 text-green-700"
-									: type === "pending"
-									? "bg-yellow-100 text-yellow-700"
-									: "bg-blue-100 text-blue-700"
-							}`}
-						>
-							{subType === "past" ? (
-								<>
-									{isCompleted ? <IconCircleCheck size={14} /> : <IconCircleX size={14} />}
-									{isCompleted ? "Completed" : "Not Completed"}
-								</>
-							) : subType === "ongoing" ? (
-								"In Progress"
-							) : subType === "going" ? (
-								"Upcoming"
-							) : type === "joined" ? (
-								"Joined"
-							) : type === "pending" ? (
-								"Pending"
-							) : (
-								(event as HostedEvent).status
-							)}
-						</span>
+							</div>
+						)}
 					</div>
-					<div className="flex items-center gap-2 mt-3">
+
+					<div className="flex items-center gap-4 mt-6 pt-4 border-t border-gray-100">
 						<Link
 							to={`/events/${eventId}`}
-							className="text-[#556b2f] hover:text-[#6d8c3a] text-sm font-medium flex items-center gap-1"
+							className="text-[#556b2f] hover:text-[#6d8c3a] text-sm font-bold font-(family-name:--font-dmsans) flex items-center gap-2 group/link"
 						>
-							View Details
-							<IconChevronRight size={16} />
+							View Event
+							<IconChevronRight size={16} className="transform group-hover/link:translate-x-1 transition-transform" />
 						</Link>
+						
 						{type === "hosted" && onManage && (
 							<button
-								onClick={onManage}
-								className="ml-4 text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1"
+								onClick={(e) => {
+									e.preventDefault();
+									onManage();
+								}}
+								className="ml-auto flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-[#556b2f]/10 text-gray-700 hover:text-[#556b2f] rounded-lg text-sm font-bold font-(family-name:--font-dmsans) transition-all"
 							>
 								<IconUsers size={16} />
 								Manage Participants
@@ -233,41 +251,41 @@ function ParticipantModal({
 	};
 
 	return (
-		<div className="fixed inset-0 z-[1000] flex items-center justify-center">
-			<div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-			<div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+		<div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+			<div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
+			<div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 				{/* Header */}
-				<div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+				<div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
 					<div>
-						<h2 className="text-xl font-bold text-gray-900">Manage Participants</h2>
-						<p className="text-sm text-gray-600">{event.title}</p>
+						<h2 className="text-2xl font-bold font-(family-name:--font-crimson) text-gray-900">Manage Participants</h2>
+						<p className="text-sm text-gray-500 font-(family-name:--font-dmsans) mt-1 max-w-md truncate">{event.title}</p>
 					</div>
 					<button
 						onClick={onClose}
-						className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+						className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-all"
 					>
 						<IconX size={24} />
 					</button>
 				</div>
 
 				{/* Tabs */}
-				<div className="flex border-b border-gray-200">
+				<div className="flex border-b border-gray-100 px-8">
 					<button
 						onClick={() => setActiveTab("pending")}
-						className={`flex-1 py-3 text-center font-medium transition-colors ${
+						className={`flex-1 py-4 text-sm font-bold font-(family-name:--font-dmsans) transition-all border-b-2 ${
 							activeTab === "pending"
-								? "text-[#556b2f] border-b-2 border-[#556b2f]"
-								: "text-gray-500 hover:text-gray-700"
+								? "text-[#556b2f] border-[#556b2f]"
+								: "text-gray-400 border-transparent hover:text-gray-600"
 						}`}
 					>
-						Pending Requests ({pendingParticipants.length})
+						Pending ({pendingParticipants.length})
 					</button>
 					<button
 						onClick={() => setActiveTab("accepted")}
-						className={`flex-1 py-3 text-center font-medium transition-colors ${
+						className={`flex-1 py-4 text-sm font-bold font-(family-name:--font-dmsans) transition-all border-b-2 ${
 							activeTab === "accepted"
-								? "text-[#556b2f] border-b-2 border-[#556b2f]"
-								: "text-gray-500 hover:text-gray-700"
+								? "text-[#556b2f] border-[#556b2f]"
+								: "text-gray-400 border-transparent hover:text-gray-600"
 						}`}
 					>
 						Accepted ({acceptedParticipants.length})
@@ -275,41 +293,47 @@ function ParticipantModal({
 				</div>
 
 				{/* Content */}
-				<div className="p-6 overflow-y-auto max-h-[50vh]">
+				<div className="p-8 overflow-y-auto min-h-[300px]">
 					{loading ? (
-						<div className="text-center py-8">
-							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#556b2f] mx-auto"></div>
+						<div className="flex flex-col items-center justify-center h-48 gap-3">
+							<div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-100 border-t-[#556b2f]"></div>
+							<p className="text-gray-400 text-sm font-medium font-(family-name:--font-dmsans)">Loading participants...</p>
 						</div>
 					) : activeTab === "pending" ? (
 						pendingParticipants.length === 0 ? (
-							<div className="text-center py-8 text-gray-500">
-								No pending requests
+							<div className="flex flex-col items-center justify-center h-48 text-gray-400 gap-3">
+								<div className="p-4 bg-gray-50 rounded-full">
+									<IconUsers size={32} className="opacity-50" />
+								</div>
+								<p className="font-medium font-(family-name:--font-dmsans)">No pending requests</p>
 							</div>
 						) : (
-							<div className="space-y-3">
+							<div className="space-y-4">
 								{pendingParticipants.map((p) => (
 									<div
 										key={p.id}
-										className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
+										className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-[#556b2f]/20 transition-all"
 									>
 										<div>
-											<p className="font-medium text-gray-900">{p.username}</p>
-											<p className="text-sm text-gray-600">{p.email}</p>
+											<p className="font-bold text-gray-900 font-(family-name:--font-dmsans)">{p.username}</p>
+											<p className="text-sm text-gray-500 font-(family-name:--font-dmsans)">{p.email}</p>
 										</div>
 										<div className="flex gap-2">
 											<button
 												onClick={() => handleAccept(p.id)}
 												disabled={actionLoading === p.id}
-												className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
+												className="p-2.5 bg-[#556b2f]/10 text-[#556b2f] rounded-xl hover:bg-[#556b2f] hover:text-white transition-all disabled:opacity-50"
+												title="Accept"
 											>
-												<IconCheck size={20} />
+												{actionLoading === p.id ? <div className="animate-spin h-5 w-5 border-2 border-current border-t-transparent rounded-full" /> : <IconCheck size={20} stroke={2.5} />}
 											</button>
 											<button
 												onClick={() => handleDeny(p.id)}
 												disabled={actionLoading === p.id}
-												className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
+												className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+												title="Deny"
 											>
-												<IconX size={20} />
+												{actionLoading === p.id ? <div className="animate-spin h-5 w-5 border-2 border-current border-t-transparent rounded-full" /> : <IconX size={20} stroke={2.5} />}
 											</button>
 										</div>
 									</div>
@@ -317,22 +341,31 @@ function ParticipantModal({
 							</div>
 						)
 					) : acceptedParticipants.length === 0 ? (
-						<div className="text-center py-8 text-gray-500">
-							No accepted participants yet
+						<div className="flex flex-col items-center justify-center h-48 text-gray-400 gap-3">
+							<div className="p-4 bg-gray-50 rounded-full">
+								<IconUsers size={32} className="opacity-50" />
+							</div>
+							<p className="font-medium font-(family-name:--font-dmsans)">No accepted participants yet</p>
 						</div>
 					) : (
-						<div className="space-y-3">
+						<div className="space-y-4">
 							{acceptedParticipants.map((p) => (
 								<div
 									key={p.id}
-									className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
+									className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-2xl hover:shadow-sm transition-all"
 								>
-									<div>
-										<p className="font-medium text-gray-900">{p.username}</p>
-										<p className="text-sm text-gray-600">{p.email}</p>
+									<div className="flex items-center gap-4">
+										<div className="w-10 h-10 rounded-full bg-[#556b2f]/10 flex items-center justify-center text-[#556b2f] font-bold font-(family-name:--font-crimson)">
+											{p.username.charAt(0).toUpperCase()}
+										</div>
+										<div>
+											<p className="font-bold text-gray-900 font-(family-name:--font-dmsans)">{p.username}</p>
+											<p className="text-sm text-gray-500 font-(family-name:--font-dmsans)">{p.email}</p>
+										</div>
 									</div>
-									<span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-										Accepted
+									<span className="px-3 py-1 bg-green-50 text-green-700 border border-green-100 rounded-full text-xs font-bold font-(family-name:--font-dmsans) flex items-center gap-1.5">
+										<IconCheck size={14} stroke={3} />
+										Going
 									</span>
 								</div>
 							))}
@@ -358,6 +391,7 @@ export default function MyEvents() {
 	const rawRole = user?.role;
 	const roleName = typeof rawRole === "string" ? rawRole : (rawRole as { name?: string } | undefined)?.name ?? "";
 	const isHost = roleName === "HOST" || roleName === "ADMIN";
+	
 	useEffect(() => {
 		if (user?.id) {
 			fetchMyEvents();
@@ -390,74 +424,92 @@ export default function MyEvents() {
 
 	if (!user) {
 		return (
-			<div className="min-h-screen bg-gray-50 pt-24">
-				<div className="max-w-4xl mx-auto px-4 py-20 text-center">
-					<h1 className="text-3xl font-bold mb-4">Please Log In</h1>
-					<p className="text-gray-600">You need to be logged in to view your events.</p>
+			<div className="min-h-screen bg-[#fcfdfa] pt-32 pb-20">
+				<div className="max-w-4xl mx-auto px-4 text-center">
+					<div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+						<IconUsers size={32} className="text-gray-400" />
+					</div>
+					<h1 className="text-3xl font-bold font-(family-name:--font-crimson) text-gray-900 mb-4">Please Log In</h1>
+					<p className="text-gray-600 font-(family-name:--font-dmsans)">You need to be logged in to view your events.</p>
+					
+					<Link to="/login" className="inline-block mt-8 px-8 py-3 bg-[#556b2f] text-white rounded-xl font-bold font-(family-name:--font-dmsans) hover:bg-[#6d8c3a] transition-all">
+						Login Now
+					</Link>
 				</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-50 pt-24">
-			<div className="max-w-5xl mx-auto px-4 py-8">
+		<div className="min-h-screen bg-[#fcfdfa] pt-28 pb-20">
+			<div className="max-w-5xl mx-auto px-6">
 				{/* Header */}
-				<div className="mb-8">
-					<h1 className="font-(family-name:--font-crimson) text-4xl font-bold text-gray-900">
+				<div className="mb-10">
+					<h1 className="font-(family-name:--font-crimson) text-5xl font-bold text-gray-900 mb-3 tracking-tight">
 						My Events
 					</h1>
-					<p className="text-gray-600 mt-2">
-						Manage your event registrations and hosted events
+					<p className="text-gray-500 text-lg font-(family-name:--font-dmsans)">
+						Manage your event registrations and track your volunteer journey
 					</p>
 				</div>
 
-				{/* Tabs */}
-				<div className="flex gap-2 mb-8 border-b border-gray-200">
+				{/* Main Tabs */}
+				<div className="flex items-center gap-8 mb-10 border-b border-gray-200">
 					<button
 						onClick={() => setActiveTab("joined")}
-						className={`px-6 py-3 font-semibold transition-colors relative ${
+						className={`pb-4 text-lg font-bold font-(family-name:--font-dmsans) transition-all relative ${
 							activeTab === "joined"
-								? "text-[#556b2f] border-b-2 border-[#556b2f]"
-								: "text-gray-500 hover:text-gray-700"
+								? "text-[#556b2f]"
+								: "text-gray-400 hover:text-gray-600"
 						}`}
 					>
 						Joined Events
-						{joinedEvents.length > 0 && (
-							<span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">
-								{joinedEvents.length}
-							</span>
+						<span className={`ml-2 px-2.5 py-0.5 rounded-full text-xs align-middle ${
+							activeTab === "joined" ? "bg-[#556b2f]/10 text-[#556b2f]" : "bg-gray-100 text-gray-500"
+						}`}>
+							{joinedEvents.length}
+						</span>
+						{activeTab === "joined" && (
+							<div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#556b2f] rounded-t-full" />
 						)}
 					</button>
+
 					<button
 						onClick={() => setActiveTab("pending")}
-						className={`px-6 py-3 font-semibold transition-colors relative ${
+						className={`pb-4 text-lg font-bold font-(family-name:--font-dmsans) transition-all relative ${
 							activeTab === "pending"
-								? "text-[#556b2f] border-b-2 border-[#556b2f]"
-								: "text-gray-500 hover:text-gray-700"
+								? "text-[#556b2f]"
+								: "text-gray-400 hover:text-gray-600"
 						}`}
 					>
 						Pending
-						{pendingEvents.length > 0 && (
-							<span className="ml-2 px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-xs">
-								{pendingEvents.length}
-							</span>
+						<span className={`ml-2 px-2.5 py-0.5 rounded-full text-xs align-middle ${
+							activeTab === "pending" ? "bg-[#556b2f]/10 text-[#556b2f]" : "bg-gray-100 text-gray-500"
+						}`}>
+							{pendingEvents.length}
+						</span>
+						{activeTab === "pending" && (
+							<div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#556b2f] rounded-t-full" />
 						)}
 					</button>
+
 					{isHost && (
 						<button
 							onClick={() => setActiveTab("hosted")}
-							className={`px-6 py-3 font-semibold transition-colors relative ${
+							className={`pb-4 text-lg font-bold font-(family-name:--font-dmsans) transition-all relative ${
 								activeTab === "hosted"
-									? "text-[#556b2f] border-b-2 border-[#556b2f]"
-									: "text-gray-500 hover:text-gray-700"
+									? "text-[#556b2f]"
+									: "text-gray-400 hover:text-gray-600"
 							}`}
 						>
 							Hosted Events
-							{hostedEvents.length > 0 && (
-								<span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs">
-									{hostedEvents.length}
-								</span>
+							<span className={`ml-2 px-2.5 py-0.5 rounded-full text-xs align-middle ${
+								activeTab === "hosted" ? "bg-[#556b2f]/10 text-[#556b2f]" : "bg-gray-100 text-gray-500"
+							}`}>
+								{hostedEvents.length}
+							</span>
+							{activeTab === "hosted" && (
+								<div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#556b2f] rounded-t-full" />
 							)}
 						</button>
 					)}
@@ -465,54 +517,34 @@ export default function MyEvents() {
 
 				{/* Content */}
 				{loading ? (
-					<div className="text-center py-12">
-						<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#556b2f] mx-auto mb-4"></div>
-						<p className="text-gray-600">Loading your events...</p>
+					<div className="flex flex-col items-center justify-center py-24">
+						<div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-100 border-t-[#556b2f] mb-4"></div>
+						<p className="text-gray-500 font-medium font-(family-name:--font-dmsans)">Loading your events...</p>
 					</div>
 				) : (
-					<div className="space-y-4">
+					<div className="space-y-6">
 						{activeTab === "joined" && (
 							<>
 								{/* Sub-tabs for joined events */}
-								<div className="flex gap-2 mb-6 bg-white rounded-xl p-2 border border-gray-200">
-									<button
-										onClick={() => setJoinedSubTab("going")}
-										className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-											joinedSubTab === "going"
-												? "bg-[#556b2f] text-white"
-												: "text-gray-600 hover:bg-gray-100"
-										}`}
-									>
-										<IconCalendarTime size={18} />
-										Going ({joinedEvents.filter(e => new Date(e.eventStartTime) > new Date()).length})
-									</button>
-									<button
-										onClick={() => setJoinedSubTab("ongoing")}
-										className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-											joinedSubTab === "ongoing"
-												? "bg-[#556b2f] text-white"
-												: "text-gray-600 hover:bg-gray-100"
-										}`}
-									>
-										<IconPlayerPlay size={18} />
-										Ongoing ({joinedEvents.filter(e => {
-											const now = new Date();
-											const start = new Date(e.eventStartTime);
-											const end = new Date(e.eventEndTime);
-											return start <= now && end >= now;
-										}).length})
-									</button>
-									<button
-										onClick={() => setJoinedSubTab("past")}
-										className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-											joinedSubTab === "past"
-												? "bg-[#556b2f] text-white"
-												: "text-gray-600 hover:bg-gray-100"
-										}`}
-									>
-										<IconHistory size={18} />
-										Past ({joinedEvents.filter(e => new Date(e.eventEndTime) < new Date()).length})
-									</button>
+								<div className="flex flex-wrap gap-2 mb-8">
+									{[
+										{ id: "going", label: "Upcoming", icon: <IconCalendarEvent size={18} /> },
+										{ id: "ongoing", label: "In Progress", icon: <IconPlayerPlay size={18} /> },
+										{ id: "past", label: "Completed", icon: <IconHistory size={18} /> }
+									].map((tab) => (
+										<button
+											key={tab.id}
+											onClick={() => setJoinedSubTab(tab.id as any)}
+											className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold font-(family-name:--font-dmsans) transition-all ${
+												joinedSubTab === tab.id
+													? "bg-[#556b2f] text-white shadow-lg shadow-[#556b2f]/20"
+													: "bg-white text-gray-600 border border-gray-200 hover:border-[#556b2f]/50 hover:text-[#556b2f]"
+											}`}
+										>
+											{tab.icon}
+											{tab.label}
+										</button>
+									))}
 								</div>
 
 								{/* Filter events based on selected sub-tab */}
@@ -529,33 +561,39 @@ export default function MyEvents() {
 
 									if (filteredEvents.length === 0) {
 										return (
-											<div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-												<IconCalendarEvent size={48} className="mx-auto text-gray-400 mb-4" />
-												<h3 className="text-lg font-semibold text-gray-900 mb-2">
+											<div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-gray-300">
+												<div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-400">
+													{joinedSubTab === "past" ? <IconHistory size={32} /> : <IconCalendarEvent size={32} />}
+												</div>
+												<h3 className="text-xl font-bold text-gray-900 font-(family-name:--font-crimson) mb-2">
 													{joinedSubTab === "past" ? "No Past Events" 
 														: joinedSubTab === "ongoing" ? "No Ongoing Events" 
 														: "No Upcoming Events"}
 												</h3>
-												<p className="text-gray-600 mb-4">
-													{joinedSubTab === "past" ? "You don't have any past events." 
-														: joinedSubTab === "ongoing" ? "You're not currently participating in any event." 
-														: "You haven't joined any upcoming events yet."}
+												<p className="text-gray-500 font-(family-name:--font-dmsans) max-w-sm text-center mb-6">
+													{joinedSubTab === "past" ? "You haven't completed any events yet. Your history will appear here." 
+														: joinedSubTab === "ongoing" ? "You are not currently participating in any active events." 
+														: "You haven't joined any upcoming events yet. Browse events to get started!"}
 												</p>
 												{joinedSubTab === "going" && (
 													<Link
 														to="/events"
-														className="inline-block px-6 py-2 bg-[#556b2f] text-white rounded-lg hover:bg-[#6d8c3a] transition-colors"
+														className="px-6 py-2.5 bg-[#556b2f] text-white rounded-xl font-bold font-(family-name:--font-dmsans) hover:bg-[#6d8c3a] transition-all shadow-lg shadow-[#556b2f]/20 hover:shadow-xl hover:shadow-[#556b2f]/30"
 													>
-														Browse Events
+														Browse Available Events
 													</Link>
 												)}
 											</div>
 										);
 									}
 
-									return filteredEvents.map((event) => (
-										<EventCard key={event.id} event={event} type="joined" subType={joinedSubTab} />
-									));
+									return (
+										<div className="grid grid-cols-1 gap-6">
+											{filteredEvents.map((event) => (
+												<EventCard key={event.id} event={event} type="joined" subType={joinedSubTab} />
+											))}
+										</div>
+									);
 								})()}
 							</>
 						)}
@@ -563,19 +601,23 @@ export default function MyEvents() {
 						{activeTab === "pending" && (
 							<>
 								{pendingEvents.length === 0 ? (
-									<div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-										<IconClock size={48} className="mx-auto text-gray-400 mb-4" />
-										<h3 className="text-lg font-semibold text-gray-900 mb-2">
+									<div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-gray-300">
+										<div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-400">
+											<IconClock size={32} />
+										</div>
+										<h3 className="text-xl font-bold text-gray-900 font-(family-name:--font-crimson) mb-2">
 											No Pending Requests
 										</h3>
-										<p className="text-gray-600">
-											You don't have any pending event requests.
+										<p className="text-gray-500 font-(family-name:--font-dmsans)">
+											You don't have any pending event requests at the moment.
 										</p>
 									</div>
 								) : (
-									pendingEvents.map((event) => (
-										<EventCard key={event.id} event={event} type="pending" />
-									))
+									<div className="grid grid-cols-1 gap-6">
+										{pendingEvents.map((event) => (
+											<EventCard key={event.id} event={event} type="pending" />
+										))}
+									</div>
 								)}
 							</>
 						)}
@@ -583,24 +625,34 @@ export default function MyEvents() {
 						{activeTab === "hosted" && isHost && (
 							<>
 								{hostedEvents.length === 0 ? (
-									<div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-										<IconUsers size={48} className="mx-auto text-gray-400 mb-4" />
-										<h3 className="text-lg font-semibold text-gray-900 mb-2">
+									<div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-gray-300">
+										<div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-400">
+											<IconUsers size={32} />
+										</div>
+										<h3 className="text-xl font-bold text-gray-900 font-(family-name:--font-crimson) mb-2">
 											No Hosted Events
 										</h3>
-										<p className="text-gray-600">
-											You haven't hosted any events yet.
+										<p className="text-gray-500 font-(family-name:--font-dmsans) mb-6">
+											You haven't hosted any events yet. Start making an impact today!
 										</p>
+										<Link
+											to="/events"
+											className="px-6 py-2.5 bg-[#556b2f] text-white rounded-xl font-bold font-(family-name:--font-dmsans) hover:bg-[#6d8c3a] transition-all"
+										>
+											Create an Event
+										</Link>
 									</div>
 								) : (
-									hostedEvents.map((event) => (
-										<EventCard
-											key={event.id}
-											event={event}
-											type="hosted"
-											onManage={() => setSelectedEvent(event)}
-										/>
-									))
+									<div className="grid grid-cols-1 gap-6">
+										{hostedEvents.map((event) => (
+											<EventCard
+												key={event.id}
+												event={event}
+												type="hosted"
+												onManage={() => setSelectedEvent(event)}
+											/>
+										))}
+									</div>
 								)}
 							</>
 						)}

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
-import { IconSearch, IconGridDots, IconList, IconFilter, IconArrowsSort, IconPlus, IconChevronDown, IconChevronUp, IconHistory, IconPlayerPlay, IconCalendarTime } from "@tabler/icons-react";
+import { IconSearch, IconGridDots, IconList, IconArrowsSort, IconPlus } from "@tabler/icons-react";
 
 import {
 	Card,
@@ -11,7 +11,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 
-import { Switch } from "@/components/ui/switch";
 import { RestClient } from "@/api/RestClient";
 import { useAuth } from "@/contexts/AuthContext";
 import CreateEventModal from "./CreateEventModal";
@@ -47,7 +46,6 @@ export default function Events() {
 	const [endDateFilter, setEndDateFilter] = useState("");
 	const [isSearching, setIsSearching] = useState(false);
 	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-	const [isTypeFilterExpanded, setIsTypeFilterExpanded] = useState(true);
 	const [timeStatusFilter, setTimeStatusFilter] = useState<"all" | "past" | "ongoing" | "future">("all");
 
 	// Check if user is a host
@@ -190,243 +188,148 @@ export default function Events() {
 					)}
 				</div>
 
-				{/* Search and View Toggle */}
-				<div className="flex flex-col gap-4 mb-8">
-					<div className="flex items-center gap-4">
-						<div className="relative flex-1 max-w-md">
-							<IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-							<input
-								type="text"
-								placeholder="Search events..."
-								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
-								className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#556b2f] font-(family-name:--font-dmsans)"
-							/>
-						</div>
-
-						<div className="flex items-center gap-2">
-							<IconGridDots
-								size={22}
-								className={
-									viewMode === "grid"
-										? "text-[#556b2f]"
-										: "text-gray-400"
-								}
-							/>
-							<Switch
-								checked={viewMode === "list"}
-								onCheckedChange={(checked) =>
-									setViewMode(checked ? "list" : "grid")
-								}
-								className="data-[state=checked]:bg-[#556b2f]"
-							/>
-							<IconList
-								size={22}
-								className={
-									viewMode === "list"
-										? "text-[#556b2f]"
-										: "text-gray-400"
-								}
-							/>
-						</div>
-					</div>
-
 					{/* Sort and Filter Controls */}
-					<div className="flex flex-col gap-4 p-6 bg-gradient-to-br from-[#556b2f]/5 to-[#747e59]/5 rounded-xl border border-[#556b2f]/20">
-						{/* Event Type Filter - Visual Badges */}
-						<div className="flex flex-col gap-2">
-						<button
-							onClick={() => setIsTypeFilterExpanded(!isTypeFilterExpanded)}
-							className="text-sm font-bold text-[#556b2f] font-(family-name:--font-dmsans) uppercase tracking-wide flex items-center gap-2 hover:text-[#6d8c3a] transition-colors w-fit"
-						>
-							<IconFilter className="w-4 h-4" />
-							{isTypeFilterExpanded ? <IconChevronUp className="w-4 h-4" /> : <IconChevronDown className="w-4 h-4" />}
-						</button>
-						{isTypeFilterExpanded && (
+					<div className="space-y-6">
+						{/* Top Row: Search and View Toggle */}
+						<div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+							<div className="relative flex-1 w-full md:max-w-md">
+								<IconSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+								<input
+									type="text"
+									placeholder="Search events..."
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+									className="w-full pl-11 pr-10 py-3 bg-gray-50 border-none rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#556b2f]/20 font-(family-name:--font-dmsans) transition-all text-gray-800 placeholder:text-gray-400"
+								/>
+								{isSearching && (
+									<div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+										<div className="animate-spin rounded-full h-4 w-4 border-2 border-transparent border-t-[#556b2f]"></div>
+									</div>
+								)}
+							</div>
+
+							<div className="flex items-center gap-2 bg-gray-50 p-1 rounded-xl">
+								<button
+									onClick={() => setViewMode("grid")}
+									className={`p-2 rounded-lg transition-all ${
+										viewMode === "grid"
+											? "bg-white text-[#556b2f] shadow-sm"
+											: "text-gray-400 hover:text-gray-600"
+									}`}
+								>
+									<IconGridDots size={20} />
+								</button>
+								<button
+									onClick={() => setViewMode("list")}
+									className={`p-2 rounded-lg transition-all ${
+										viewMode === "list"
+											? "bg-white text-[#556b2f] shadow-sm"
+											: "text-gray-400 hover:text-gray-600"
+									}`}
+								>
+									<IconList size={20} />
+								</button>
+							</div>
+						</div>
+
+						{/* Filters Divider */}
+						<div className="h-px bg-gray-100" />
+
+						{/* Middle Row: Filters and Sort */}
+						<div className="flex flex-col xl:flex-row gap-6 items-start xl:items-center justify-between">
+							{/* Event Type Filter - Clean Pills */}
 							<div className="flex flex-wrap gap-2">
 								<button
 									onClick={() => setTypeFilter("")}
-									className={`px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
+									className={`px-5 py-2.5 rounded-full text-sm font-bold font-(family-name:--font-dmsans) transition-all border ${
 										typeFilter === ""
-											? "bg-[#556b2f] text-white shadow-md"
-											: "bg-white text-gray-700 border border-gray-300 hover:border-[#556b2f] hover:text-[#556b2f]"
+											? "bg-[#556b2f] text-white border-[#556b2f]"
+											: "bg-white text-gray-600 border-gray-200 hover:border-[#556b2f] hover:text-[#556b2f]"
 									}`}
 								>
 									All Types
 								</button>
-								<button
-									onClick={() => setTypeFilter("HELPING")}
-									className={`px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
-										typeFilter === "HELPING"
-											? "bg-[#556b2f] text-white shadow-md"
-											: "bg-white text-gray-700 border border-gray-300 hover:border-[#556b2f] hover:text-[#556b2f]"
-									}`}
-								>
-									Helping
-								</button>
-								<button
-									onClick={() => setTypeFilter("PLANTING")}
-									className={`px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
-										typeFilter === "PLANTING"
-											? "bg-[#556b2f] text-white shadow-md"
-											: "bg-white text-gray-700 border border-gray-300 hover:border-[#556b2f] hover:text-[#556b2f]"
-									}`}
-								>
-									Planting
-								</button>
-								<button
-									onClick={() => setTypeFilter("MEDICAL")}
-									className={`px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
-										typeFilter === "MEDICAL"
-											? "bg-[#556b2f] text-white shadow-md"
-											: "bg-white text-gray-700 border border-gray-300 hover:border-[#556b2f] hover:text-[#556b2f]"
-									}`}
-								>
-									Medical
-								</button>
-								<button
-									onClick={() => setTypeFilter("FUNDRAISER")}
-									className={`px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
-										typeFilter === "FUNDRAISER"
-											? "bg-[#556b2f] text-white shadow-md"
-											: "bg-white text-gray-700 border border-gray-300 hover:border-[#556b2f] hover:text-[#556b2f]"
-									}`}
-								>
-									Fundraiser
-								</button>
-								<button
-									onClick={() => setTypeFilter("FOOD")}
-									className={`px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
-										typeFilter === "FOOD"
-											? "bg-[#556b2f] text-white shadow-md"
-											: "bg-white text-gray-700 border border-gray-300 hover:border-[#556b2f] hover:text-[#556b2f]"
-									}`}
-								>
-									Food
-								</button>
-							</div>
-						)}
-						</div>
-
-						{/* Sort and Date Controls */}
-						<div className="flex flex-wrap items-center gap-4 pt-4 border-t border-[#556b2f]/20">
-							{/* Sort By */}
-							<div className="flex items-center gap-2">
-								<IconArrowsSort className="text-[#556b2f] w-5 h-5" />
-								<label className="text-sm font-semibold text-gray-700 font-(family-name:--font-dmsans)">Sort by:</label>
-								<select
-									value={sortBy}
-									onChange={(e) => setSortBy(e.target.value as "title" | "startTime" | "endTime")}
-									className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f] font-(family-name:--font-dmsans)"
-								>
-									<option value="title">Name</option>
-									<option value="startTime">Start Time</option>
-									<option value="endTime">End Time</option>
-								</select>
+								{["HELPING", "PLANTING", "MEDICAL", "FUNDRAISER", "FOOD"].map((type) => (
+									<button
+										key={type}
+										onClick={() => setTypeFilter(type)}
+										className={`px-5 py-2.5 rounded-full text-sm font-bold font-(family-name:--font-dmsans) transition-all border capitalize ${
+											typeFilter === type
+												? "bg-[#556b2f] text-white border-[#556b2f]"
+												: "bg-white text-gray-600 border-gray-200 hover:border-[#556b2f] hover:text-[#556b2f]"
+										}`}
+									>
+										{type.toLowerCase()}
+									</button>
+								))}
 							</div>
 
-							{/* Date Range Filter */}
-							<div className="flex items-center gap-2 flex-1">
-								<label className="text-sm font-semibold text-gray-700 font-(family-name:--font-dmsans)">Date:</label>
+							{/* Sort and Date */}
+							<div className="flex flex-wrap items-center gap-4">
+								<div className="flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-full border border-gray-100">
+									<IconArrowsSort className="text-gray-400 w-4 h-4" />
+									<span className="text-sm font-bold text-gray-500 font-(family-name:--font-dmsans)">Sort:</span>
+									<select
+										value={sortBy}
+										onChange={(e) => setSortBy(e.target.value as "title" | "startTime" | "endTime")}
+										className="bg-transparent border-none text-sm font-bold text-gray-800 focus:outline-none focus:ring-0 font-(family-name:--font-dmsans) cursor-pointer"
+									>
+										<option value="title">Name</option>
+										<option value="startTime">Start Date</option>
+										<option value="endTime">End Date</option>
+									</select>
+								</div>
+
 								<div className="flex items-center gap-2">
 									<input
 										type="date"
 										value={startDateFilter}
 										onChange={(e) => setStartDateFilter(e.target.value)}
-										className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f] font-(family-name:--font-dmsans)"
-										placeholder="Start date"
+										className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-(family-name:--font-dmsans) focus:outline-none focus:border-[#556b2f] text-gray-600"
 									/>
-									<span className="text-gray-500 font-(family-name:--font-dmsans)">to</span>
+									<span className="text-gray-400">-</span>
 									<input
 										type="date"
 										value={endDateFilter}
 										onChange={(e) => setEndDateFilter(e.target.value)}
-										className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f] font-(family-name:--font-dmsans)"
-										placeholder="End date"
+										className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-(family-name:--font-dmsans) focus:outline-none focus:border-[#556b2f] text-gray-600"
 									/>
-									{(startDateFilter || endDateFilter) && (
-										<button
-											onClick={() => {
-												setStartDateFilter("");
-												setEndDateFilter("");
-											}}
-											className="text-sm text-[#556b2f] hover:text-[#6d8c3a] font-semibold font-(family-name:--font-dmsans)"
-										>
-											Clear
-										</button>
-									)}
 								</div>
 							</div>
 						</div>
-					</div>
 
-					{/* Time Status Filter Tabs */}
-					<div className="flex gap-2 mt-4 pt-4 border-t border-[#556b2f]/20">
-						<button
-							onClick={() => setTimeStatusFilter("all")}
-							className={`flex items-center gap-2 px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
-								timeStatusFilter === "all"
-									? "bg-[#556b2f] text-white shadow-md"
-									: "bg-white text-gray-700 border border-gray-300 hover:border-[#556b2f] hover:text-[#556b2f]"
-							}`}
-						>
-							All Events
-							<span className={`px-2 py-0.5 text-xs rounded-full ${
-								timeStatusFilter === "all" ? "bg-white/20" : "bg-gray-100"
-							}`}>
-								{filteredEvents.length}
-							</span>
-						</button>
-						<button
-							onClick={() => setTimeStatusFilter("future")}
-							className={`flex items-center gap-2 px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
-								timeStatusFilter === "future"
-									? "bg-green-600 text-white shadow-md"
-									: "bg-white text-gray-700 border border-gray-300 hover:border-green-600 hover:text-green-600"
-							}`}
-						>
-							<IconCalendarTime size={18} />
-							Upcoming
-							<span className={`px-2 py-0.5 text-xs rounded-full ${
-								timeStatusFilter === "future" ? "bg-white/20" : "bg-green-100 text-green-700"
-							}`}>
-								{futureCount}
-							</span>
-						</button>
-						<button
-							onClick={() => setTimeStatusFilter("ongoing")}
-							className={`flex items-center gap-2 px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
-								timeStatusFilter === "ongoing"
-									? "bg-blue-600 text-white shadow-md"
-									: "bg-white text-gray-700 border border-gray-300 hover:border-blue-600 hover:text-blue-600"
-							}`}
-						>
-							<IconPlayerPlay size={18} />
-							Ongoing
-							<span className={`px-2 py-0.5 text-xs rounded-full ${
-								timeStatusFilter === "ongoing" ? "bg-white/20" : "bg-blue-100 text-blue-700"
-							}`}>
-								{ongoingCount}
-							</span>
-						</button>
-						<button
-							onClick={() => setTimeStatusFilter("past")}
-							className={`flex items-center gap-2 px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
-								timeStatusFilter === "past"
-									? "bg-gray-600 text-white shadow-md"
-									: "bg-white text-gray-700 border border-gray-300 hover:border-gray-600 hover:text-gray-600"
-							}`}
-						>
-							<IconHistory size={18} />
-							Past
-							<span className={`px-2 py-0.5 text-xs rounded-full ${
-								timeStatusFilter === "past" ? "bg-white/20" : "bg-gray-200 text-gray-600"
-							}`}>
-								{pastCount}
-							</span>
-						</button>
+						{/* Bottom Row: Status Tabs */}
+						<div className="flex border-b border-gray-100">
+							{[
+								{ id: "all", label: "All Events", count: filteredEvents.length },
+								{ id: "future", label: "Upcoming", count: futureCount },
+								{ id: "ongoing", label: "Ongoing", count: ongoingCount },
+								{ id: "past", label: "Past", count: pastCount }
+							].map((tab) => (
+								<button
+									key={tab.id}
+									onClick={() => setTimeStatusFilter(tab.id as any)}
+									className={`px-6 py-4 text-sm font-bold font-(family-name:--font-dmsans) transition-all relative flex items-center gap-2 ${
+										timeStatusFilter === tab.id
+											? "text-[#556b2f]"
+											: "text-gray-400 hover:text-gray-600"
+									}`}
+								>
+									{tab.label}
+									<span className={`px-2 py-0.5 rounded-full text-xs transition-colors ${
+										timeStatusFilter === tab.id
+											? "bg-[#556b2f]/10 text-[#556b2f]"
+											: "bg-gray-100 text-gray-500"
+									}`}>
+										{tab.count}
+									</span>
+									{timeStatusFilter === tab.id && (
+										<div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#556b2f] rounded-full" />
+									)}
+								</button>
+							))}
+						</div>
 					</div>
-				</div>
 
 				{/* Events Grid/List Toggle */}
 				{isHost && myHostedEvents.length > 0 && (
@@ -446,7 +349,7 @@ export default function Events() {
 										const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
 										const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
 										return (
-											<Link key={event.id} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
+											<Link key={`${event.id}-${viewMode}`} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
 												<Card className="group relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer ring-2 ring-[#556b2f]/30">
 													<div className="absolute top-2 right-2 z-20 px-2 py-1 bg-[#556b2f] text-white text-xs font-semibold rounded-lg">
 														Hosted by you
@@ -482,7 +385,7 @@ export default function Events() {
 										const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
 										const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
 										return (
-											<Link key={event.id} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
+											<Link key={`${event.id}-${viewMode}`} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
 												<Card className="group relative overflow-hidden hover:shadow-lg transition-all cursor-pointer ring-2 ring-[#556b2f]/30">
 													<div className="flex flex-row">
 														<div className="w-64 h-40 shrink-0 overflow-hidden relative">
@@ -536,7 +439,7 @@ export default function Events() {
 							const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
 							const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
 							return (
-								<Link key={event.id} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
+								<Link key={`${event.id}-${viewMode}`} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
 											<Card className="group relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
 												<div className="aspect-video w-full overflow-hidden">
 														<img
@@ -578,7 +481,7 @@ export default function Events() {
 							const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
 							const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
 							return (
-								<Link key={event.id} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
+								<Link key={`${event.id}-${viewMode}`} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
 									<Card className="group relative overflow-hidden hover:shadow-lg transition-all cursor-pointer">
 										<div className="flex flex-row">
 											<div className="w-64 h-40 shrink-0 overflow-hidden">
