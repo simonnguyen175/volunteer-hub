@@ -472,6 +472,17 @@ export class RestClient {
 		return await result.json();
 	}
 
+	static async deletePost(postId: number): Promise<any> {
+		const url = `${RestClient.baseUrl}/post/${postId}`;
+
+		const result = await fetch(url, {
+			method: "DELETE",
+			headers: this.getHeaders(true),
+		});
+
+		return await result.json();
+	}
+
 
 	static async getCommentsByPostId(postId: number): Promise<any> {
 		const url = `${RestClient.baseUrl}/comment/byPost/${postId}`;
@@ -511,6 +522,17 @@ export class RestClient {
 			method: "POST",
 			headers: this.getHeaders(true),
 			body: JSON.stringify(body),
+		});
+
+		return await result.json();
+	}
+
+	static async deleteComment(commentId: number): Promise<any> {
+		const url = `${RestClient.baseUrl}/comment/delete?commentId=${commentId}`;
+
+		const result = await fetch(url, {
+			method: "DELETE",
+			headers: this.getHeaders(true),
 		});
 
 		return await result.json();

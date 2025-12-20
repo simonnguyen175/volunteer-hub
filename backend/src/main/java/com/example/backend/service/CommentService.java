@@ -106,6 +106,13 @@ public class CommentService {
 
         Post post = comment.getPost();
         decCommentCount(post);
+        
+        // Decrement repliesCount of parent comment if this is a reply
+        Comment parentComment = comment.getParentComment();
+        if (parentComment != null) {
+            decRepliesCount(parentComment);
+        }
+        
         commentRepository.delete(comment);
     }
 }

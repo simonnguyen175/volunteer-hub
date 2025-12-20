@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { IconSend, IconUser, IconPhoto, IconHeart, IconHeartFilled, IconMessage, IconChevronDown, IconChevronUp } from "@tabler/icons-react";
+import { IconSend, IconUser, IconPhoto, IconHeart, IconHeartFilled, IconMessage, IconChevronDown, IconChevronUp, IconTrash } from "@tabler/icons-react";
 import { useToast } from "./ui/Toast";
 import { RestClient } from "@/api/RestClient";
 import { useAuth } from "@/contexts/AuthContext";
@@ -146,6 +146,28 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 		}
 	};
 
+	const handleDeletePost = async (postId: number) => {
+		if (!auth.user?.id) {
+			showToast("You must be logged in!", "error");
+			return;
+		}
+
+		if (!confirm("Are you sure you want to delete this post? This will also delete all comments.")) {
+			return;
+		}
+
+		try {
+			const result = await RestClient.deletePost(postId);
+			if (result.message) {
+				setPosts(posts.filter(post => post.id !== postId));
+				showToast("Post deleted successfully!", "success");
+			}
+		} catch (error) {
+			console.error("Failed to delete post:", error);
+			showToast("Failed to delete post", "error");
+		}
+	};
+
 	const handleLikeComment = async (commentId: number, postId: number) => {
 		if (!auth.user?.id) {
 			showToast("You must be logged in to like!", "error");
@@ -179,6 +201,47 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 			}));
 		} catch (error) {
 			console.error("Failed to like comment:", error);
+		}
+	};
+
+	const handleDeleteComment = async (commentId: number, postId: number, isReply: boolean = false, parentCommentId?: number) => {
+		if (!auth.user?.id) {
+			showToast("You must be logged in!", "error");
+			return;
+		}
+
+		if (!confirm("Are you sure you want to delete this comment?")) {
+			return;
+		}
+
+		try {
+			const result = await RestClient.deleteComment(commentId);
+			if (result.message) {
+				if (isReply && parentCommentId) {
+					// Remove from replies
+					setCommentReplies(prev => ({
+						...prev,
+						[parentCommentId]: prev[parentCommentId]?.filter(reply => reply.id !== commentId) || []
+					}));
+				} else {
+					// Remove from post comments
+					setPostComments(prev => ({
+						...prev,
+						[postId]: prev[postId]?.filter(comment => comment.id !== commentId) || []
+					}));
+				}
+				// Update post comments count
+				setPosts(posts.map(post => {
+					if (post.id === postId) {
+						return { ...post, commentsCount: Math.max(0, post.commentsCount - 1) };
+					}
+					return post;
+				}));
+				showToast("Comment deleted successfully!", "success");
+			}
+		} catch (error) {
+			console.error("Failed to delete comment:", error);
+			showToast("Failed to delete comment", "error");
 		}
 	};
 
@@ -360,6 +423,15 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 					>
 						Reply
 					</button>
+					{auth.user?.id === comment.user?.id && (
+						<button
+							onClick={() => handleDeleteComment(comment.id, postId, isReply, rootCommentId)}
+							className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+							title="Delete comment"
+						>
+							<IconTrash size={14} />
+						</button>
+					)}
 					{!isReply && comment.repliesCount > 0 && (
 						<button
 							onClick={() => toggleReplies(comment.id)}
@@ -501,6 +573,15 @@ if (loading) {
 											</span>
 										</div>
 									</div>
+									{auth.user?.id === post.user?.id && (
+										<button
+											onClick={() => handleDeletePost(post.id)}
+											className="text-gray-400 hover:text-red-500 transition-colors p-1"
+											title="Delete post"
+										>
+											<IconTrash size={18} />
+										</button>
+									)}
 								</div>
 
 								{/* Post Content */}
