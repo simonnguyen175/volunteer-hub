@@ -13,7 +13,6 @@ import {
 	IconChevronUp,
 	IconTrash,
 	IconCalendarEvent,
-	IconSparkles,
 } from "@tabler/icons-react";
 
 import {
@@ -76,6 +75,7 @@ export default function NewsFeed() {
 	const [postComments, setPostComments] = useState<Record<number, Comment[]>>({});
 	const [replyingTo, setReplyingTo] = useState<{ postId: number; commentId?: number; rootCommentId?: number } | null>(null);
 	const [replyContent, setReplyContent] = useState("");
+	const [mainCommentContent, setMainCommentContent] = useState<Record<number, string>>({});
 	const [expandedReplies, setExpandedReplies] = useState<Set<number>>(new Set());
 	const [commentReplies, setCommentReplies] = useState<Record<number, Comment[]>>({});
 	const [animatingLike, setAnimatingLike] = useState<number | null>(null);
@@ -128,6 +128,7 @@ export default function NewsFeed() {
 	useEffect(() => {
 		fetchPosts();
 	}, [fetchPosts]);
+
 
 	const formatTimeAgo = (dateString: string) => {
 		const date = new Date(dateString);
@@ -477,7 +478,7 @@ export default function NewsFeed() {
 	};
 
 	const CommentItem = ({ comment, postId, isReply = false, rootCommentId }: { comment: Comment; postId: number; isReply?: boolean; rootCommentId?: number }) => (
-		<div className={`flex gap-3 ${isReply ? 'ml-10 mt-3' : 'py-3'} animate-fadeIn`}>
+		<div className={`flex gap-3 ${isReply ? 'ml-10 mt-3' : 'py-3'}`}>
 			<div className={`${isReply ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-br from-[#556b2f] to-[#6d8c3a] rounded-full flex items-center justify-center flex-shrink-0 shadow-sm`}>
 				<span className="text-white font-semibold text-sm">
 					{(comment.user?.fullName || comment.user?.username || "?").charAt(0).toUpperCase()}
@@ -534,6 +535,43 @@ export default function NewsFeed() {
 						</button>
 					)}
 				</div>
+				
+				{/* Inline Reply Input - appears below the comment when replying */}
+				{isAuthenticated && replyingTo?.commentId === comment.id && (
+					<div className="flex gap-2 mt-3 ml-2">
+						<div className="w-8 h-8 bg-gradient-to-br from-[#556b2f] to-[#6d8c3a] rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+							<span className="text-white font-semibold text-xs">
+								{(user?.username || "?").charAt(0).toUpperCase()}
+							</span>
+						</div>
+						<div className="flex-1 flex gap-2">
+							<input
+								type="text"
+								value={replyContent}
+								onChange={(e) => setReplyContent(e.target.value)}
+								placeholder={`Reply to ${comment.user?.username || 'comment'}...`}
+								className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f] focus:bg-white font-(family-name:--font-dmsans)"
+								autoFocus
+							/>
+							<button
+								onClick={() => handleSubmitComment(postId, isReply ? rootCommentId : comment.id)}
+								disabled={!replyContent.trim()}
+								className="p-2 bg-gradient-to-r from-[#556b2f] to-[#6d8c3a] text-white rounded-full hover:from-[#6d8c3a] hover:to-[#7a9947] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 disabled:hover:scale-100"
+							>
+								<IconSend size={16} />
+							</button>
+							<button
+								onClick={() => {
+									setReplyingTo(null);
+									setReplyContent("");
+								}}
+								className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-300"
+							>
+								<IconX size={16} />
+							</button>
+						</div>
+					</div>
+				)}
 				
 				{/* Replies */}
 				{!isReply && comment.repliesCount > 0 && (
@@ -657,6 +695,8 @@ export default function NewsFeed() {
 				)}
 
 				{/* Posts Feed */}
+
+
 				{!loading && (
 					<div className="flex flex-col gap-6">
 						{posts.map((post, index) => (
@@ -782,24 +822,30 @@ export default function NewsFeed() {
 													<div className="flex-1 flex gap-2">
 														<input
 															type="text"
-															value={replyingTo?.postId === post.id && !replyingTo?.commentId ? replyContent : (replyingTo?.postId === post.id ? replyContent : "")}
+															value={mainCommentContent[post.id] || ""}
 															onChange={(e) => {
-																if (!replyingTo || replyingTo.postId !== post.id) {
-																	setReplyingTo({ postId: post.id });
-																}
-																setReplyContent(e.target.value);
-															}}
-															onFocus={() => {
-																if (!replyingTo || replyingTo.postId !== post.id) {
-																	setReplyingTo({ postId: post.id });
-																}
+																setMainCommentContent(prev => ({
+																	...prev,
+																	[post.id]: e.target.value
+																}));
 															}}
 															placeholder="Write a comment..."
 															className="flex-1 px-4 py-2.5 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f] focus:bg-white font-(family-name:--font-dmsans) transition-all duration-300"
 														/>
 														<button
-															onClick={() => handleSubmitComment(post.id)}
-															disabled={!replyContent.trim()}
+															onClick={() => {
+																const content = mainCommentContent[post.id];
+																if (content?.trim()) {
+																	setReplyContent(content);
+																	setReplyingTo({ postId: post.id });
+																	handleSubmitComment(post.id);
+																	setMainCommentContent(prev => ({
+																		...prev,
+																		[post.id]: ""
+																	}));
+																}
+															}}
+															disabled={!(mainCommentContent[post.id]?.trim())}
 															className="p-2.5 bg-gradient-to-r from-[#556b2f] to-[#6d8c3a] text-white rounded-full hover:from-[#6d8c3a] hover:to-[#7a9947] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 disabled:hover:scale-100"
 														>
 															<IconSend size={18} />
@@ -808,22 +854,7 @@ export default function NewsFeed() {
 												</div>
 											)}
 
-											{/* Reply indicator */}
-											{replyingTo?.postId === post.id && replyingTo?.commentId && (
-												<div className="flex items-center gap-2 mb-3 ml-12 text-sm text-[#556b2f] bg-[#556b2f]/10 px-3 py-2 rounded-full w-fit animate-fadeIn">
-													<IconSparkles size={14} />
-													<span className="font-(family-name:--font-dmsans)">Replying to a comment</span>
-													<button
-														onClick={() => {
-															setReplyingTo({ postId: post.id });
-															setReplyContent("");
-														}}
-														className="text-gray-500 hover:text-gray-700 transition-colors duration-300"
-													>
-														<IconX size={14} />
-													</button>
-												</div>
-											)}
+
 
 											{/* Comments List */}
 											<div className="divide-y divide-gray-50">

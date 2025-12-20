@@ -616,4 +616,28 @@ export class RestClient {
 
 		return await result.json();
 	}
+
+	// ========== ATTENDANCE APIs ==========
+
+	static async markParticipantAttendance(eventUserId: number, completed: boolean): Promise<any> {
+		const url = `${RestClient.baseUrl}/event-user/complete/?eventUserId=${eventUserId}&completed=${completed}`;
+
+		const headers = this.getHeaders(true);
+		console.log("Calling markParticipantAttendance with headers:", headers);
+
+		const result = await fetch(url, {
+			method: "PATCH",
+			headers: headers,
+		});
+
+		console.log("markParticipantAttendance response status:", result.status);
+
+		if (!result.ok) {
+			const errorText = await result.text();
+			console.error("markParticipantAttendance error:", result.status, errorText);
+			throw new Error(`Failed to update attendance: ${result.status} ${result.statusText}`);
+		}
+
+		return await result.json();
+	}
 }

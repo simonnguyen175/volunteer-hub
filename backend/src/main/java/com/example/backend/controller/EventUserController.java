@@ -120,4 +120,15 @@ public class EventUserController {
                         eventUserService.getUserEventStatus(userId, eventId));
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    // Update participant attendance (mark as completed/attended or absent)
+    @PatchMapping("/complete/")
+    public ResponseEntity<ApiResponse> markParticipantAttendance(
+            @RequestParam(value = "eventUserId") Long eventUserId,
+            @RequestParam(value = "completed") boolean completed) {
+        ApiResponse response =
+                new ApiResponse("Attendance updated successfully",
+                        eventUserService.markCompleted(eventUserId, completed));
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }

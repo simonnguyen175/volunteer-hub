@@ -332,7 +332,12 @@ export default function EventDetails() {
 							) : activeTab === "discussion" ? (
 								<EventDiscussion eventId={event.id.toString()} />
 							) : (
-								<EventParticipants eventId={event.id} isHost={isHost} />
+								<EventParticipants 
+								eventId={event.id} 
+								isHost={isHost} 
+								startTime={event.startTime}
+								endTime={event.endTime}
+							/>
 							)}
 						</div>
 					</div>

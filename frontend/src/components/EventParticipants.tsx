@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { IconCheck, IconX, IconUsers, IconClock } from "@tabler/icons-react";
+import { IconCheck, IconX, IconUsers, IconClock, IconCheckbox, IconSquare, IconSquareCheck } from "@tabler/icons-react";
 import { RestClient } from "../api/RestClient";
 import { useToast } from "./ui/Toast";
 
@@ -17,15 +17,29 @@ interface Participant {
 interface EventParticipantsProps {
 	eventId: number;
 	isHost: boolean;
+	startTime?: string;
+	endTime?: string;
 }
 
-export default function EventParticipants({ eventId, isHost }: EventParticipantsProps) {
+export default function EventParticipants({ eventId, isHost, startTime, endTime }: EventParticipantsProps) {
 	const [activeTab, setActiveTab] = useState<"accepted" | "pending">("accepted");
 	const [pendingParticipants, setPendingParticipants] = useState<Participant[]>([]);
 	const [acceptedParticipants, setAcceptedParticipants] = useState<Participant[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [actionLoading, setActionLoading] = useState<number | null>(null);
+	const [attendanceLoading, setAttendanceLoading] = useState<number | null>(null);
 	const { showToast } = useToast();
+
+	// Determine event status based on start and end times
+	const now = new Date();
+	const eventStartTime = startTime ? new Date(startTime) : null;
+	const eventEndTime = endTime ? new Date(endTime) : null;
+	
+	const isPastEvent = eventEndTime ? eventEndTime < now : false;
+	const isOngoingEvent = eventStartTime && eventEndTime 
+		? (eventStartTime <= now && eventEndTime >= now) 
+		: false;
+	const showAttendanceChecklist = isHost && (isPastEvent || isOngoingEvent);
 
 	useEffect(() => {
 		fetchParticipants();
@@ -75,6 +89,35 @@ export default function EventParticipants({ eventId, isHost }: EventParticipants
 		}
 	};
 
+	const handleToggleAttendance = async (participant: Participant) => {
+		setAttendanceLoading(participant.id);
+		try {
+			const newCompleted = !participant.completed;
+			await RestClient.markParticipantAttendance(participant.id, newCompleted);
+			
+			// Update local state
+			setAcceptedParticipants(prev => 
+				prev.map(p => 
+					p.id === participant.id 
+						? { ...p, completed: newCompleted } 
+						: p
+				)
+			);
+			
+			showToast(
+				newCompleted 
+					? `${participant.username} marked as attended` 
+					: `${participant.username} marked as absent`,
+				"success"
+			);
+		} catch (err) {
+			console.error("Failed to update attendance:", err);
+			showToast("Failed to update attendance", "error");
+		} finally {
+			setAttendanceLoading(null);
+		}
+	};
+
 	if (loading) {
 		return (
 			<div className="text-center py-12">
@@ -107,6 +150,29 @@ export default function EventParticipants({ eventId, isHost }: EventParticipants
 					</div>
 				</div>
 			</div>
+
+			{/* Attendance Stats (for past/ongoing events) */}
+			{showAttendanceChecklist && acceptedParticipants.length > 0 && (
+				<div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+					<div className="flex items-center gap-2 mb-2">
+						<IconCheckbox size={20} className="text-blue-600" />
+						<h3 className="font-semibold text-blue-800">Attendance Tracking</h3>
+					</div>
+					<p className="text-sm text-blue-700">
+						{acceptedParticipants.filter(p => p.completed).length} of {acceptedParticipants.length} participants attended
+					</p>
+					<div className="mt-2 bg-blue-200 rounded-full h-2 overflow-hidden">
+						<div 
+							className="h-full bg-blue-600 transition-all duration-300"
+							style={{ 
+								width: `${acceptedParticipants.length > 0 
+									? (acceptedParticipants.filter(p => p.completed).length / acceptedParticipants.length) * 100 
+									: 0}%` 
+							}}
+						></div>
+					</div>
+				</div>
+			)}
 
 			{/* Tabs */}
 			<div className="flex border-b border-gray-200">
@@ -144,11 +210,44 @@ export default function EventParticipants({ eventId, isHost }: EventParticipants
 						acceptedParticipants.map((p) => (
 							<div
 								key={p.id}
-								className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+								className={`flex items-center justify-between p-4 rounded-xl transition-colors ${
+									showAttendanceChecklist 
+										? p.completed 
+											? 'bg-green-50 border border-green-200 hover:bg-green-100' 
+											: 'bg-gray-50 hover:bg-gray-100'
+										: 'bg-gray-50 hover:bg-gray-100'
+								}`}
 							>
 								<div className="flex items-center gap-3">
-									<div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-										<span className="text-green-700 font-semibold">
+									{/* Attendance Checkbox - only for past/ongoing events */}
+									{showAttendanceChecklist && (
+										<button
+											onClick={() => handleToggleAttendance(p)}
+											disabled={attendanceLoading === p.id}
+											className={`p-1 rounded-lg transition-all ${
+												attendanceLoading === p.id 
+													? 'opacity-50 cursor-wait' 
+													: 'hover:bg-gray-200'
+											}`}
+											title={p.completed ? "Mark as absent" : "Mark as attended"}
+										>
+											{p.completed ? (
+												<IconSquareCheck size={24} className="text-green-600" />
+											) : (
+												<IconSquare size={24} className="text-gray-400" />
+											)}
+										</button>
+									)}
+									<div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+										showAttendanceChecklist && p.completed 
+											? 'bg-green-200' 
+											: 'bg-green-100'
+									}`}>
+										<span className={`font-semibold ${
+											showAttendanceChecklist && p.completed 
+												? 'text-green-800' 
+												: 'text-green-700'
+										}`}>
 											{p.username.charAt(0).toUpperCase()}
 										</span>
 									</div>
@@ -157,9 +256,22 @@ export default function EventParticipants({ eventId, isHost }: EventParticipants
 										<p className="text-sm text-gray-600">{p.email}</p>
 									</div>
 								</div>
-								<span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-									Accepted
-								</span>
+								<div className="flex items-center gap-2">
+									{showAttendanceChecklist && (
+										<span className={`px-3 py-1 rounded-full text-sm font-medium ${
+											p.completed 
+												? 'bg-green-100 text-green-700' 
+												: 'bg-gray-200 text-gray-600'
+										}`}>
+											{p.completed ? 'Attended' : 'Absent'}
+										</span>
+									)}
+									{!showAttendanceChecklist && (
+										<span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+											Accepted
+										</span>
+									)}
+								</div>
 							</div>
 						))
 					)

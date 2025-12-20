@@ -152,4 +152,15 @@ public class EventUserService {
                 .map(EventUserResponse::fromEventUser)
                 .orElse(null);
     }
+
+    // Mark participant attendance (completed or absent)
+    public EventUserResponse markCompleted(Long eventUserId, boolean completed) {
+        EventUser eventUser = eventUserRepository.findById(eventUserId).orElse(null);
+        if (eventUser != null) {
+            eventUser.setCompleted(completed);
+            eventUserRepository.save(eventUser);
+            return EventUserResponse.fromEventUser(eventUser);
+        }
+        return null;
+    }
 }

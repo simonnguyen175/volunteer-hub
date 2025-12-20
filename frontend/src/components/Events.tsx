@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
-import { IconSearch, IconGridDots, IconList, IconFilter, IconArrowsSort, IconPlus, IconChevronDown, IconChevronUp } from "@tabler/icons-react";
+import { IconSearch, IconGridDots, IconList, IconFilter, IconArrowsSort, IconPlus, IconChevronDown, IconChevronUp, IconHistory, IconPlayerPlay, IconCalendarTime } from "@tabler/icons-react";
 
 import {
 	Card,
@@ -48,6 +48,7 @@ export default function Events() {
 	const [isSearching, setIsSearching] = useState(false);
 	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 	const [isTypeFilterExpanded, setIsTypeFilterExpanded] = useState(true);
+	const [timeStatusFilter, setTimeStatusFilter] = useState<"all" | "past" | "ongoing" | "future">("all");
 
 	// Check if user is a host
 	const rawRole = user?.role;
@@ -141,13 +142,34 @@ export default function Events() {
 		return 0;
 	});
 
+	// Categorize events based on time status
+	const now = new Date();
+	const categorizeEvent = (event: Event & { fullImageUrl: string }) => {
+		const startTime = new Date(event.startTime);
+		const endTime = new Date(event.endTime);
+		
+		if (endTime < now) return "past";
+		if (startTime <= now && endTime >= now) return "ongoing";
+		return "future";
+	};
+
+	// Filter by time status
+	const timeFilteredEvents = timeStatusFilter === "all" 
+		? filteredEvents 
+		: filteredEvents.filter(event => categorizeEvent(event) === timeStatusFilter);
+
 	// For hosts, split events into "My Events" and "Other Events"
 	const myHostedEvents = isHost && user?.id 
-		? filteredEvents.filter(event => event.managerName === user?.username)
+		? timeFilteredEvents.filter(event => event.managerName === user?.username)
 		: [];
 	const otherEvents = isHost && user?.id
-		? filteredEvents.filter(event => event.managerName !== user?.username)
-		: filteredEvents;
+		? timeFilteredEvents.filter(event => event.managerName !== user?.username)
+		: timeFilteredEvents;
+
+	// Count events by time status for badges
+	const pastCount = filteredEvents.filter(e => categorizeEvent(e) === "past").length;
+	const ongoingCount = filteredEvents.filter(e => categorizeEvent(e) === "ongoing").length;
+	const futureCount = filteredEvents.filter(e => categorizeEvent(e) === "future").length;
 
 	return (
 		<div className="min-h-screen bg-white">
@@ -336,6 +358,73 @@ export default function Events() {
 								</div>
 							</div>
 						</div>
+					</div>
+
+					{/* Time Status Filter Tabs */}
+					<div className="flex gap-2 mt-4 pt-4 border-t border-[#556b2f]/20">
+						<button
+							onClick={() => setTimeStatusFilter("all")}
+							className={`flex items-center gap-2 px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
+								timeStatusFilter === "all"
+									? "bg-[#556b2f] text-white shadow-md"
+									: "bg-white text-gray-700 border border-gray-300 hover:border-[#556b2f] hover:text-[#556b2f]"
+							}`}
+						>
+							All Events
+							<span className={`px-2 py-0.5 text-xs rounded-full ${
+								timeStatusFilter === "all" ? "bg-white/20" : "bg-gray-100"
+							}`}>
+								{filteredEvents.length}
+							</span>
+						</button>
+						<button
+							onClick={() => setTimeStatusFilter("future")}
+							className={`flex items-center gap-2 px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
+								timeStatusFilter === "future"
+									? "bg-green-600 text-white shadow-md"
+									: "bg-white text-gray-700 border border-gray-300 hover:border-green-600 hover:text-green-600"
+							}`}
+						>
+							<IconCalendarTime size={18} />
+							Upcoming
+							<span className={`px-2 py-0.5 text-xs rounded-full ${
+								timeStatusFilter === "future" ? "bg-white/20" : "bg-green-100 text-green-700"
+							}`}>
+								{futureCount}
+							</span>
+						</button>
+						<button
+							onClick={() => setTimeStatusFilter("ongoing")}
+							className={`flex items-center gap-2 px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
+								timeStatusFilter === "ongoing"
+									? "bg-blue-600 text-white shadow-md"
+									: "bg-white text-gray-700 border border-gray-300 hover:border-blue-600 hover:text-blue-600"
+							}`}
+						>
+							<IconPlayerPlay size={18} />
+							Ongoing
+							<span className={`px-2 py-0.5 text-xs rounded-full ${
+								timeStatusFilter === "ongoing" ? "bg-white/20" : "bg-blue-100 text-blue-700"
+							}`}>
+								{ongoingCount}
+							</span>
+						</button>
+						<button
+							onClick={() => setTimeStatusFilter("past")}
+							className={`flex items-center gap-2 px-4 py-2 rounded-lg font-(family-name:--font-dmsans) font-semibold transition-all ${
+								timeStatusFilter === "past"
+									? "bg-gray-600 text-white shadow-md"
+									: "bg-white text-gray-700 border border-gray-300 hover:border-gray-600 hover:text-gray-600"
+							}`}
+						>
+							<IconHistory size={18} />
+							Past
+							<span className={`px-2 py-0.5 text-xs rounded-full ${
+								timeStatusFilter === "past" ? "bg-white/20" : "bg-gray-200 text-gray-600"
+							}`}>
+								{pastCount}
+							</span>
+						</button>
 					</div>
 				</div>
 
