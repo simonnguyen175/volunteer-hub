@@ -86,20 +86,34 @@ const EventCard = ({ event, viewMode }: { event: any, viewMode: "grid" | "list" 
 	const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
 	const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
 
-	// Determine if animation should play based on mount
-	// However, simple CSS animation will trigger on mount. 
-	// Since we are now using stable component, it will only trigger on First mount.
+	// Check event time status
+	const now = new Date();
+	const startTime = new Date(event.startTime);
+	const endTime = new Date(event.endTime);
+	const isOngoing = startTime <= now && endTime >= now;
+	const isPast = endTime < now;
 
 	if (viewMode === "grid") {
 		return (
 			<Link to={`/events/${event.id}`} className="block h-full" style={{ animation: `fadeInUp 0.4s ease-out both` }}>
-				<Card className="group relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer ring-0 hover:ring-2 hover:ring-[#556b2f]/30 h-full">
-					<div className="aspect-video w-full overflow-hidden">
+				<Card className={`group relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer ring-0 hover:ring-2 hover:ring-[#556b2f]/30 h-full ${isPast ? 'opacity-60 grayscale-[30%]' : ''}`}>
+					<div className="aspect-video w-full overflow-hidden relative">
 						<img
 							src={event.fullImageUrl}
 							alt={event.title}
 							className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
 						/>
+						{isOngoing && (
+							<div className="absolute top-3 right-3 px-3 py-1.5 bg-[#556b2f] text-white text-xs font-bold font-(family-name:--font-dmsans) rounded-full shadow-lg flex items-center gap-1.5">
+								<span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+								Ongoing
+							</div>
+						)}
+						{isPast && (
+							<div className="absolute top-3 right-3 px-3 py-1.5 bg-[#8fbc8f] text-white text-xs font-bold font-(family-name:--font-dmsans) rounded-full shadow-lg flex items-center gap-1.5">
+								Ended
+							</div>
+						)}
 					</div>
 					<div className="relative flex flex-col h-full">
 						<div className="relative z-10 p-4 bg-white group-hover:bg-transparent transition-colors flex-1">
@@ -125,14 +139,25 @@ const EventCard = ({ event, viewMode }: { event: any, viewMode: "grid" | "list" 
 	} else {
 		return (
 			<Link to={`/events/${event.id}`} className="block" style={{ animation: `fadeInUp 0.4s ease-out both` }}>
-				<Card className="group relative overflow-hidden hover:shadow-lg transition-all cursor-pointer">
+				<Card className={`group relative overflow-hidden hover:shadow-lg transition-all cursor-pointer ${isPast ? 'opacity-60 grayscale-[30%]' : ''}`}>
 					<div className="flex flex-col sm:flex-row">
-						<div className="w-full sm:w-64 h-48 sm:h-40 shrink-0 overflow-hidden">
+						<div className="w-full sm:w-64 h-48 sm:h-40 shrink-0 overflow-hidden relative">
 							<img
 								src={event.fullImageUrl}
 								alt={event.title}
 								className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
 							/>
+							{isOngoing && (
+								<div className="absolute top-3 right-3 px-3 py-1.5 bg-[#556b2f] text-white text-xs font-bold font-(family-name:--font-dmsans) rounded-full shadow-lg flex items-center gap-1.5">
+									<span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+									Ongoing
+								</div>
+							)}
+							{isPast && (
+								<div className="absolute top-3 right-3 px-3 py-1.5 bg-[#8fbc8f] text-white text-xs font-bold font-(family-name:--font-dmsans) rounded-full shadow-lg flex items-center gap-1.5">
+									Ended
+								</div>
+							)}
 						</div>
 						<div className="flex-1 relative min-h-[10rem]">
 							<div className="absolute bottom-0 left-0 w-full h-full p-4 z-10 bg-white group-hover:bg-transparent transition-colors">
@@ -178,7 +203,7 @@ export default function Events() {
 	const [endDateFilter, setEndDateFilter] = useState("");
 	const [isSearching, setIsSearching] = useState(false);
 	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-	const [timeStatusFilter, setTimeStatusFilter] = useState<"all" | "past" | "ongoing" | "future">("all");
+	const [timeStatusFilter, setTimeStatusFilter] = useState<"all" | "active" | "past" | "ongoing" | "future">("active");
 	const [hostedPage, setHostedPage] = useState(1);
 	const [otherPage, setOtherPage] = useState(1);
 	const ITEMS_PER_PAGE = 6;
@@ -295,6 +320,8 @@ export default function Events() {
 	// Filter by time status
 	const timeFilteredEvents = timeStatusFilter === "all" 
 		? filteredEvents 
+		: timeStatusFilter === "active"
+		? filteredEvents.filter(event => categorizeEvent(event) !== "past")
 		: filteredEvents.filter(event => categorizeEvent(event) === timeStatusFilter);
 
 	// For hosts, split events into "My Events" and "Other Events"
@@ -309,6 +336,7 @@ export default function Events() {
 	const pastCount = filteredEvents.filter(e => categorizeEvent(e) === "past").length;
 	const ongoingCount = filteredEvents.filter(e => categorizeEvent(e) === "ongoing").length;
 	const futureCount = filteredEvents.filter(e => categorizeEvent(e) === "future").length;
+	const activeCount = ongoingCount + futureCount;
 
 	// Pagination Logic
 	const hostedTotalPages = Math.ceil(myHostedEvents.length / ITEMS_PER_PAGE);
@@ -458,36 +486,37 @@ export default function Events() {
 						</div>
 
 						{/* Bottom Row: Status Tabs */}
-						<div className="flex border-b border-gray-100">
-							{[
-								{ id: "all", label: "All Events", count: filteredEvents.length },
-								{ id: "future", label: "Upcoming", count: futureCount },
-								{ id: "ongoing", label: "Ongoing", count: ongoingCount },
-								{ id: "past", label: "Past", count: pastCount }
-							].map((tab) => (
-								<button
-									key={tab.id}
-									onClick={() => setTimeStatusFilter(tab.id as any)}
-									className={`px-6 py-4 text-sm font-bold font-(family-name:--font-dmsans) transition-all relative flex items-center gap-2 cursor-pointer ${
-										timeStatusFilter === tab.id
-											? "text-[#556b2f]"
-											: "text-gray-400 hover:text-gray-600"
-									}`}
-								>
-									{tab.label}
-									<span className={`px-2 py-0.5 rounded-full text-xs transition-colors ${
-										timeStatusFilter === tab.id
-											? "bg-[#556b2f]/10 text-[#556b2f]"
-											: "bg-gray-100 text-gray-500"
-									}`}>
-										{tab.count}
-									</span>
-									{timeStatusFilter === tab.id && (
-										<div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#556b2f] rounded-full" />
-									)}
-								</button>
-							))}
-						</div>
+				<div className="flex border-b border-gray-100">
+					{[
+						{ id: "active", label: "Active", count: activeCount },
+						{ id: "ongoing", label: "Ongoing", count: ongoingCount },
+						{ id: "future", label: "Upcoming", count: futureCount },
+						{ id: "past", label: "Past", count: pastCount },
+						{ id: "all", label: "All Events", count: filteredEvents.length },
+					].map((tab) => (
+						<button
+							key={tab.id}
+							onClick={() => setTimeStatusFilter(tab.id as any)}
+							className={`px-6 py-4 text-sm font-bold font-(family-name:--font-dmsans) transition-all relative flex items-center gap-2 cursor-pointer ${
+								timeStatusFilter === tab.id
+									? "text-[#556b2f]"
+									: "text-gray-400 hover:text-gray-600"
+							}`}
+						>
+							{tab.label}
+							<span className={`px-2 py-0.5 rounded-full text-xs transition-colors ${
+								timeStatusFilter === tab.id
+									? "bg-[#556b2f]/10 text-[#556b2f]"
+									: "bg-gray-100 text-gray-500"
+							}`}>
+								{tab.count}
+							</span>
+							{timeStatusFilter === tab.id && (
+								<div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#556b2f] rounded-full" />
+							)}
+						</button>
+					))}
+				</div>
 					</div>
 
 				{/* Hosted Events Section */}
