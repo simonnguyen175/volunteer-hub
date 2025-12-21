@@ -10,6 +10,7 @@ import com.example.backend.model.EventUser;
 import com.example.backend.model.LikeComment;
 import com.example.backend.model.LikePost;
 import com.example.backend.model.Post;
+import com.example.backend.model.RoleName;
 import com.example.backend.model.User;
 import com.example.backend.repository.CommentRepository;
 import com.example.backend.repository.EventRepository;
@@ -89,7 +90,19 @@ public class EventService {
         event.setLocation(request.getLocation());
         event.setDescription(request.getDescription());
         event.setImageUrl(request.getImageUrl());
-        return eventRepository.save(event);
+        Event savedEvent = eventRepository.save(event);
+
+        // Notify all admin users about the new pending event
+        List<User> admins = userRepository.findByRole_Name(RoleName.ADMIN);
+        for (User admin : admins) {
+            notificationService.createAndSendNotification(
+                    admin.getId(),
+                    "Host <b>" + manager.getUsername() + "</b> has created a new event: <b>" 
+                            + event.getTitle() + "</b> awaiting approval",
+                    "/admin/events");
+        }
+
+        return savedEvent;
     }
 
     public Event updateEvent(Long id, EventUpdateRequest request) {
