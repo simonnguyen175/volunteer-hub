@@ -243,16 +243,10 @@ export default function CreateEventModal({ isOpen, onClose, onEventCreated, edit
 			}
 		}
 
-		// In create mode, image is required. In edit mode, it's optional
-		if (!editMode && !imageFile) {
-			showToast("Please upload an event image", "warning");
-			return;
-		}
-
 		setIsSubmitting(true);
 
 		try {
-			// Upload new image if one was selected
+			// Upload new image if one was selected, otherwise use default based on category
 			let imagePath = editMode && initialEventData ? initialEventData.imageUrl : "";
 			if (imageFile) {
 				const uploadedPath = await uploadImage();
@@ -261,6 +255,9 @@ export default function CreateEventModal({ isOpen, onClose, onEventCreated, edit
 					return;
 				}
 				imagePath = uploadedPath;
+			} else if (!editMode) {
+				// Use default image based on category for new events without custom image
+				imagePath = `events/default_${formData.type.toLowerCase()}.png`;
 			}
 
 			// Prepare event data
@@ -438,9 +435,9 @@ export default function CreateEventModal({ isOpen, onClose, onEventCreated, edit
 						{/* Image Upload */}
 						<div>
 							<label className="block text-sm font-semibold text-gray-700 mb-2">
-								<IconPhoto size={16} className="inline mr-1" />
-								Event Image *
-							</label>
+							<IconPhoto size={16} className="inline mr-1" />
+							Event Image <span className="font-normal text-gray-500">(optional)</span>
+						</label>
 							<div className="relative">
 								{imagePreview ? (
 									<div className="relative rounded-xl overflow-hidden">
