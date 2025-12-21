@@ -189,6 +189,7 @@ export default function Header() {
 		{ name: "Home", path: "/" },
 		{ name: "Events", path: "/events" },
 		{ name: "News Feed", path: "/newsfeed" },
+		{ name: "Dashboard", path: "/dashboard" },
 	];
 
 	// Get current path to highlight active link

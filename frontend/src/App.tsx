@@ -5,6 +5,7 @@ import Events from "./components/Events";
 import EventDetails from "./components/EventDetails";
 import NewsFeed from "./components/NewsFeed";
 import MyEvents from "./components/MyEvents";
+import Dashboard from "./components/Dashboard";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ToastProvider } from "./components/ui/Toast";
 import AdminLayout from "./components/admin/AdminLayout";
@@ -33,6 +34,7 @@ function AppContent() {
 					{/* Routes with Header */}
 					<Route element={<MainLayout />}>
 						<Route index element={<LandingPage />} />
+						<Route path="/dashboard" element={<Dashboard />} />
 						<Route path="/events" element={<Events />} />
 						<Route path="/events/:eventId" element={<EventDetails />} />
 						<Route path="/newsfeed" element={<NewsFeed />} />

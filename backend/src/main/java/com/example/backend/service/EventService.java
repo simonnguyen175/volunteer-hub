@@ -26,6 +26,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.PageRequest;
 
 @Service
 public class EventService {
@@ -231,6 +232,25 @@ public class EventService {
         User manager = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return eventRepository.findByManager(manager).stream()
+                .map(EventDetailResponse::fromEvent)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get top events by participant count (most participants)
+     */
+    public List<EventDetailResponse> getTopEvents(int limit) {
+        return eventRepository.findTopEventsByParticipants(org.springframework.data.domain.PageRequest.of(0, limit))
+                .stream()
+                .map(EventDetailResponse::fromEvent)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get hottest events by discussion activity (posts + comments)
+     */
+    public List<EventDetailResponse> getHottestEvents(int limit) {
+        return eventRepository.findHottestEvents(PageRequest.of(0, limit)).stream()
                 .map(EventDetailResponse::fromEvent)
                 .collect(Collectors.toList());
     }

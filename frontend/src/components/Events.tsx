@@ -174,8 +174,9 @@ export default function Events() {
 
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				<div className="relative top-10 mb-10 flex items-center justify-center">
-					<h1 className="font-(family-name:--font-crimson) font-medium text-[5rem] text-center m-4 text-gray-900">
-						Our Events.
+					<h1 className="font-(family-name:--font-crimson) font-medium text-[4rem] sm:text-[5rem] text-center m-4 text-gray-900 leading-tight">
+						Our Events
+						<span className="text-[#556b2f]">.</span>
 					</h1>
 					{isHost && (
 						<button

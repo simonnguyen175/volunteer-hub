@@ -413,6 +413,28 @@ export class RestClient {
 		return await result.json();
 	}
 
+	static async getTopEvents(limit: number = 5): Promise<any> {
+		const url = `${RestClient.baseUrl}/event/top?limit=${limit}`;
+
+		const result = await fetch(url, {
+			method: "GET",
+			headers: this.getHeaders(),
+		});
+
+		return await result.json();
+	}
+
+	static async getHottestEvents(limit: number = 5): Promise<any> {
+		const url = `${RestClient.baseUrl}/event/hottest?limit=${limit}`;
+
+		const result = await fetch(url, {
+			method: "GET",
+			headers: this.getHeaders(),
+		});
+
+		return await result.json();
+	}
+
 	// ========== NEW EVENT-USER APIs ==========
 
 	static async getJoinedEvents(userId: number): Promise<any> {

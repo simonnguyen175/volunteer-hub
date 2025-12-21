@@ -97,4 +97,20 @@ public class EventController {
         ApiResponse response = new ApiResponse("Event deleted successfully", null);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @GetMapping("/top")
+    public ResponseEntity<ApiResponse> getTopEvents(
+            @RequestParam(value = "limit", defaultValue = "5") int limit) {
+        ApiResponse response =
+                new ApiResponse("Top events retrieved successfully", eventService.getTopEvents(limit));
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/hottest")
+    public ResponseEntity<ApiResponse> getHottestEvents(
+            @RequestParam(value = "limit", defaultValue = "5") int limit) {
+        ApiResponse response =
+                new ApiResponse("Hottest events retrieved successfully", eventService.getHottestEvents(limit));
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }
