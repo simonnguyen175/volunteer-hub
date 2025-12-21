@@ -5,7 +5,6 @@ import logo from "../../assets/VolunteerHub.png";
 import { useAuth } from "../../contexts/AuthContext";
 import { RestClient } from "../../api/RestClient";
 import { onPushMessage } from "../../utils/pushNotifications";
-import { useToast } from "../ui/Toast";
 
 export default function AdminLayout() {
 	const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -15,7 +14,6 @@ export default function AdminLayout() {
 	const notificationRef = useRef<HTMLDivElement>(null);
 	const auth = useAuth();
 	const navigate = useNavigate();
-	const { showToast } = useToast();
 
 	const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
@@ -67,14 +65,11 @@ export default function AdminLayout() {
 
 		const cleanup = onPushMessage((data) => {
 			console.log('🔔 Push notification received in Admin:', data);
-			// Show toast notification
-			const strippedBody = data.body?.replace(/<[^>]*>/g, '') || 'New notification';
-			showToast(strippedBody, "info");
 			fetchNotifications();
 		});
 
 		return cleanup;
-	}, [auth.isAuthenticated, fetchNotifications, showToast]);
+	}, [auth.isAuthenticated, fetchNotifications]);
 
 	const handleMarkAsRead = async (notificationId: number) => {
 		try {
