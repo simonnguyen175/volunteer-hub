@@ -102,8 +102,9 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 				
 				// Check which posts the user has liked (parallel requests)
 			if (auth.user?.id && newPosts.length > 0) {
-				const likeChecks = newPosts.map(post => 
-					RestClient.checkLikePost(auth.user.id, post.id)
+				const userId = auth.user.id;
+				const likeChecks = newPosts.map((post: Post) => 
+					RestClient.checkLikePost(userId, post.id)
 						.then(result => ({ postId: post.id, isLiked: result.data === true }))
 						.catch(() => ({ postId: post.id, isLiked: false }))
 				);
@@ -391,7 +392,7 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 					// Check which comments the user has liked (in parallel)
 					if (auth.user?.id && result.data.length > 0) {
 						const userId = auth.user.id; // Cache user ID for type safety
-						const commentLikeChecks = result.data.map(comment =>
+						const commentLikeChecks = result.data.map((comment: Comment) =>
 							RestClient.checkLikeComment(userId, comment.id)
 								.then(likeResult => ({ commentId: comment.id, isLiked: likeResult.data === true }))
 								.catch(() => ({ commentId: comment.id, isLiked: false }))
