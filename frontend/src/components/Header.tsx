@@ -255,7 +255,7 @@ export default function Header() {
 										{unreadCount > 0 && (
 											<button
 												onClick={handleMarkAllAsRead}
-												className="text-xs text-[#556b2f] hover:text-[#6d8c3a] font-semibold font-(family-name:--font-dmsans) hover:underline transition-colors"
+												className="text-xs text-[#556b2f] hover:text-[#6d8c3a] font-semibold font-(family-name:--font-dmsans) hover:underline transition-colors cursor-pointer"
 											>
 												Mark all as read
 											</button>

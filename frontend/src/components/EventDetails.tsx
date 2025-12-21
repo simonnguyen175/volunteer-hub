@@ -232,7 +232,7 @@ export default function EventDetails() {
 						<div className="w-16 h-16 border-4 border-[#556b2f]/20 rounded-full"></div>
 						<div className="absolute top-0 left-0 w-16 h-16 border-4 border-[#556b2f] border-t-transparent rounded-full animate-spin"></div>
 					</div>
-					<p className="text-gray-500 font-(family-name:--font-dmsans) font-medium animate-pulse">Loading event...</p>
+					<p className="text-gray-500 font-(family-name:--font-crimson) font-medium animate-pulse">Loading event...</p>
 				</div>
 			</div>
 		);

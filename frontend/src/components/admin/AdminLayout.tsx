@@ -167,7 +167,7 @@ export default function AdminLayout() {
 					<div className="p-4 border-t border-gray-100">
 						<button
 							onClick={handleLogout}
-							className="flex items-center gap-3 w-full px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+							className="flex items-center gap-3 w-full px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
 						>
 							<IconLogout size={20} />
 							<span className={`whitespace-nowrap transition-opacity duration-300 ${isSidebarOpen ? "opacity-100" : "opacity-0 lg:hidden"}`}>
@@ -214,7 +214,7 @@ export default function AdminLayout() {
 										{unreadCount > 0 && (
 											<button
 												onClick={handleMarkAllAsRead}
-												className="text-xs text-[#556b2f] hover:text-[#6d8c3a] font-semibold font-(family-name:--font-dmsans) hover:underline transition-colors"
+												className="text-xs text-[#556b2f] hover:text-[#6d8c3a] font-semibold font-(family-name:--font-dmsans) hover:underline transition-colors cursor-pointer"
 											>
 												Mark all as read
 											</button>

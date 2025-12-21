@@ -242,7 +242,7 @@ export default function AdminUsers() {
 					<div className="relative">
 						<button
 							onClick={() => setShowExportMenu(!showExportMenu)}
-							className="flex items-center gap-2 px-4 py-2.5 bg-[#556b2f] text-white rounded-xl hover:bg-[#6d8c3a] transition-all duration-300 shadow-sm hover:shadow-md"
+							className="flex items-center gap-2 px-4 py-2.5 bg-[#556b2f] text-white rounded-xl hover:bg-[#6d8c3a] transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer"
 						>
 							<IconDownload size={18} />
 							Export
@@ -253,21 +253,21 @@ export default function AdminUsers() {
 							<div className="absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
 								<button
 									onClick={exportToCSV}
-									className="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-gray-50 hover:text-[#556b2f] transition-all duration-200 flex items-center gap-2"
+									className="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-gray-50 hover:text-[#556b2f] transition-all duration-200 flex items-center gap-2 cursor-pointer"
 								>
 									<span className="w-2 h-2 rounded-full bg-green-400"></span>
 									Export as CSV
 								</button>
 								<button
 									onClick={exportToTSV}
-									className="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-gray-50 hover:text-[#556b2f] transition-all duration-200 flex items-center gap-2"
+									className="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-gray-50 hover:text-[#556b2f] transition-all duration-200 flex items-center gap-2 cursor-pointer"
 								>
 									<span className="w-2 h-2 rounded-full bg-blue-400"></span>
 									Export as TSV
 								</button>
 								<button
 									onClick={exportToJSON}
-									className="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-gray-50 hover:text-[#556b2f] transition-all duration-200 flex items-center gap-2"
+									className="w-full px-4 py-2.5 text-left text-gray-700 hover:bg-gray-50 hover:text-[#556b2f] transition-all duration-200 flex items-center gap-2 cursor-pointer"
 								>
 									<span className="w-2 h-2 rounded-full bg-purple-400"></span>
 									Export as JSON
@@ -293,13 +293,13 @@ export default function AdminUsers() {
 				</div>
 				<button
 					onClick={handleSearch}
-					className="px-6 py-3 bg-[#556b2f] text-white rounded-xl hover:bg-[#6d8c3a] transition-all duration-300 shadow-sm hover:shadow-md font-medium"
+					className="px-6 py-3 bg-[#556b2f] text-white rounded-xl hover:bg-[#6d8c3a] transition-all duration-300 shadow-sm hover:shadow-md font-medium cursor-pointer"
 				>
 					Search
 				</button>
 				<button
 					onClick={fetchUsers}
-					className="px-6 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 font-medium text-gray-600 hover:text-gray-800"
+					className="px-6 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 font-medium text-gray-600 hover:text-gray-800 cursor-pointer"
 				>
 					Reset
 				</button>
@@ -386,7 +386,7 @@ export default function AdminUsers() {
 											{!user.locked ? (
 												<button 
 													onClick={() => handleToggleLock(user.id)}
-													className="p-3 rounded-xl text-orange-400 hover:text-orange-600 hover:bg-orange-50 transition-all duration-200" 
+													className="p-3 rounded-xl text-orange-400 hover:text-orange-600 hover:bg-orange-50 transition-all duration-200 cursor-pointer" 
 													title="Lock Account"
 												>
 													<IconLock size={20} />
@@ -394,7 +394,7 @@ export default function AdminUsers() {
 											) : (
 												<button 
 													onClick={() => handleToggleLock(user.id)}
-													className="p-3 rounded-xl text-emerald-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200" 
+													className="p-3 rounded-xl text-emerald-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200 cursor-pointer" 
 													title="Unlock Account"
 												>
 													<IconLockOpen size={20} />
@@ -402,7 +402,7 @@ export default function AdminUsers() {
 											)}
 											<button 
 												onClick={() => handleDelete(user.id)}
-												className="p-3 rounded-xl text-red-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200" 
+												className="p-3 rounded-xl text-red-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200 cursor-pointer" 
 												title="Delete User"
 											>
 												<IconTrash size={20} />

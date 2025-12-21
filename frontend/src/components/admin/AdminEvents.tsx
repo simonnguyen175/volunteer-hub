@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { IconCheck, IconX, IconEye, IconTrash, IconCalendar, IconMapPin, IconCategory, IconDownload, IconChevronDown } from "@tabler/icons-react";
+import { IconCheck, IconEye, IconTrash, IconCalendar, IconMapPin, IconCategory, IconDownload, IconChevronDown } from "@tabler/icons-react";
 import { RestClient } from "@/api/RestClient";
 import { useToast } from "@/components/ui/Toast";
 import { useConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -224,7 +224,7 @@ export default function AdminEvents() {
 					<div className="relative">
 						<button
 							onClick={() => setShowExportMenu(!showExportMenu)}
-							className="flex items-center gap-2 px-4 py-2 bg-[#556b2f] text-white rounded-lg hover:bg-[#6d8c3a] transition-colors h-full"
+							className="flex items-center gap-2 px-4 py-2 bg-[#556b2f] text-white rounded-lg hover:bg-[#6d8c3a] transition-colors h-full cursor-pointer"
 						>
 							<IconDownload size={18} />
 							Export
@@ -235,19 +235,19 @@ export default function AdminEvents() {
 							<div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
 								<button
 									onClick={exportToCSV}
-									className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+									className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
 								>
 									Export as CSV
 								</button>
 								<button
 									onClick={exportToTSV}
-									className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+									className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
 								>
 									Export as TSV
 								</button>
 								<button
 									onClick={exportToJSON}
-									className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors"
+									className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
 								>
 									Export as JSON
 								</button>
@@ -267,7 +267,7 @@ export default function AdminEvents() {
 					<button
 						key={tab.key}
 						onClick={() => setFilter(tab.key as typeof filter)}
-						className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+						className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
 							filter === tab.key
 								? "bg-white text-[#556b2f] shadow-sm"
 								: "text-gray-600 hover:text-gray-800"
@@ -361,7 +361,7 @@ export default function AdminEvents() {
 								<div className="flex items-center gap-2 px-5 border-l border-gray-100">
 									<a 
 										href={`/events/${event.id}`}
-										className="p-3 rounded-xl text-gray-400 hover:text-[#556b2f] hover:bg-[#556b2f]/10 transition-all duration-200" 
+										className="p-3 rounded-xl text-gray-400 hover:text-[#556b2f] hover:bg-[#556b2f]/10 transition-all duration-200 cursor-pointer" 
 										title="View Details"
 									>
 										<IconEye size={22} />
@@ -369,7 +369,7 @@ export default function AdminEvents() {
 									{event.status === "PENDING" && (
 										<button 
 											onClick={() => handleApprove(event.id)}
-											className="p-3 rounded-xl text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200" 
+											className="p-3 rounded-xl text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200 cursor-pointer" 
 											title="Approve Event"
 										>
 											<IconCheck size={22} strokeWidth={2.5} />
@@ -377,7 +377,7 @@ export default function AdminEvents() {
 									)}
 									<button 
 										onClick={() => handleReject(event.id)}
-										className="p-3 rounded-xl text-red-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200" 
+										className="p-3 rounded-xl text-red-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200 cursor-pointer" 
 										title="Delete Event"
 									>
 										<IconTrash size={22} />

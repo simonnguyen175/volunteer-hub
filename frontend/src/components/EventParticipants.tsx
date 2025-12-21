@@ -192,7 +192,7 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 			<div className="flex border-b border-gray-200">
 				<button
 					onClick={() => setActiveTab("accepted")}
-					className={`flex-1 py-3 text-sm font-semibold font-(family-name:--font-dmsans) transition-colors ${
+					className={`flex-1 py-3 text-sm font-semibold font-(family-name:--font-dmsans) transition-colors cursor-pointer ${
 						activeTab === "accepted"
 							? "text-[#556b2f] border-b-2 border-[#556b2f]"
 							: "text-gray-500 hover:text-gray-700"
@@ -202,7 +202,7 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 				</button>
 				<button
 					onClick={() => setActiveTab("pending")}
-					className={`flex-1 py-3 text-sm font-semibold font-(family-name:--font-dmsans) transition-colors ${
+					className={`flex-1 py-3 text-sm font-semibold font-(family-name:--font-dmsans) transition-colors cursor-pointer ${
 						activeTab === "pending"
 							? "text-[#556b2f] border-b-2 border-[#556b2f]"
 							: "text-gray-500 hover:text-gray-700"
@@ -237,7 +237,7 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 										<button
 											onClick={() => handleToggleAttendance(p)}
 											disabled={attendanceLoading === p.id}
-											className="p-1 rounded hover:bg-white/50 transition-colors disabled:opacity-50"
+											className="p-1 rounded hover:bg-white/50 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
 										>
 											{p.completed ? (
 												<IconSquareCheck size={22} className="text-emerald-600" />
@@ -281,7 +281,7 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 										<button
 											onClick={() => handleRemoveParticipant(p)}
 											disabled={actionLoading === p.id}
-											className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+											className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
 										>
 											<IconX size={16} />
 										</button>
@@ -317,14 +317,14 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 									<button
 										onClick={() => handleAccept(p.id)}
 										disabled={actionLoading === p.id}
-										className="p-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-50"
+										className="p-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
 									>
 										<IconCheck size={16} />
 									</button>
 									<button
 										onClick={() => handleDeny(p.id)}
 										disabled={actionLoading === p.id}
-										className="p-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
+										className="p-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
 									>
 										<IconX size={16} />
 									</button>
