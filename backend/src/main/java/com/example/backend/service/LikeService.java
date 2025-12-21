@@ -13,6 +13,7 @@ public class LikeService {
     private final UserService userService;
     private final PostService postService;
     private final CommentService commentService;
+    private final NotificationService notificationService;
 
     public LikePost likePost(Long userId, Long postId) {
         LikePost likePost = checkLikePost(userId, postId);
@@ -31,6 +32,12 @@ public class LikeService {
         Post post = postService.getPostById(postId);
         likePost.setPost(post);
         postService.incLikeCount(post);
+
+        notificationService.createAndSendNotification(
+                post.getUser().getId(),
+                "User " + "<b>" + user.getUsername() + "</b>" + " vừa thích bài viết của bạn",
+                "/posts/" + postId
+        );
 
         return likePostRepository.save(likePost);
     }
@@ -51,6 +58,12 @@ public class LikeService {
         Comment comment = commentService.getCommentById(commentId);
         likeComment.setComment(comment);
         commentService.incLikesCount(comment);
+
+        notificationService.createAndSendNotification(
+                comment.getUser().getId(),
+                "User " + "<b>" + user.getUsername() + "</b>" + " vừa thích bình luận của bạn",
+                "/posts/" + comment.getPost().getId()
+        );
 
         return likeCommentRepository.save(likeComment);
     }

@@ -1,6 +1,7 @@
 package com.example.backend.service;
 
 import com.example.backend.controller.PostUpdateRequest;
+import com.example.backend.dto.EventUserResponse;
 import com.example.backend.dto.PostCreateRequest;
 import com.example.backend.model.*;
 import com.example.backend.repository.CommentRepository;
@@ -21,6 +22,7 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final CommentService commentService;
     private final LikePostRepository likePostRepository;
+    private final NotificationService notificationService;
 
     public Post createPost(PostCreateRequest request) {
         Post post = new Post();
@@ -39,6 +41,17 @@ public class PostService {
         post.setImageUrl(request.getImageUrl());
         post.setCommentsCount(0);
         post.setLikesCount(0);
+
+        List<EventUserResponse> users = eventUserService.getUserbyEvent(request.getEventId());
+        for (EventUserResponse u : users) {
+            if (!u.getUserId().equals(request.getUserId())) {
+                notificationService.createAndSendNotification(
+                        u.getId(),
+                        "Có một bài viết mới trong sự kiện "
+                                + "<b>" + (request.getEventId() != null ? eventService.getEventById(request.getEventId()).getTitle() : "Chung") + "</b>",
+                        request.getEventId() != null ? "/events/" + request.getEventId() : "/news-feed");
+            }
+        }
 
         return postRepository.save(post);
     }

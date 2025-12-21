@@ -97,8 +97,8 @@ public class EventService {
         for (User admin : admins) {
             notificationService.createAndSendNotification(
                     admin.getId(),
-                    "Host <b>" + manager.getUsername() + "</b> has created a new event: <b>" 
-                            + event.getTitle() + "</b> awaiting approval",
+                    "Người tổ chức <b>" + manager.getUsername() + "</b> đã tạo một sự kiện mới: <b>"
+                            + event.getTitle() + "</b> đang chờ phê duyệt",
                     "/admin/events");
         }
 

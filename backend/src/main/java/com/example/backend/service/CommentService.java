@@ -22,6 +22,7 @@ public class CommentService {
     private final LikeCommentRepository likeCommentRepository;
     private final UserService userService;
     private final PostRepository postRepository;
+    private final NotificationService notificationService;
 
     void incCommentCount(Post post) {
         post.setCommentsCount(post.getCommentsCount() + 1);
@@ -51,11 +52,23 @@ public class CommentService {
         if (parentComment != null) {
             parentComment.setRepliesCount(parentComment.getRepliesCount() + 1);
             commentRepository.save(parentComment);
+
+            notificationService.createAndSendNotification(
+                    parentComment.getUser().getId(),
+                    "Có một phản hồi mới cho bình luận của bạn trong bài viết",
+                    "/posts/" + post.getId()
+            );
         }
         comment.setParentComment(parentComment);
 
         comment.setLikesCount(0);
         comment.setRepliesCount(0);
+
+        notificationService.createAndSendNotification(
+                post.getUser().getId(),
+                "Có một bình luận mới trong bài viết của bạn",
+                "/posts/" + post.getId()
+        );
 
         return commentRepository.save(comment);
     }
