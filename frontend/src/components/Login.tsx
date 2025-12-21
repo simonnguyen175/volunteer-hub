@@ -48,6 +48,9 @@ export default function Login({ setLoginOpen }: Props) {
 					
 					// Show success toast
 					showToast(`Welcome back, ${userData.username}!`, "success");
+					
+					// Refresh the page to update all components with new auth state
+					window.location.reload();
 				} else {
 					showToast("Login failed: " + (result.message || "Unknown error"), "error");
 				}

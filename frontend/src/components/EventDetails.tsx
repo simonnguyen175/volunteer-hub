@@ -440,8 +440,8 @@ export default function EventDetails() {
 										{/* Hide join button for past events, show for future and ongoing */}
 										{!isPastEvent && (
 											<button 
-												onClick={handleJoinEvent}
-												disabled={isJoining || !user || registrationStatus.isRegistered}
+												onClick={user ? handleJoinEvent : () => navigate(`${location.pathname}?login=true`)}
+												disabled={isJoining || registrationStatus.isRegistered}
 												className={`w-full py-3.5 px-4 rounded-xl font-bold font-(family-name:--font-dmsans) text-white transition-all duration-300 shadow-sm hover:shadow-md disabled:cursor-not-allowed cursor-pointer ${
 													registrationStatus.isAccepted 
 														? 'bg-[#747e59] cursor-default'

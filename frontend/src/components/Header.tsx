@@ -249,18 +249,16 @@ export default function Header() {
 					{auth.isAuthenticated && (
 						<div className="relative" ref={notificationRef}>
 							<button
-								onClick={() =>
-									setIsNotificationOpen(!isNotificationOpen)
-								}
-							className="p-2 text-gray-600 hover:text-[#556b2f] hover:bg-[#556b2f]/10 rounded-lg transition-all duration-300 cursor-pointer relative"
-						>
-							<IconBell size={24} stroke={1.5} />
-							{unreadCount > 0 && (
-								<span className="absolute top-0 right-0 min-w-[18px] h-[18px] bg-[#747e59] rounded-full border-2 border-white text-white text-[10px] font-bold flex items-center justify-center px-1 shadow-sm font-(family-name:--font-dmsans)">
-									{unreadCount > 9 ? "9+" : unreadCount}
-								</span>
-							)}
-						</button>
+								onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+								className="p-2 text-gray-600 hover:text-[#556b2f] hover:bg-[#556b2f]/10 rounded-lg transition-all duration-300 cursor-pointer relative"
+							>
+								<IconBell size={24} stroke={1.5} />
+								{unreadCount > 0 && (
+									<span className="absolute top-0 right-0 min-w-[18px] h-[18px] bg-[#747e59] rounded-full border-2 border-white text-white text-[10px] font-bold flex items-center justify-center px-1 shadow-sm font-(family-name:--font-dmsans)">
+										{unreadCount > 9 ? "9+" : unreadCount}
+									</span>
+								)}
+							</button>
 
 							{/* Notification Dropdown */}
 							{isNotificationOpen && (
@@ -325,17 +323,15 @@ export default function Header() {
 					{auth.isAuthenticated ? (
 						<div className="relative" ref={userMenuRef}>
 							<button
-								onClick={() =>
-									setIsUserMenuOpen(!isUserMenuOpen)
-								}
+								onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
 								className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
 							>
-									<span className="font-(family-name:--font-crimson) text-xl">
-										Hello,
-									</span>
-									<span className="font-(family-name:--font-crimson) text-lime-800 font-bold text-xl capitalize">
-										{greetingLabel} {auth.user?.username ?? auth.username}
-									</span>
+								<span className="font-(family-name:--font-crimson) text-xl">
+									Hello,
+								</span>
+								<span className="font-(family-name:--font-crimson) text-lime-800 font-bold text-xl capitalize">
+									{greetingLabel} {auth.user?.username ?? auth.username}
+								</span>
 								<IconChevronDown
 									size={20}
 									className={`text-gray-600 transition-transform duration-200 ${isUserMenuOpen ? "rotate-180" : ""}`}
@@ -466,7 +462,7 @@ export default function Header() {
 						</nav>
 
 						{/* Mobile Menu Footer (Login) */}
-						<div className="mt-auto p-4 border-t border-gray-100 mb-8">
+						<div className="mt-auto p-4 border-t border-gray-100 mb-8 cursor-pointer">
 							{!auth.isAuthenticated && (
 								<button
 									className="w-full font-(family-name:--font-dmsans) bg-[#556b2f] text-white text-lg font-semibold cursor-pointer transition-all duration-300 ease-[ease] py-3 rounded-xl border-none shadow-md hover:shadow-lg hover:bg-[#8e9c78] flex items-center justify-center gap-2"
