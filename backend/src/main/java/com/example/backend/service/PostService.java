@@ -82,23 +82,25 @@ public class PostService {
      * Get news feed posts for a logged-in user.
      * Includes: global posts (eventId = null) + posts from events the user has joined
      */
-    public List<Post> getNewsFeedPostsForUser(Long userId) {
+    public List<Post> getNewsFeedPostsForUser(Long userId, int page, int size) {
         List<Event> joinedEvents = eventUserService.getEventsByUser(userId);
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
         
         if (joinedEvents.isEmpty()) {
             // Only return global posts if user hasn't joined any events
-            return postRepository.findByEventIsNullOrderByCreatedAtDesc();
+            return postRepository.findByEventIsNullOrderByCreatedAtDesc(pageable);
         }
         
-        return postRepository.findNewsFeedPosts(joinedEvents);
+        return postRepository.findNewsFeedPosts(joinedEvents, pageable);
     }
 
     /**
      * Get news feed posts for non-logged users.
      * Only includes global posts (eventId = null)
      */
-    public List<Post> getGlobalNewsFeedPosts() {
-        return postRepository.findByEventIsNullOrderByCreatedAtDesc();
+    public List<Post> getGlobalNewsFeedPosts(int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        return postRepository.findByEventIsNullOrderByCreatedAtDesc(pageable);
     }
 
     public Post updatePost(Long postId, PostUpdateRequest request) {

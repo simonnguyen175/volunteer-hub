@@ -518,10 +518,13 @@ export class RestClient {
 		return await result.json();
 	}
 
-	static async getNewsFeedPosts(userId?: number): Promise<any> {
-		const url = userId 
-			? `${RestClient.baseUrl}/post/news-feed?user_id=${userId}`
-			: `${RestClient.baseUrl}/post/news-feed`;
+	static async getNewsFeedPosts(userId?: number, page: number = 0, limit: number = 5): Promise<any> {
+		const queryParams = new URLSearchParams();
+		if (userId) queryParams.append("user_id", userId.toString());
+		queryParams.append("page", page.toString());
+		queryParams.append("size", limit.toString());
+
+		const url = `${RestClient.baseUrl}/post/news-feed?${queryParams.toString()}`;
 
 		// Always try to include auth headers if available (for personalized feed)
 		const result = await fetch(url, {

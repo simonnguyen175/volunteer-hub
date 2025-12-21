@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 import {
@@ -69,6 +69,21 @@ interface NewsFeedProps {
 export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 	const [posts, setPosts] = useState<Post[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [page, setPage] = useState(0);
+	const [hasMore, setHasMore] = useState(true);
+	const observer = useRef<IntersectionObserver | null>(null);
+
+	const lastPostElementRef = useCallback((node: HTMLDivElement) => {
+		if (loading) return;
+		if (observer.current) observer.current.disconnect();
+		observer.current = new IntersectionObserver(entries => {
+			if (entries[0].isIntersecting && hasMore) {
+				setPage(prevPage => prevPage + 1);
+			}
+		});
+		if (node) observer.current.observe(node);
+	}, [loading, hasMore]);
+
 	const [newPostContent, setNewPostContent] = useState("");
 	const [imageFile, setImageFile] = useState<File | null>(null);
 	const [imagePreview, setImagePreview] = useState<string>("");
@@ -94,32 +109,54 @@ export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 		return data?.publicUrl || "";
 	};
 
-	const fetchPosts = useCallback(async () => {
+	const fetchPosts = useCallback(async (pageNum: number) => {
 		try {
 			setLoading(true);
-			console.log("Fetching news feed for user:", user?.id);
-			const result = await RestClient.getNewsFeedPosts(user?.id);
-			console.log("News feed API response:", result);
+			
+			console.log(`Fetching news feed page ${pageNum} for user:`, user?.id);
+			const limit = 5;
+			const result = await RestClient.getNewsFeedPosts(user?.id, pageNum, limit);
+			
 			if (result.data) {
-				console.log("Posts received:", result.data.length, result.data);
-				setPosts(result.data);
+				const newPosts = result.data;
+				console.log(`Page ${pageNum} received ${newPosts.length} posts`);
+				
+				setPosts(prev => {
+					// If it's page 0, replace. Else append unique posts (filter out duplicates just in case)
+					if (pageNum === 0) return newPosts;
+					
+					const existingIds = new Set(prev.map(p => p.id));
+					const uniqueNewPosts = newPosts.filter((p: Post) => !existingIds.has(p.id));
+					return [...prev, ...uniqueNewPosts];
+				});
+				
+				// Identify if we have more posts to load
+				setHasMore(newPosts.length === limit);
+				
 				// Check which posts the user has liked
-				if (user?.id) {
-					const likedSet = new Set<number>();
-					for (const post of result.data) {
+				if (user?.id && newPosts.length > 0) {
+					const newLikedSet = new Set<number>();
+					// Combine check requests in future optimization, for now loop is acceptable for 5 items
+					for (const post of newPosts) {
 						try {
 							const likeResult = await RestClient.checkLikePost(user.id, post.id);
 							if (likeResult.data === true) {
-								likedSet.add(post.id);
+								newLikedSet.add(post.id);
 							}
 						} catch {
 							// Ignore individual like check errors
 						}
 					}
-					setLikedPosts(likedSet);
+					setLikedPosts(prev => {
+						const next = new Set(prev);
+						newLikedSet.forEach(id => next.add(id));
+						return next;
+					});
 				}
 			} else {
 				console.log("No data in response or data is null");
+				if (pageNum === 0) setPosts([]);
+				setHasMore(false);
 			}
 		} catch (error) {
 			console.error("Failed to fetch news feed:", error);
@@ -130,8 +167,8 @@ export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 	}, [user?.id]);
 
 	useEffect(() => {
-		fetchPosts();
-	}, [fetchPosts]);
+		fetchPosts(page);
+	}, [fetchPosts, page]);
 
 
 	const formatTimeAgo = (dateString: string) => {
@@ -691,27 +728,17 @@ export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 					</Card>
 				)}
 
-				{/* Loading State */}
-				{loading && (
-					<div className="flex flex-col items-center justify-center py-16">
-						<div className="relative">
-							<div className="w-16 h-16 border-4 border-[#556b2f]/20 rounded-full"></div>
-							<div className="absolute top-0 left-0 w-16 h-16 border-4 border-[#556b2f] border-t-transparent rounded-full animate-spin"></div>
-						</div>
-						<p className="mt-4 text-gray-600 font-(family-name:--font-crimson) animate-pulse">Loading posts...</p>
-					</div>
-				)}
+				{/* Loading State Removed */}
 
 				{/* Posts Feed */}
 
 
-				{!loading && (
-					<div className="flex flex-col gap-6">
-						{posts.map((post, index) => (
+				<div className="flex flex-col gap-6">
+					{posts.map((post, index) => (
+						<div key={post.id} ref={index === posts.length - 1 ? lastPostElementRef : null}>
 							<Card 
-								key={post.id} 
 								className="overflow-hidden shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-2xl transition-all duration-500 group animate-fadeIn"
-								style={{ animationDelay: `${index * 100}ms` }}
+								style={{ animationDelay: `${(index % 5) * 100}ms` }}
 							>
 								{/* Hover gradient effect */}
 								<div className="absolute inset-0 bg-gradient-to-br from-[#556b2f]/5 via-transparent to-[#6d8c3a]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -780,6 +807,7 @@ export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 											<span className="flex items-center gap-1.5 font-(family-name:--font-dmsans)">
 												<span className="w-5 h-5 bg-gradient-to-br from-red-400 to-red-500 rounded-full flex items-center justify-center shadow-sm">
 													<IconHeartFilled size={12} className="text-white" />
+													<IconHeartFilled size={18} className="text-white" />
 												</span>
 												{post.likesCount}
 											</span>
@@ -799,64 +827,55 @@ export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 													: "text-gray-600 hover:bg-gray-100"
 											} ${animatingLike === post.id ? 'animate-heartBeat' : ''}`}
 										>
-											{likedPosts.has(post.id) ? (
-												<IconHeartFilled size={20} className={animatingLike === post.id ? 'animate-ping-once' : ''} />
-											) : (
-												<IconHeart size={20} />
-											)}
-											<span>Like</span>
+											{likedPosts.has(post.id) ? <IconHeartFilled size={18} /> : <IconHeart size={18} />}
+											<span>{likedPosts.has(post.id) ? "Liked" : "Like"}</span>
 										</button>
 
 										<button
 											onClick={() => toggleComments(post.id)}
-											className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-gray-600 hover:bg-gray-100 font-semibold font-(family-name:--font-dmsans) transition-all duration-300"
+											className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold font-(family-name:--font-dmsans) transition-all duration-300 ${
+												expandedComments.has(post.id)
+													? "text-[#556b2f] bg-[#556b2f]/10"
+													: "text-gray-600 hover:bg-gray-100"
+											}`}
 										>
-											<IconMessageCircle size={20} />
-											<span>Comment</span>
+											<IconMessageCircle size={18} />
+											Comment
 										</button>
 									</div>
 
 									{/* Comments Section */}
 									{expandedComments.has(post.id) && (
 										<div className="mt-4 pt-4 border-t border-gray-100 animate-slideDown">
+											{/* Comment List */}
+											<div className="flex flex-col gap-3 mb-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+												{postComments[post.id]?.map((comment) => (
+													<CommentItem key={comment.id} comment={comment} postId={post.id} />
+												))}
+											</div>
+
 											{/* Comment Input */}
 											{isAuthenticated && (
-												<div className="flex gap-3 mb-4">
-													<div className="w-10 h-10 bg-gradient-to-br from-[#556b2f] to-[#6d8c3a] rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
-														<span className="text-white font-semibold text-sm">
+												<div className="flex gap-2">
+													<div className="w-8 h-8 bg-gradient-to-br from-[#556b2f] to-[#6d8c3a] rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+														<span className="text-white font-semibold text-xs">
 															{(user?.username || "?").charAt(0).toUpperCase()}
 														</span>
 													</div>
 													<div className="flex-1 flex gap-2">
 														<input
 															type="text"
-															value={mainCommentContent[post.id] || ""}
-															onChange={(e) => {
-																setMainCommentContent(prev => ({
-																	...prev,
-																	[post.id]: e.target.value
-																}));
-															}}
+															value={replyContent}
+															onChange={(e) => setReplyContent(e.target.value)}
 															placeholder="Write a comment..."
-															className="flex-1 px-4 py-2.5 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f] focus:bg-white font-(family-name:--font-dmsans) transition-all duration-300"
+															className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f] focus:bg-white font-(family-name:--font-dmsans)"
 														/>
 														<button
-															onClick={() => {
-																const content = mainCommentContent[post.id];
-																if (content?.trim()) {
-																	setReplyContent(content);
-																	setReplyingTo({ postId: post.id });
-																	handleSubmitComment(post.id);
-																	setMainCommentContent(prev => ({
-																		...prev,
-																		[post.id]: ""
-																	}));
-																}
-															}}
-															disabled={!(mainCommentContent[post.id]?.trim())}
-															className="p-2.5 bg-gradient-to-r from-[#556b2f] to-[#6d8c3a] text-white rounded-full hover:from-[#6d8c3a] hover:to-[#7a9947] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 disabled:hover:scale-100"
+															onClick={() => handleSubmitComment(post.id)}
+															disabled={!replyContent.trim()}
+															className="p-2 bg-gradient-to-r from-[#556b2f] to-[#6d8c3a] text-white rounded-full hover:from-[#6d8c3a] hover:to-[#7a9947] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 disabled:hover:scale-100"
 														>
-															<IconSend size={18} />
+															<IconSend size={16} />
 														</button>
 													</div>
 												</div>
@@ -889,7 +908,15 @@ export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 									)}
 								</CardContent>
 							</Card>
-						))}
+						</div>
+					))}
+
+					{/* Loading indicator for infinite scroll */}
+					{loading && (
+						<div className="flex justify-center py-4">
+							<div className="w-8 h-8 border-2 border-[#556b2f] border-t-transparent rounded-full animate-spin"></div>
+						</div>
+					)}
 
 						{posts.length === 0 && !loading && (
 							<div className="text-center py-20 animate-fadeIn">
@@ -905,7 +932,6 @@ export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 							</div>
 						)}
 					</div>
-				)}
 			</div>
 
 			{/* Custom CSS animations */}

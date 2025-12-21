@@ -19,15 +19,15 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByUser(User user);
 
     // Find all posts with null event (global posts for news feed)
-    List<Post> findByEventIsNullOrderByCreatedAtDesc();
+    List<Post> findByEventIsNullOrderByCreatedAtDesc(org.springframework.data.domain.Pageable pageable);
 
     // Find posts for multiple events
     @Query("SELECT p FROM Post p WHERE p.event IN :events ORDER BY p.createdAt DESC")
-    List<Post> findByEventInOrderByCreatedAtDesc(@Param("events") List<Event> events);
+    List<Post> findByEventInOrderByCreatedAtDesc(@Param("events") List<Event> events, org.springframework.data.domain.Pageable pageable);
 
     // Find all global posts + posts from specific events (for news feed)
     @Query("SELECT p FROM Post p WHERE p.event IS NULL OR p.event IN :events ORDER BY p.createdAt DESC")
-    List<Post> findNewsFeedPosts(@Param("events") List<Event> events);
+    List<Post> findNewsFeedPosts(@Param("events") List<Event> events, org.springframework.data.domain.Pageable pageable);
 
     // Find all posts ordered by creation time (for non-logged users)
     List<Post> findAllByOrderByCreatedAtDesc();
