@@ -24,6 +24,7 @@ import {
 import { RestClient } from "@/api/RestClient";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "./ui/Toast";
+import { useConfirmDialog } from "./ui/ConfirmDialog";
 
 const supabase = createClient(
 	import.meta.env.VITE_SUPABASE_URL,
@@ -101,6 +102,7 @@ export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 	
 	const { showToast } = useToast();
 	const { user, isAuthenticated } = useAuth();
+	const { confirm, ConfirmDialogComponent } = useConfirmDialog();
 
 	const getSupabaseImageUrl = (imageUrl: string): string => {
 		if (!imageUrl) return "";
@@ -319,9 +321,15 @@ export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 			return;
 		}
 
-		if (!confirm("Are you sure you want to delete this post?")) {
-			return;
-		}
+		const confirmed = await confirm({
+			title: "Delete Post",
+			message: "Are you sure you want to delete this post? This action cannot be undone.",
+			confirmText: "Delete",
+			cancelText: "Cancel",
+			variant: "danger",
+		});
+
+		if (!confirmed) return;
 
 		try {
 			const result = await RestClient.deletePost(postId);
@@ -430,9 +438,15 @@ export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 			return;
 		}
 
-		if (!confirm("Are you sure you want to delete this comment?")) {
-			return;
-		}
+		const confirmed = await confirm({
+			title: "Delete Comment",
+			message: "Are you sure you want to delete this comment?",
+			confirmText: "Delete",
+			cancelText: "Cancel",
+			variant: "danger",
+		});
+
+		if (!confirmed) return;
 
 		try {
 			const result = await RestClient.deleteComment(commentId);
@@ -510,6 +524,47 @@ export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 
 				setReplyContent("");
 				setReplyingTo(null);
+				showToast("Comment posted!", "success");
+			}
+		} catch (error) {
+			console.error("Failed to create comment:", error);
+			showToast("Failed to post comment", "error");
+		}
+	};
+
+	const handleSubmitMainComment = async (postId: number) => {
+		const content = mainCommentContent[postId]?.trim();
+		if (!content) {
+			showToast("Comment cannot be empty!", "warning");
+			return;
+		}
+
+		if (!user?.id) {
+			showToast("You must be logged in to comment!", "error");
+			return;
+		}
+
+		try {
+			const result = await RestClient.createComment(
+				postId,
+				user.id,
+				content
+			);
+			
+			if (result.data) {
+				setPostComments(prev => ({
+					...prev,
+					[postId]: [result.data, ...(prev[postId] || [])]
+				}));
+				
+				setPosts(posts.map(post => {
+					if (post.id === postId) {
+						return { ...post, commentsCount: post.commentsCount + 1 };
+					}
+					return post;
+				}));
+
+				setMainCommentContent(prev => ({ ...prev, [postId]: "" }));
 				showToast("Comment posted!", "success");
 			}
 		} catch (error) {
@@ -847,13 +902,6 @@ export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 									{/* Comments Section */}
 									{expandedComments.has(post.id) && (
 										<div className="mt-4 pt-4 border-t border-gray-100 animate-slideDown">
-											{/* Comment List */}
-											<div className="flex flex-col gap-3 mb-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-												{postComments[post.id]?.map((comment) => (
-													<CommentItem key={comment.id} comment={comment} postId={post.id} />
-												))}
-											</div>
-
 											{/* Comment Input */}
 											{isAuthenticated && (
 												<div className="flex gap-2">
@@ -865,14 +913,14 @@ export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 													<div className="flex-1 flex gap-2">
 														<input
 															type="text"
-															value={replyContent}
-															onChange={(e) => setReplyContent(e.target.value)}
+															value={mainCommentContent[post.id] || ""}
+															onChange={(e) => setMainCommentContent(prev => ({ ...prev, [post.id]: e.target.value }))}
 															placeholder="Write a comment..."
 															className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f] focus:bg-white font-(family-name:--font-dmsans)"
 														/>
 														<button
-															onClick={() => handleSubmitComment(post.id)}
-															disabled={!replyContent.trim()}
+															onClick={() => handleSubmitMainComment(post.id)}
+															disabled={!mainCommentContent[post.id]?.trim()}
 															className="p-2 bg-gradient-to-r from-[#556b2f] to-[#6d8c3a] text-white rounded-full hover:from-[#6d8c3a] hover:to-[#7a9947] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 disabled:hover:scale-100"
 														>
 															<IconSend size={16} />
@@ -968,6 +1016,7 @@ export default function NewsFeed({ isEmbedded = false }: NewsFeedProps) {
 					animation: ping-once 0.4s ease-out;
 				}
 			`}</style>
+			<ConfirmDialogComponent />
 		</div>
 	);
 }

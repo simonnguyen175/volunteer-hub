@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { IconSend, IconUser, IconPhoto, IconHeart, IconHeartFilled, IconMessage, IconChevronDown, IconChevronUp, IconTrash, IconX } from "@tabler/icons-react";
 import { createClient } from "@supabase/supabase-js";
 import { useToast } from "./ui/Toast";
+import { useConfirmDialog } from "./ui/ConfirmDialog";
 import { RestClient } from "@/api/RestClient";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -56,6 +57,7 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 	const [expandedReplies, setExpandedReplies] = useState<Set<number>>(new Set());
 	const [commentReplies, setCommentReplies] = useState<Record<number, Comment[]>>({});
 	const { showToast } = useToast();
+	const { confirm, ConfirmDialogComponent } = useConfirmDialog();
 	const auth = useAuth();
 
 	const fetchPosts = useCallback(async () => {
@@ -221,9 +223,15 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 			return;
 		}
 
-		if (!confirm("Are you sure you want to delete this post? This will also delete all comments.")) {
-			return;
-		}
+		const confirmed = await confirm({
+			title: "Delete Post",
+			message: "Are you sure you want to delete this post? This will also delete all comments.",
+			confirmText: "Delete",
+			cancelText: "Cancel",
+			variant: "danger",
+		});
+
+		if (!confirmed) return;
 
 		try {
 			const result = await RestClient.deletePost(postId);
@@ -279,9 +287,15 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 			return;
 		}
 
-		if (!confirm("Are you sure you want to delete this comment?")) {
-			return;
-		}
+		const confirmed = await confirm({
+			title: "Delete Comment",
+			message: "Are you sure you want to delete this comment?",
+			confirmText: "Delete",
+			cancelText: "Cancel",
+			variant: "danger",
+		});
+
+		if (!confirmed) return;
 
 		try {
 			const result = await RestClient.deleteComment(commentId);
@@ -561,6 +575,7 @@ if (loading) {
 	}
 
 	return (
+		<>
 		<div className="space-y-6">
 			{/* Create New Post Form */}
 			{auth.isAuthenticated && (
@@ -780,5 +795,7 @@ if (loading) {
 				)}
 			</div>
 		</div>
+		<ConfirmDialogComponent />
+	</>
 	);
 }

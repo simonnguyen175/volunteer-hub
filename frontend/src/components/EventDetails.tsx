@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { RestClient } from "../api/RestClient";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "./ui/Toast";
+import { useConfirmDialog } from "./ui/ConfirmDialog";
 import EventDescription from "./EventDescription";
 import EventDiscussion from "./EventDiscussion";
 import EventParticipants from "./EventParticipants";
@@ -72,6 +73,7 @@ export default function EventDetails() {
 		isAccepted: boolean;
 	}>({ isRegistered: false, isPending: false, isAccepted: false });
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+	const { confirm, ConfirmDialogComponent } = useConfirmDialog();
 
 	useEffect(() => {
 		const fetchEvent = async () => {
@@ -151,9 +153,15 @@ export default function EventDetails() {
 	};
 
 	const handleDeleteEvent = async () => {
-		if (!confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
-			return;
-		}
+		const confirmed = await confirm({
+			title: "Delete Event",
+			message: "Are you sure you want to delete this event? This action cannot be undone.",
+			confirmText: "Delete",
+			cancelText: "Cancel",
+			variant: "danger",
+		});
+
+		if (!confirmed) return;
 
 		setIsDeleting(true);
 		try {
@@ -541,6 +549,7 @@ export default function EventDetails() {
 					}
 				}
 			`}</style>
+			<ConfirmDialogComponent />
 		</div>
 	);
 }

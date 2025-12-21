@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { IconCheck, IconX, IconEye, IconTrash, IconCalendar, IconMapPin, IconCategory, IconDownload, IconChevronDown } from "@tabler/icons-react";
 import { RestClient } from "@/api/RestClient";
 import { useToast } from "@/components/ui/Toast";
+import { useConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { createClient } from "@supabase/supabase-js";
 
 interface Event {
@@ -29,6 +30,7 @@ export default function AdminEvents() {
 	const [filter, setFilter] = useState<"ALL" | "PENDING" | "ACCEPTED">("ALL");
 	const [showExportMenu, setShowExportMenu] = useState(false);
 	const { showToast } = useToast();
+	const { confirm, ConfirmDialogComponent } = useConfirmDialog();
 
 	// Helper function to get Supabase public URL for event images
 	const getSupabaseImageUrl = (imageUrl: string): string => {
@@ -74,7 +76,15 @@ export default function AdminEvents() {
 	};
 
 	const handleReject = async (id: number) => {
-		if (!confirm("Are you sure you want to delete this event?")) return;
+		const confirmed = await confirm({
+			title: "Delete Event",
+			message: "Are you sure you want to delete this event? This action cannot be undone.",
+			confirmText: "Delete",
+			cancelText: "Cancel",
+			variant: "danger",
+		});
+		
+		if (!confirmed) return;
 		
 		try {
 			await RestClient.deleteEvent(id);
@@ -392,6 +402,7 @@ export default function AdminEvents() {
 					}
 				}
 			`}</style>
+			<ConfirmDialogComponent />
 		</div>
 	);
 }

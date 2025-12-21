@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { IconCheck, IconX, IconUsers, IconClock, IconSquare, IconSquareCheck } from "@tabler/icons-react";
 import { RestClient } from "../api/RestClient";
 import { useToast } from "./ui/Toast";
+import { useConfirmDialog } from "./ui/ConfirmDialog";
 
 interface Participant {
 	id: number;
@@ -29,6 +30,7 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 	const [actionLoading, setActionLoading] = useState<number | null>(null);
 	const [attendanceLoading, setAttendanceLoading] = useState<number | null>(null);
 	const { showToast } = useToast();
+	const { confirm, ConfirmDialogComponent } = useConfirmDialog();
 
 	// Determine event status
 	const now = new Date();
@@ -87,6 +89,19 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 		} finally {
 			setActionLoading(null);
 		}
+	};
+
+	const handleRemoveParticipant = async (participant: Participant) => {
+		const confirmed = await confirm({
+			title: "Remove Participant",
+			message: `Are you sure you want to remove ${participant.username} from this event?`,
+			confirmText: "Remove",
+			cancelText: "Cancel",
+			variant: "danger",
+		});
+
+		if (!confirmed) return;
+		handleDeny(participant.id);
 	};
 
 	const handleToggleAttendance = async (participant: Participant) => {
@@ -264,11 +279,7 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 									
 									{isHost && !isPastEvent && (
 										<button
-											onClick={() => {
-												if (confirm(`Remove ${p.username}?`)) {
-													handleDeny(p.id);
-												}
-											}}
+											onClick={() => handleRemoveParticipant(p)}
 											disabled={actionLoading === p.id}
 											className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
 										>
@@ -335,6 +346,7 @@ export default function EventParticipants({ eventId, isHost, startTime, endTime 
 					to { opacity: 1; transform: translateY(0); }
 				}
 			`}</style>
+			<ConfirmDialogComponent />
 		</div>
 	);
 }

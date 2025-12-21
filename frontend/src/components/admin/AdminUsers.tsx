@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { IconLock, IconLockOpen, IconTrash, IconSearch, IconDownload, IconChevronDown, IconUser, IconUsers, IconUserCheck, IconMail, IconShieldCheck } from "@tabler/icons-react";
 import { RestClient } from "@/api/RestClient";
 import { useToast } from "@/components/ui/Toast";
+import { useConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 interface Role {
 	id: number;
@@ -22,6 +23,7 @@ export default function AdminUsers() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [showExportMenu, setShowExportMenu] = useState(false);
 	const { showToast } = useToast();
+	const { confirm, ConfirmDialogComponent } = useConfirmDialog();
 
 	useEffect(() => {
 		fetchUsers();
@@ -86,7 +88,15 @@ export default function AdminUsers() {
 	};
 
 	const handleDelete = async (id: number) => {
-		if (!confirm("Are you sure you want to delete this user?")) return;
+		const confirmed = await confirm({
+			title: "Delete User",
+			message: "Are you sure you want to delete this user? This action cannot be undone.",
+			confirmText: "Delete",
+			cancelText: "Cancel",
+			variant: "danger",
+		});
+		
+		if (!confirmed) return;
 		
 		try {
 			await RestClient.deleteUser(id);
@@ -419,6 +429,7 @@ export default function AdminUsers() {
 					}
 				}
 			`}</style>
+			<ConfirmDialogComponent />
 		</div>
 	);
 }
