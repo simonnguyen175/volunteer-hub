@@ -324,7 +324,7 @@ export default function EventDetails() {
 									setActiveTab("details");
 									navigate(`/events/${eventId}?tab=details`, { replace: true });
 								}}
-								className={`pb-4 text-sm font-bold tracking-wide font-(family-name:--font-dmsans) transition-all relative ${
+								className={`pb-4 text-sm font-bold tracking-wide font-(family-name:--font-dmsans) transition-all relative cursor-pointer ${
 									activeTab === "details"
 										? "text-[#556b2f]"
 										: "text-gray-400 hover:text-gray-600"
@@ -340,7 +340,7 @@ export default function EventDetails() {
 									setActiveTab("discussion");
 									navigate(`/events/${eventId}?tab=discussion`, { replace: true });
 								}}
-								className={`pb-4 text-sm font-bold tracking-wide font-(family-name:--font-dmsans) transition-all relative ${
+								className={`pb-4 text-sm font-bold tracking-wide font-(family-name:--font-dmsans) transition-all relative cursor-pointer ${
 									activeTab === "discussion"
 										? "text-[#556b2f]"
 										: "text-gray-400 hover:text-gray-600"
@@ -357,7 +357,7 @@ export default function EventDetails() {
 										setActiveTab("participants");
 										navigate(`/events/${eventId}?tab=participants`, { replace: true });
 									}}
-									className={`pb-4 text-sm font-bold tracking-wide font-(family-name:--font-dmsans) transition-all relative flex items-center gap-2 ${
+									className={`pb-4 text-sm font-bold tracking-wide font-(family-name:--font-dmsans) transition-all relative flex items-center gap-2 cursor-pointer ${
 										activeTab === "participants"
 											? "text-[#556b2f]"
 											: "text-gray-400 hover:text-gray-600"
@@ -421,7 +421,7 @@ export default function EventDetails() {
 						<div className="space-y-3">
 							<button 
 								onClick={() => setIsEditModalOpen(true)}
-								className="w-full py-3 px-4 rounded-xl border border-[#556b2f] text-[#556b2f] font-bold font-(family-name:--font-dmsans) hover:bg-[#556b2f] hover:text-white transition-all duration-300 flex items-center justify-center gap-2"
+								className="w-full py-3 px-4 rounded-xl border border-[#556b2f] text-[#556b2f] font-bold font-(family-name:--font-dmsans) hover:bg-[#556b2f] hover:text-white transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
 							>
 								<IconEdit size={20} />
 								Edit Event
@@ -429,7 +429,7 @@ export default function EventDetails() {
 							<button 
 								onClick={handleDeleteEvent}
 								disabled={isDeleting}
-								className="w-full py-3 px-4 rounded-xl border border-red-500 text-red-600 font-bold font-(family-name:--font-dmsans) hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
+								className="w-full py-3 px-4 rounded-xl border border-red-500 text-red-600 font-bold font-(family-name:--font-dmsans) hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
 							>
 								<IconTrash size={20} />
 								{isDeleting ? "Deleting..." : "Delete Event"}
@@ -442,7 +442,7 @@ export default function EventDetails() {
 											<button 
 												onClick={handleJoinEvent}
 												disabled={isJoining || !user || registrationStatus.isRegistered}
-												className={`w-full py-3.5 px-4 rounded-xl font-bold font-(family-name:--font-dmsans) text-white transition-all duration-300 shadow-sm hover:shadow-md disabled:cursor-not-allowed ${
+												className={`w-full py-3.5 px-4 rounded-xl font-bold font-(family-name:--font-dmsans) text-white transition-all duration-300 shadow-sm hover:shadow-md disabled:cursor-not-allowed cursor-pointer ${
 													registrationStatus.isAccepted 
 														? 'bg-[#747e59] cursor-default'
 														: registrationStatus.isPending
@@ -466,7 +466,7 @@ export default function EventDetails() {
 											<button 
 												onClick={handleLeaveEvent}
 												disabled={isJoining}
-												className="w-full py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-bold font-(family-name:--font-dmsans) hover:border-red-200 hover:text-red-600 hover:bg-red-50 transition-all duration-300 disabled:opacity-50"
+												className="w-full py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-bold font-(family-name:--font-dmsans) hover:border-red-200 hover:text-red-600 hover:bg-red-50 transition-all duration-300 disabled:opacity-50 cursor-pointer"
 											>
 												{isJoining ? "Leaving..." : "Leave Event"}
 											</button>
@@ -487,13 +487,13 @@ export default function EventDetails() {
 									Share
 								</h4>
 								<div className="flex gap-2">
-									<button className="flex-1 py-2 px-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold font-(family-name:--font-dmsans) transition-colors">
+									<button className="flex-1 py-2 px-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold font-(family-name:--font-dmsans) transition-colors cursor-pointer">
 										Facebook
 									</button>
-									<button className="flex-1 py-2 px-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold font-(family-name:--font-dmsans) transition-colors">
+									<button className="flex-1 py-2 px-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold font-(family-name:--font-dmsans) transition-colors cursor-pointer">
 										Twitter
 									</button>
-									<button className="flex-1 py-2 px-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold font-(family-name:--font-dmsans) transition-colors">
+									<button className="flex-1 py-2 px-3 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold font-(family-name:--font-dmsans) transition-colors cursor-pointer">
 										Link
 									</button>
 								</div>

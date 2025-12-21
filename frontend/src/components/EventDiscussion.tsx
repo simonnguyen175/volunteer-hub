@@ -538,7 +538,7 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 				<div className="flex items-center gap-4 mt-2 ml-2">
 					<button
 						onClick={() => handleLikeComment(comment.id, postId)}
-						className={`flex items-center gap-1 text-xs font-medium ${
+						className={`flex items-center gap-1 text-xs font-medium cursor-pointer ${
 							likedComments.has(comment.id) ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
 						} transition-all duration-300 hover:scale-110`}
 					>
@@ -557,14 +557,14 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 								rootCommentId: isReply ? rootCommentId : comment.id
 							});
 						}}
-						className="text-xs font-medium text-gray-500 hover:text-[#556b2f] transition-colors duration-300"
+						className="text-xs font-medium text-gray-500 hover:text-[#556b2f] transition-colors duration-300 cursor-pointer"
 					>
 						Reply
 					</button>
 					{auth.user?.id === comment.user?.id && (
 						<button
 							onClick={() => handleDeleteComment(comment.id, postId, isReply, rootCommentId)}
-							className="text-xs text-gray-400 hover:text-red-500 transition-colors duration-300"
+							className="text-xs text-gray-400 hover:text-red-500 transition-colors duration-300 cursor-pointer"
 							title="Delete comment"
 						>
 							<IconTrash size={14} />
@@ -573,7 +573,7 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 					{!isReply && comment.repliesCount > 0 && (
 						<button
 							onClick={() => toggleReplies(comment.id)}
-							className="flex items-center gap-1 text-xs text-[#556b2f] hover:text-[#6d8c3a] font-medium transition-colors duration-300"
+							className="flex items-center gap-1 text-xs text-[#556b2f] hover:text-[#6d8c3a] font-medium transition-colors duration-300 cursor-pointer"
 						>
 							{expandedReplies.has(comment.id) ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />}
 							{comment.repliesCount} {comment.repliesCount === 1 ? 'reply' : 'replies'}
@@ -607,13 +607,13 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 							<button
 								onClick={() => handleSubmitComment(postId, comment.id)}
 								disabled={!replyContent.trim()}
-								className="p-2 bg-gradient-to-r from-[#556b2f] to-[#6d8c3a] text-white rounded-full hover:from-[#6d8c3a] hover:to-[#7a9947] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 disabled:hover:scale-100"
+								className="p-2 bg-gradient-to-r from-[#556b2f] to-[#6d8c3a] text-white rounded-full hover:from-[#6d8c3a] hover:to-[#7a9947] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 disabled:hover:scale-100 cursor-pointer"
 							>
 								<IconSend size={16} />
 							</button>
 							<button
 								onClick={() => { setReplyingTo(null); setReplyContent(""); }}
-								className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-300"
+								className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-300 cursor-pointer"
 							>
 								<IconX size={16} />
 							</button>
@@ -674,7 +674,7 @@ if (loading) {
 								<button
 									type="button"
 									onClick={clearImage}
-									className="absolute -top-2 -right-2 bg-gray-800/90 text-white rounded-full p-1.5 hover:bg-gray-700 transition-colors duration-300 shadow-lg"
+									className="absolute -top-2 -right-2 bg-gray-800/90 text-white rounded-full p-1.5 hover:bg-gray-700 transition-colors duration-300 shadow-lg cursor-pointer"
 								>
 									<IconX size={14} />
 								</button>
@@ -699,7 +699,7 @@ if (loading) {
 								type="button"
 								onClick={() => void handleSubmitPost()}
 								disabled={isSubmitting || !newPostContent.trim()}
-								className="flex items-center gap-2 bg-gradient-to-r from-[#556b2f] to-[#6d8c3a] text-white px-6 py-2.5 rounded-full hover:from-[#6d8c3a] hover:to-[#7a9947] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold font-(family-name:--font-dmsans) shadow-lg hover:shadow-xl hover:scale-105 disabled:hover:scale-100"
+								className="flex items-center gap-2 bg-gradient-to-r from-[#556b2f] to-[#6d8c3a] text-white px-6 py-2.5 rounded-full hover:from-[#6d8c3a] hover:to-[#7a9947] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold font-(family-name:--font-dmsans) shadow-lg hover:shadow-xl hover:scale-105 disabled:hover:scale-100 cursor-pointer"
 							>
 								<IconSend size={18} className={isSubmitting ? "animate-pulse" : ""} />
 								{isSubmitting ? "Posting..." : "Share"}
@@ -760,7 +760,7 @@ if (loading) {
 									{auth.user?.id === post.user?.id && (
 										<button
 											onClick={() => handleDeletePost(post.id)}
-											className="text-gray-400 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-all duration-300"
+											className="text-gray-400 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-all duration-300 cursor-pointer"
 											title="Delete post"
 										>
 											<IconTrash size={18} />
@@ -811,7 +811,7 @@ if (loading) {
 												likedPosts.has(post.id)
 													? "text-red-500 bg-red-50 hover:bg-red-100"
 													: "text-gray-600 hover:bg-gray-100"
-											}`}
+											} cursor-pointer`}
 										>
 											{likedPosts.has(post.id) ? <IconHeartFilled size={18} /> : <IconHeart size={18} />}
 											<span>{likedPosts.has(post.id) ? "Liked" : "Like"}</span>
@@ -823,7 +823,7 @@ if (loading) {
 												expandedComments.has(post.id)
 													? "text-[#556b2f] bg-[#556b2f]/10"
 													: "text-gray-600 hover:bg-gray-100"
-											}`}
+											} cursor-pointer`}
 										>
 											<IconMessage size={18} />
 											Comment
@@ -863,7 +863,7 @@ if (loading) {
 														<button
 															onClick={() => handleSubmitComment(post.id)}
 															disabled={!replyContent.trim()}
-															className="p-2 bg-gradient-to-r from-[#556b2f] to-[#6d8c3a] text-white rounded-full hover:from-[#6d8c3a] hover:to-[#7a9947] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 disabled:hover:scale-100"
+															className="p-2 bg-gradient-to-r from-[#556b2f] to-[#6d8c3a] text-white rounded-full hover:from-[#6d8c3a] hover:to-[#7a9947] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 disabled:hover:scale-100 cursor-pointer"
 														>
 															<IconSend size={16} />
 														</button>
