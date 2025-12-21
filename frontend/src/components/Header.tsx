@@ -3,7 +3,6 @@ import {
 	IconBell,
 	IconMenu2,
 	IconX,
-	IconUser,
 	IconCalendarEvent,
 	IconLogout,
 	IconChevronDown,
@@ -36,7 +35,6 @@ export default function Header() {
 	const rawRole = auth.user?.role;
 	const roleName = typeof rawRole === "string" ? rawRole : (rawRole as { name?: string; role?: string } | undefined)?.name ?? "";
 	const greetingLabel = roleName === "USER" ? "user" : roleName === "HOST" ? "host" : roleName === "ADMIN" ? "admin" : "user";
-	// role may be a string or an object like { id, name }
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -148,7 +146,7 @@ export default function Header() {
 
 	const handleMarkAsRead = async (notificationId: number) => {
 		try {
-			const result = await RestClient.markNotificationAsRead(notificationId);
+			await RestClient.markNotificationAsRead(notificationId);
 			fetchNotifications();
 		} catch (err) {
 		}
@@ -335,7 +333,7 @@ export default function Header() {
 											setIsUserMenuOpen(false);
 											navigate("/my-events");
 										}}
-										className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left text-gray-700"
+										className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left text-gray-700 cursor-pointer"
 									>
 										<IconCalendarEvent
 											size={20}
@@ -346,21 +344,7 @@ export default function Header() {
 										</span>
 									</button>
 
-									<button
-										onClick={() => {
-											setIsUserMenuOpen(false);
-											// Navigate to profile
-										}}
-										className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left text-gray-700"
-									>
-										<IconUser
-											size={20}
-											className="text-[#556b2f]"
-										/>
-										<span className="font-medium">
-											Profile
-										</span>
-									</button>
+
 
 									<div className="border-t border-gray-200 my-2"></div>
 
@@ -369,7 +353,7 @@ export default function Header() {
 											auth.logout();
 											setIsUserMenuOpen(false);
 										}}
-										className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-left text-red-600"
+										className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-left text-red-600 cursor-pointer"
 									>
 										<IconLogout size={20} />
 										<span className="font-medium">
