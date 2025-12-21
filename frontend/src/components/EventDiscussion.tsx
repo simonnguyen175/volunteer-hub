@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { IconSend, IconUser, IconPhoto, IconHeart, IconHeartFilled, IconMessage, IconChevronDown, IconChevronUp, IconTrash, IconX } from "@tabler/icons-react";
+import { IconSend, IconPhoto, IconHeart, IconHeartFilled, IconMessage, IconChevronDown, IconChevronUp, IconTrash, IconX } from "@tabler/icons-react";
 import { createClient } from "@supabase/supabase-js";
 import { useToast } from "./ui/Toast";
 import { useConfirmDialog } from "./ui/ConfirmDialog";
@@ -459,13 +459,15 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 
 	const CommentItem = ({ comment, postId, isReply = false, rootCommentId }: { comment: Comment; postId: number; isReply?: boolean; rootCommentId?: number }) => (
 		<div className={`flex gap-3 ${isReply ? 'ml-10 mt-3' : 'py-3'}`}>
-			<div className={`${isReply ? 'w-7 h-7' : 'w-8 h-8'} bg-[#747e59] rounded-full flex items-center justify-center flex-shrink-0`}>
-				<IconUser size={isReply ? 14 : 16} className="text-white" />
+			<div className={`${isReply ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-br from-[#556b2f] to-[#6d8c3a] rounded-full flex items-center justify-center flex-shrink-0 shadow-sm`}>
+				<span className="text-white font-semibold text-sm">
+					{(comment.user?.fullName || comment.user?.username || "?").charAt(0).toUpperCase()}
+				</span>
 			</div>
 			<div className="flex-1">
-				<div className="bg-gray-50 rounded-lg px-3 py-2">
+				<div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl px-4 py-3 shadow-sm hover:shadow-md transition-shadow duration-300">
 					<div className="flex items-center gap-2">
-						<span className="font-semibold text-sm text-gray-900">
+						<span className="font-semibold text-sm text-gray-900 font-(family-name:--font-dmsans)">
 							{comment.user?.fullName || comment.user?.username || "Unknown"}
 						</span>
 						{comment.createdAt && (
@@ -477,14 +479,14 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 							</>
 						)}
 					</div>
-					<p className="text-sm text-gray-700 mt-1">{comment.content}</p>
+					<p className="text-sm text-gray-700 mt-1 leading-relaxed">{comment.content}</p>
 				</div>
-				<div className="flex items-center gap-4 mt-1 ml-1">
+				<div className="flex items-center gap-4 mt-2 ml-2">
 					<button
 						onClick={() => handleLikeComment(comment.id, postId)}
-						className={`flex items-center gap-1 text-xs ${
+						className={`flex items-center gap-1 text-xs font-medium ${
 							likedComments.has(comment.id) ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
-						} transition-colors`}
+						} transition-all duration-300 hover:scale-110`}
 					>
 						{likedComments.has(comment.id) ? <IconHeartFilled size={14} /> : <IconHeart size={14} />}
 						{comment.likesCount > 0 && comment.likesCount}
@@ -498,18 +500,17 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 							setReplyingTo({ 
 								postId, 
 								commentId: comment.id,
-								// If this is a reply, use the rootCommentId; otherwise this comment becomes the root
 								rootCommentId: isReply ? rootCommentId : comment.id
 							});
 						}}
-						className="text-xs text-gray-500 hover:text-[#556b2f] transition-colors"
+						className="text-xs font-medium text-gray-500 hover:text-[#556b2f] transition-colors duration-300"
 					>
 						Reply
 					</button>
 					{auth.user?.id === comment.user?.id && (
 						<button
 							onClick={() => handleDeleteComment(comment.id, postId, isReply, rootCommentId)}
-							className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+							className="text-xs text-gray-400 hover:text-red-500 transition-colors duration-300"
 							title="Delete comment"
 						>
 							<IconTrash size={14} />
@@ -518,7 +519,7 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 					{!isReply && comment.repliesCount > 0 && (
 						<button
 							onClick={() => toggleReplies(comment.id)}
-							className="flex items-center gap-1 text-xs text-[#556b2f] hover:text-[#6d8c3a] transition-colors"
+							className="flex items-center gap-1 text-xs text-[#556b2f] hover:text-[#6d8c3a] font-medium transition-colors duration-300"
 						>
 							{expandedReplies.has(comment.id) ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />}
 							{comment.repliesCount} {comment.repliesCount === 1 ? 'reply' : 'replies'}
@@ -528,33 +529,41 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 				
 				{/* Reply input */}
 				{replyingTo?.commentId === comment.id && (
-					<div className="mt-2 flex gap-2">
-						<input
-							type="text"
-							value={replyContent}
-							onKeyDown={(e) => {
-								if (e.key === 'Enter') {
-									e.preventDefault();
-									handleSubmitComment(postId, comment.id);
-								}
-							}}
-							onChange={(e) => setReplyContent(e.target.value)}
-							placeholder="Write a reply..."
-							className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f]"
-							autoFocus
-						/>
-						<button
-							onClick={() => handleSubmitComment(postId, comment.id)}
-							className="bg-[#556b2f] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#6d8c3a] transition-colors"
-						>
-							<IconSend size={16} />
-						</button>
-						<button
-							onClick={() => { setReplyingTo(null); setReplyContent(""); }}
-							className="text-gray-500 hover:text-gray-700 text-sm"
-						>
-							Cancel
-						</button>
+					<div className="mt-3 flex gap-2 ml-2">
+						<div className="w-8 h-8 bg-gradient-to-br from-[#556b2f] to-[#6d8c3a] rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+							<span className="text-white font-semibold text-xs">
+								{(auth.user?.username || "?").charAt(0).toUpperCase()}
+							</span>
+						</div>
+						<div className="flex-1 flex gap-2">
+							<input
+								type="text"
+								value={replyContent}
+								onKeyDown={(e) => {
+									if (e.key === 'Enter') {
+										e.preventDefault();
+										handleSubmitComment(postId, comment.id);
+									}
+								}}
+								onChange={(e) => setReplyContent(e.target.value)}
+								placeholder={`Reply to ${comment.user?.username || 'comment'}...`}
+								className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f] focus:bg-white font-(family-name:--font-dmsans)"
+								autoFocus
+							/>
+							<button
+								onClick={() => handleSubmitComment(postId, comment.id)}
+								disabled={!replyContent.trim()}
+								className="p-2 bg-gradient-to-r from-[#556b2f] to-[#6d8c3a] text-white rounded-full hover:from-[#6d8c3a] hover:to-[#7a9947] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 disabled:hover:scale-100"
+							>
+								<IconSend size={16} />
+							</button>
+							<button
+								onClick={() => { setReplyingTo(null); setReplyContent(""); }}
+								className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-300"
+							>
+								<IconX size={16} />
+							</button>
+						</div>
 					</div>
 				)}
 
@@ -564,7 +573,7 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 				))}
 			</div>
 		</div>
-);
+	);
 
 if (loading) {
 		return (
@@ -578,110 +587,121 @@ if (loading) {
 		<>
 		<div className="space-y-6">
 			{/* Create New Post Form */}
-			{auth.isAuthenticated && (
-				<div className="bg-white border border-gray-200 rounded-xl p-6">
-					<h3 className="font-semibold text-lg mb-4 text-gray-900 font-(family-name:--font-crimson)">
-						Start a Discussion
-					</h3>
-					<form onSubmit={handleSubmitPost} className="space-y-4">
-						<div>
-							<textarea
-								value={newPostContent}
-								onChange={(e) => setNewPostContent(e.target.value)}
-								onKeyDown={(e) => {
-									if (e.key === 'Enter' && !e.shiftKey) {
-										e.preventDefault();
-										void handleSubmitPost();
-									}
-								}}
-								placeholder="Share your thoughts, questions, or updates about this event..."
-								className="w-full border border-gray-300 rounded-lg p-3 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-[#556b2f] focus:border-transparent resize-none font-(family-name:--font-dmsans)"
-								required
-							/>
-						</div>
+		{auth.isAuthenticated && (
+			<div className="bg-white/80 backdrop-blur-sm border-0 rounded-2xl p-6 shadow-lg overflow-hidden">
+				<div className="flex gap-4">
+					<div className="w-12 h-12 bg-gradient-to-br from-[#556b2f] to-[#6d8c3a] rounded-full flex items-center justify-center flex-shrink-0 shadow-lg ring-4 ring-[#556b2f]/10">
+						<span className="text-white font-bold text-lg">
+							{(auth.user?.username || "?").charAt(0).toUpperCase()}
+						</span>
+					</div>
+					<div className="flex-1">
+						<textarea
+							value={newPostContent}
+							onChange={(e) => setNewPostContent(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === 'Enter' && !e.shiftKey) {
+									e.preventDefault();
+									void handleSubmitPost();
+								}
+							}}
+							placeholder="Share your thoughts about this event..."
+							className="w-full p-4 border-0 bg-gray-100/80 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-[#556b2f] focus:bg-white text-gray-800 placeholder-gray-500 font-(family-name:--font-dmsans)"
+							rows={3}
+						/>
 						
-						{/* Image Upload */}
-						<div className="space-y-2">
-							{imagePreview ? (
-								<div className="relative inline-block">
-									<img
-										src={imagePreview}
-										alt="Preview"
-										className="max-h-40 rounded-lg object-cover"
-									/>
-									<button
-										type="button"
-										onClick={clearImage}
-										className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
-									>
-										<IconX size={14} />
-									</button>
-								</div>
-							) : (
-								<label className="flex items-center gap-2 cursor-pointer text-gray-500 hover:text-[#556b2f] transition-colors">
+						{imagePreview && (
+							<div className="relative mt-3 inline-block">
+								<img
+									src={imagePreview}
+									alt="Preview"
+									className="max-h-48 rounded-xl object-cover shadow-lg"
+								/>
+								<button
+									type="button"
+									onClick={clearImage}
+									className="absolute -top-2 -right-2 bg-gray-800/90 text-white rounded-full p-1.5 hover:bg-gray-700 transition-colors duration-300 shadow-lg"
+								>
+									<IconX size={14} />
+								</button>
+							</div>
+						)}
+						
+						<div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+							<label className="flex items-center gap-2 text-gray-600 hover:text-[#556b2f] cursor-pointer transition-colors duration-300">
+								<div className="p-2 rounded-full bg-gray-100">
 									<IconPhoto size={20} />
-									<span className="text-sm font-(family-name:--font-dmsans)">Add image (optional)</span>
-									<input
-										type="file"
-										accept="image/*"
-										onChange={handleImageChange}
-										className="hidden"
-									/>
-								</label>
-							)}
-						</div>
-
-						<div className="flex justify-end">
+								</div>
+								<span className="text-sm font-semibold font-(family-name:--font-dmsans)">Add Photo</span>
+								<input
+									type="file"
+									accept="image/*"
+									onChange={handleImageChange}
+									className="hidden"
+								/>
+							</label>
+							
 							<button
-								type="submit"
-								disabled={isSubmitting}
-								className="flex items-center gap-2 bg-[#556b2f] text-white px-6 py-2 rounded-lg hover:bg-[#6d8c3a] transition-colors font-semibold font-(family-name:--font-dmsans) disabled:opacity-50 disabled:cursor-not-allowed"
+								type="button"
+								onClick={() => void handleSubmitPost()}
+								disabled={isSubmitting || !newPostContent.trim()}
+								className="flex items-center gap-2 bg-gradient-to-r from-[#556b2f] to-[#6d8c3a] text-white px-6 py-2.5 rounded-full hover:from-[#6d8c3a] hover:to-[#7a9947] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold font-(family-name:--font-dmsans) shadow-lg hover:shadow-xl hover:scale-105 disabled:hover:scale-100"
 							>
-								<IconSend size={18} />
-								{isSubmitting ? "Posting..." : "Post"}
+								<IconSend size={18} className={isSubmitting ? "animate-pulse" : ""} />
+								{isSubmitting ? "Posting..." : "Share"}
 							</button>
 						</div>
-					</form>
+					</div>
 				</div>
-			)}
+			</div>
+		)}
 
 			{/* Discussion Posts */}
-			<div className="space-y-4">
-				<h3 className="font-semibold text-lg text-gray-900 font-(family-name:--font-crimson)">
-					Discussion ({posts.length})
+			<div className="space-y-6">
+				<h3 className="font-(family-name:--font-crimson) font-medium text-2xl text-gray-900">
+					Discussion
+					<span className="text-[#556b2f]"> ({posts.length})</span>
 				</h3>
 				
 				{posts.length === 0 ? (
-					<div className="text-center py-12 text-gray-500 font-(family-name:--font-dmsans)">
-						No posts yet. Be the first to start a discussion!
+					<div className="text-center py-16 animate-fadeIn">
+						<div className="w-20 h-20 bg-gradient-to-br from-[#556b2f]/10 to-[#6d8c3a]/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+							<IconMessage size={36} className="text-[#556b2f]" />
+						</div>
+						<p className="text-gray-500 font-(family-name:--font-dmsans)">
+							No posts yet. Be the first to start a discussion!
+						</p>
 					</div>
 				) : (
-					<div className="space-y-4">
-						{posts.map((post) => (
+					<div className="flex flex-col gap-6">
+						{posts.map((post, index) => (
 							<div
 								key={post.id}
-								className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
+								className="overflow-hidden shadow-lg border-0 bg-white/80 backdrop-blur-sm rounded-2xl p-6 hover:shadow-2xl transition-all duration-500 group animate-fadeIn"
+								style={{ animationDelay: `${index * 100}ms` }}
 							>
+								{/* Hover gradient effect */}
+								<div className="absolute inset-0 bg-gradient-to-br from-[#556b2f]/5 via-transparent to-[#6d8c3a]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none"></div>
+								
 								{/* Post Header */}
-								<div className="flex items-start gap-3 mb-3">
-									<div className="w-10 h-10 bg-[#556b2f] rounded-full flex items-center justify-center flex-shrink-0">
-										<IconUser size={20} className="text-white" />
+								<div className="flex items-start gap-3 mb-3 relative">
+									<div className="w-12 h-12 bg-gradient-to-br from-[#556b2f] to-[#6d8c3a] rounded-full flex items-center justify-center flex-shrink-0 shadow-lg ring-4 ring-[#556b2f]/10 transition-transform duration-300 group-hover:scale-105">
+										<span className="text-white font-bold text-lg">
+											{(post.user?.fullName || post.user?.username || "?").charAt(0).toUpperCase()}
+										</span>
 									</div>
 									<div className="flex-1">
-										<div className="flex items-center gap-2">
-											<span className="font-semibold text-gray-900 font-(family-name:--font-dmsans)">
-												{post.user?.fullName || post.user?.username || "Unknown"}
-											</span>
-											<span className="text-sm text-gray-500">•</span>
-											<span className="text-sm text-gray-500 font-(family-name:--font-dmsans)">
-												{formatTimeAgo(post.createdAt)}
-											</span>
-										</div>
+										<p className="font-bold text-base text-gray-900 font-(family-name:--font-dmsans)">
+											{post.user?.fullName || post.user?.username || "Unknown"}
+										</p>
+										<span className="text-sm text-gray-500 font-(family-name:--font-dmsans)">
+											{formatTimeAgo(post.createdAt)}
+										</span>
 									</div>
 									{auth.user?.id === post.user?.id && (
 										<button
 											onClick={() => handleDeletePost(post.id)}
-											className="text-gray-400 hover:text-red-500 transition-colors p-1"
+											className="text-gray-400 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-all duration-300"
 											title="Delete post"
 										>
 											<IconTrash size={18} />
@@ -690,18 +710,18 @@ if (loading) {
 								</div>
 
 								{/* Post Content */}
-								<div className="ml-13">
-									<p className="text-gray-700 mb-3 whitespace-pre-wrap font-(family-name:--font-dmsans)">
+								<div className="relative">
+									<p className="text-gray-800 leading-relaxed whitespace-pre-wrap mb-4 font-(family-name:--font-dmsans) text-[15px]">
 										{post.content}
 									</p>
 									
 									{/* Optional Image */}
 									{post.imageUrl && (
-										<div className="mt-3">
+										<div className="w-full overflow-hidden rounded-2xl mb-4 shadow-lg group/image">
 											<img
 												src={post.imageUrl}
 												alt="Post attachment"
-												className="rounded-lg max-h-96 w-auto object-cover"
+												className="w-full max-h-[500px] object-cover transition-transform duration-500 group-hover/image:scale-105"
 												onError={(e) => {
 													e.currentTarget.style.display = 'none';
 												}}
@@ -709,40 +729,58 @@ if (loading) {
 										</div>
 									)}
 
-									{/* Post Actions */}
-									<div className="flex items-center gap-6 mt-4 pt-3 border-t border-gray-100">
+									{/* Stats */}
+									<div className="flex items-center gap-4 text-sm text-gray-500 pb-4 border-b border-gray-100">
+										{post.likesCount > 0 && (
+											<span className="flex items-center gap-1.5 font-(family-name:--font-dmsans)">
+												<span className="w-5 h-5 bg-gradient-to-br from-red-400 to-red-500 rounded-full flex items-center justify-center shadow-sm">
+													<IconHeartFilled size={12} className="text-white" />
+												</span>
+												{post.likesCount}
+											</span>
+										)}
+										{post.commentsCount > 0 && (
+											<span className="font-(family-name:--font-dmsans)">{post.commentsCount} comment{post.commentsCount !== 1 ? 's' : ''}</span>
+										)}
+									</div>
+
+									{/* Action Buttons */}
+									<div className="flex items-center gap-2 pt-3">
 										<button
 											onClick={() => handleLikePost(post.id)}
-											className={`flex items-center gap-2 ${
-												likedPosts.has(post.id) 
-													? 'text-red-500' 
-													: 'text-gray-500 hover:text-red-500'
-											} transition-colors font-(family-name:--font-dmsans)`}
+											className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold font-(family-name:--font-dmsans) transition-all duration-300 ${
+												likedPosts.has(post.id)
+													? "text-red-500 bg-red-50 hover:bg-red-100"
+													: "text-gray-600 hover:bg-gray-100"
+											}`}
 										>
-											{likedPosts.has(post.id) ? (
-												<IconHeartFilled size={20} />
-											) : (
-												<IconHeart size={20} />
-											)}
-											<span className="text-sm">{post.likesCount} Like{post.likesCount !== 1 && 's'}</span>
+											{likedPosts.has(post.id) ? <IconHeartFilled size={18} /> : <IconHeart size={18} />}
+											<span>{likedPosts.has(post.id) ? "Liked" : "Like"}</span>
 										</button>
+
 										<button
 											onClick={() => toggleComments(post.id)}
-											className="flex items-center gap-2 text-gray-500 hover:text-[#556b2f] transition-colors font-(family-name:--font-dmsans)"
+											className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold font-(family-name:--font-dmsans) transition-all duration-300 ${
+												expandedComments.has(post.id)
+													? "text-[#556b2f] bg-[#556b2f]/10"
+													: "text-gray-600 hover:bg-gray-100"
+											}`}
 										>
-											<IconMessage size={20} />
-											<span className="text-sm">{post.commentsCount} Comment{post.commentsCount !== 1 && 's'}</span>
+											<IconMessage size={18} />
+											Comment
 										</button>
 									</div>
 
 									{/* Comments Section */}
 									{expandedComments.has(post.id) && (
-										<div className="mt-4 pt-4 border-t border-gray-100">
+										<div className="mt-4 pt-4 border-t border-gray-100 animate-slideDown">
 											{/* Add Comment Input */}
 											{auth.isAuthenticated && !replyingTo?.commentId && (
-												<div className="flex gap-3 mb-4">
-													<div className="w-8 h-8 bg-[#747e59] rounded-full flex items-center justify-center flex-shrink-0">
-														<IconUser size={16} className="text-white" />
+												<div className="flex gap-2 mb-4">
+													<div className="w-8 h-8 bg-gradient-to-br from-[#556b2f] to-[#6d8c3a] rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+														<span className="text-white font-semibold text-xs">
+															{(auth.user?.username || "?").charAt(0).toUpperCase()}
+														</span>
 													</div>
 													<div className="flex-1 flex gap-2">
 														<input
@@ -761,12 +799,12 @@ if (loading) {
 																}
 															}}
 															placeholder="Write a comment..."
-															className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f] font-(family-name:--font-dmsans)"
+															className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#556b2f] focus:bg-white font-(family-name:--font-dmsans) transition-all duration-300"
 														/>
 														<button
 															onClick={() => handleSubmitComment(post.id)}
 															disabled={!replyContent.trim()}
-															className="bg-[#556b2f] text-white px-4 py-2 rounded-full text-sm hover:bg-[#6d8c3a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+															className="p-2 bg-gradient-to-r from-[#556b2f] to-[#6d8c3a] text-white rounded-full hover:from-[#6d8c3a] hover:to-[#7a9947] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-sm hover:shadow-md hover:scale-105 disabled:hover:scale-100"
 														>
 															<IconSend size={16} />
 														</button>
@@ -796,6 +834,24 @@ if (loading) {
 			</div>
 		</div>
 		<ConfirmDialogComponent />
+
+		{/* CSS Animations */}
+		<style>{`
+			@keyframes fadeIn {
+				from { opacity: 0; transform: translateY(10px); }
+				to { opacity: 1; transform: translateY(0); }
+			}
+			@keyframes slideDown {
+				from { opacity: 0; max-height: 0; }
+				to { opacity: 1; max-height: 2000px; }
+			}
+			.animate-fadeIn {
+				animation: fadeIn 0.5s ease-out forwards;
+			}
+			.animate-slideDown {
+				animation: slideDown 0.4s ease-out forwards;
+			}
+		`}</style>
 	</>
 	);
 }
