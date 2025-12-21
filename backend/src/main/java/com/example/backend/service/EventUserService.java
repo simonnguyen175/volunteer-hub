@@ -3,10 +3,15 @@ package com.example.backend.service;
 import com.example.backend.dto.EventUserResponse;
 import com.example.backend.model.Event;
 import com.example.backend.model.EventUser;
+import com.example.backend.model.RoleName;
 import com.example.backend.model.User;
 import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.EventUserRepository;
+import com.example.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +25,32 @@ public class EventUserService {
     private final UserService userService;
     private final NotificationService notificationService;
     private final EventRepository eventRepository;
+    private final UserRepository userRepository;
+
+    /**
+     * Get current authenticated user from SecurityContext
+     */
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("User not authenticated");
+        }
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new AccessDeniedException("User not found"));
+    }
+
+    /**
+     * Check if current user can manage event participants (host or admin)
+     */
+    private boolean canManageEventParticipants(Event event, User currentUser) {
+        // Admin can manage any event
+        if (currentUser.getRole().getName() == RoleName.ADMIN) {
+            return true;
+        }
+        // Host can only manage their own events
+        return event.getManager().getId().equals(currentUser.getId());
+    }
 
     public EventUser registerUserToEvent(Long userId, Long eventId) {
         EventUser eventUser = new EventUser();
@@ -45,34 +76,48 @@ public class EventUserService {
 
     public EventUser acceptUserInEvent(Long id) {
         EventUser eventUser = eventUserRepository.findById(id).orElse(null);
+        if (eventUser == null) {
+            return null;
+        }
+
+        // Check if current user can manage this event
+        User currentUser = getCurrentUser();
+        if (!canManageEventParticipants(eventUser.getEvent(), currentUser)) {
+            throw new AccessDeniedException("You don't have permission to manage participants for this event");
+        }
+
         Long userId = eventUser.getUser().getId();
         Long eventId = eventUser.getEvent().getId();
-        if (eventUser != null) {
-            eventUser.setStatus(true);
-            notificationService.createAndSendNotification(
-                    userId,
-                    "Bạn đã được chấp nhận tham gia sự kiện "
-                            + "<b>" + eventUser.getEvent().getTitle() + "</b>",
-                    "/events/" + eventId);
-            return eventUserRepository.save(eventUser);
-        }
-        return null;
+        eventUser.setStatus(true);
+        notificationService.createAndSendNotification(
+                userId,
+                "Bạn đã được chấp nhận tham gia sự kiện "
+                        + "<b>" + eventUser.getEvent().getTitle() + "</b>",
+                "/events/" + eventId);
+        return eventUserRepository.save(eventUser);
     }
 
     public EventUser denyUserInEvent(Long id) {
         EventUser eventUser = eventUserRepository.findById(id).orElse(null);
+        if (eventUser == null) {
+            return null;
+        }
+
+        // Check if current user can manage this event
+        User currentUser = getCurrentUser();
+        if (!canManageEventParticipants(eventUser.getEvent(), currentUser)) {
+            throw new AccessDeniedException("You don't have permission to manage participants for this event");
+        }
+
         Long userId = eventUser.getUser().getId();
         Long eventId = eventUser.getEvent().getId();
-        if (eventUser != null) {
-            eventUserRepository.delete(eventUser);
-            notificationService.createAndSendNotification(
-                    userId,
-                    "Bạn đã bị từ chối tham gia sự kiện "
-                            + "<b>" + eventUser.getEvent().getTitle() + "</b>",
-                    "/events/" + eventId);
-            return eventUser;
-        }
-        return null;
+        eventUserRepository.delete(eventUser);
+        notificationService.createAndSendNotification(
+                userId,
+                "Bạn đã bị từ chối tham gia sự kiện "
+                        + "<b>" + eventUser.getEvent().getTitle() + "</b>",
+                "/events/" + eventId);
+        return eventUser;
     }
 
     public EventUser leaveEvent(Long userId, Long eventId) {

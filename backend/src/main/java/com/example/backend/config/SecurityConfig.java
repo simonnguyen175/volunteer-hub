@@ -47,13 +47,53 @@ public class SecurityConfig {
                                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(
                         auth -> auth
+                                // Public endpoints - không cần đăng nhập
                                 .requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/", "/index.html", "/sw.js", "/push-notifications.js").permitAll()
                                 .requestMatchers("/*.png", "/*.ico", "/*.css", "/*.js").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/event", "/event/search/**", "/event/*", "/event/top", "/event/hottest").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/event", "/event/search/**", "/event/{id}", "/event/top", "/event/hottest").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/event/hosted/{userId}").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/post/**", "/comment/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/like/**").permitAll()
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                        .anyRequest()
-                                        .authenticated())
+
+                                // Admin only endpoints
+                                .requestMatchers("/event/admin/**").hasAuthority("ADMIN")
+                                .requestMatchers(HttpMethod.PATCH, "/event/{id}/accept").hasAuthority("ADMIN")
+                                .requestMatchers("/user/**").hasAuthority("ADMIN")
+
+                                // Host and Admin endpoints - tạo event
+                                .requestMatchers(HttpMethod.POST, "/event/create").hasAnyAuthority("HOST", "ADMIN")
+
+                                // Authenticated endpoints - sửa/xóa event (logic check owner trong service)
+                                .requestMatchers(HttpMethod.PUT, "/event/{id}").hasAnyAuthority("HOST", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/event/{id}").hasAnyAuthority("HOST", "ADMIN")
+
+                                // Event user management - authenticated users
+                                .requestMatchers(HttpMethod.GET, "/event-user/**").authenticated()
+                                .requestMatchers(HttpMethod.POST, "/event-user/register/**").authenticated()
+                                .requestMatchers(HttpMethod.POST, "/event-user/accept/**").hasAnyAuthority("HOST", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/event-user/deny/**").hasAnyAuthority("HOST", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/event-user/leave/**").authenticated()
+
+                                // Post endpoints - authenticated users (logic check owner trong service)
+                                .requestMatchers(HttpMethod.POST, "/post/create").authenticated()
+                                .requestMatchers(HttpMethod.PUT, "/post/update/{postId}").authenticated()
+                                .requestMatchers(HttpMethod.DELETE, "/post/{postId}").authenticated()
+
+                                // Comment endpoints - authenticated users (logic check owner trong service)
+                                .requestMatchers(HttpMethod.POST, "/comment/create").authenticated()
+                                .requestMatchers(HttpMethod.PUT, "/comment/update").authenticated()
+                                .requestMatchers(HttpMethod.DELETE, "/comment/delete").authenticated()
+
+                                // Like endpoints - authenticated users
+                                .requestMatchers(HttpMethod.POST, "/like/**").authenticated()
+
+                                // Notification endpoints - authenticated users
+                                .requestMatchers("/notifications/**").authenticated()
+
+                                // Các request còn lại cần authenticated
+                                .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -5,12 +5,17 @@ import com.example.backend.dto.CommentUpdateRequest;
 import com.example.backend.model.Comment;
 import com.example.backend.model.LikeComment;
 import com.example.backend.model.Post;
+import com.example.backend.model.RoleName;
 import com.example.backend.model.User;
 import com.example.backend.repository.CommentRepository;
 import com.example.backend.repository.LikeCommentRepository;
 import com.example.backend.repository.PostRepository;
+import com.example.backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +28,32 @@ public class CommentService {
     private final UserService userService;
     private final PostRepository postRepository;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
+
+    /**
+     * Get current authenticated user from SecurityContext
+     */
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("User not authenticated");
+        }
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new AccessDeniedException("User not found"));
+    }
+
+    /**
+     * Check if current user can modify the comment (owner or admin)
+     */
+    private boolean canModifyComment(Comment comment, User currentUser) {
+        // Admin can modify any comment
+        if (currentUser.getRole().getName() == RoleName.ADMIN) {
+            return true;
+        }
+        // User can only modify their own comments
+        return comment.getUser().getId().equals(currentUser.getId());
+    }
 
     void incCommentCount(Post post) {
         post.setCommentsCount(post.getCommentsCount() + 1);
@@ -111,18 +142,40 @@ public class CommentService {
 
     public Comment updateComment(Long commentId, CommentUpdateRequest commentUpdateRequest) {
         Comment comment = getCommentById(commentId);
+
+        // Check if current user can modify this comment
+        User currentUser = getCurrentUser();
+        if (!canModifyComment(comment, currentUser)) {
+            throw new AccessDeniedException("You don't have permission to modify this comment");
+        }
+
         comment.setContent(commentUpdateRequest.getContent());
         return commentRepository.save(comment);
     }
 
     public void deleteComment(Long commentId) {
-        List<Comment> comments = getCommentsByParentId(commentId);
+        Comment comment = getCommentById(commentId);
 
-        for (Comment c : comments) {
-            deleteComment(c.getId());
+        // Check if current user can modify this comment (only for top-level call)
+        User currentUser = getCurrentUser();
+        if (!canModifyComment(comment, currentUser)) {
+            throw new AccessDeniedException("You don't have permission to delete this comment");
         }
 
-        Comment comment = getCommentById(commentId);
+        // Internal recursive delete (without permission check for child comments)
+        deleteCommentRecursive(comment);
+    }
+
+
+    /**
+     * Internal method to delete comment and its children recursively
+     */
+    private void deleteCommentRecursive(Comment comment) {
+        List<Comment> replies = commentRepository.findByParentCommentOrderByCreatedAtDesc(comment);
+
+        for (Comment reply : replies) {
+            deleteCommentRecursive(reply);
+        }
 
         List<LikeComment> likeComments = likeCommentRepository.findByComment(comment);
         likeCommentRepository.deleteAll(likeComments);

@@ -20,6 +20,9 @@ import com.example.backend.repository.LikePostRepository;
 import com.example.backend.repository.PostRepository;
 import com.example.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 
@@ -39,6 +42,31 @@ public class EventService {
     @Autowired private CommentRepository commentRepository;
     @Autowired private LikePostRepository likePostRepository;
     @Autowired private LikeCommentRepository likeCommentRepository;
+
+    /**
+     * Get current authenticated user from SecurityContext
+     */
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("User not authenticated");
+        }
+        String username = authentication.getName();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new AccessDeniedException("User not found"));
+    }
+
+    /**
+     * Check if current user can modify the event (owner or admin)
+     */
+    private boolean canModifyEvent(Event event, User currentUser) {
+        // Admin can modify any event
+        if (currentUser.getRole().getName() == RoleName.ADMIN) {
+            return true;
+        }
+        // Host can only modify their own events
+        return event.getManager().getId().equals(currentUser.getId());
+    }
 
     public List<EventDetailResponse> getAllEvents() {
         return eventRepository.findByStatus(EventStatus.ACCEPTED).stream()
@@ -114,6 +142,12 @@ public class EventService {
                                         new IllegalArgumentException(
                                                 "Event with id " + id + " not found"));
 
+        // Check if current user can modify this event
+        User currentUser = getCurrentUser();
+        if (!canModifyEvent(existingEvent, currentUser)) {
+            throw new AccessDeniedException("You don't have permission to modify this event");
+        }
+
         existingEvent.setTitle(request.getTitle());
         existingEvent.setType(request.getType());
         existingEvent.setStartTime(request.getStartTime());
@@ -187,6 +221,12 @@ public class EventService {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Event with id " + id + " not found"));
         
+        // Check if current user can modify this event
+        User currentUser = getCurrentUser();
+        if (!canModifyEvent(event, currentUser)) {
+            throw new AccessDeniedException("You don't have permission to delete this event");
+        }
+
         // 1. Delete all EventUser registrations for this event
         List<EventUser> eventUsers = eventUserRepository.findByEvent(event);
         eventUserRepository.deleteAll(eventUsers);

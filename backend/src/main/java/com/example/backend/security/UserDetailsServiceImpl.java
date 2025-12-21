@@ -21,7 +21,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                         .orElseThrow(
                                 () -> new UsernameNotFoundException("User not found: " + username));
 
-        String roleName = "ROLE_" + user.getRole().getName().name(); // ROLE_USER etc
+        String roleName = user.getRole().getName().name(); // USER, HOST, ADMIN (no ROLE_ prefix)
 
         return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
                 .password(user.getPassword())
