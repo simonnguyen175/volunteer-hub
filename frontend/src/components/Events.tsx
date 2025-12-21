@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createClient } from "@supabase/supabase-js";
 
-import { IconSearch, IconGridDots, IconList, IconArrowsSort, IconPlus } from "@tabler/icons-react";
+import { IconSearch, IconGridDots, IconList, IconArrowsSort, IconPlus, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
 import {
 	Card,
@@ -47,6 +47,9 @@ export default function Events() {
 	const [isSearching, setIsSearching] = useState(false);
 	const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 	const [timeStatusFilter, setTimeStatusFilter] = useState<"all" | "past" | "ongoing" | "future">("all");
+	const [hostedPage, setHostedPage] = useState(1);
+	const [otherPage, setOtherPage] = useState(1);
+	const ITEMS_PER_PAGE = 6;
 
 	// Check if user is a host
 	const rawRole = user?.role;
@@ -85,6 +88,12 @@ export default function Events() {
 		const timeoutId = setTimeout(fetchEvents, 300);
 		return () => clearTimeout(timeoutId);
 	}, [searchQuery, typeFilter]);
+
+	// Reset page when filters change
+	useEffect(() => {
+		setHostedPage(1);
+		setOtherPage(1);
+	}, [searchQuery, typeFilter, startDateFilter, endDateFilter, timeStatusFilter]);
 
 	// Load Supabase images for events
 	useEffect(() => {
@@ -168,6 +177,138 @@ export default function Events() {
 	const pastCount = filteredEvents.filter(e => categorizeEvent(e) === "past").length;
 	const ongoingCount = filteredEvents.filter(e => categorizeEvent(e) === "ongoing").length;
 	const futureCount = filteredEvents.filter(e => categorizeEvent(e) === "future").length;
+
+	// Pagination Logic
+	const hostedTotalPages = Math.ceil(myHostedEvents.length / ITEMS_PER_PAGE);
+	const paginatedHostedEvents = myHostedEvents.slice(
+		(hostedPage - 1) * ITEMS_PER_PAGE,
+		hostedPage * ITEMS_PER_PAGE
+	);
+
+	const otherTotalPages = Math.ceil(otherEvents.length / ITEMS_PER_PAGE);
+	const paginatedOtherEvents = otherEvents.slice(
+		(otherPage - 1) * ITEMS_PER_PAGE,
+		otherPage * ITEMS_PER_PAGE
+	);
+
+	// Reusable Pagination Controls Component
+	const PaginationControls = ({ currentPage, totalPages, onPageChange }: { currentPage: number, totalPages: number, onPageChange: (page: number) => void }) => {
+		if (totalPages <= 1) return null;
+		return (
+			<div className="flex justify-center items-center mt-8 gap-2">
+				<button
+					onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
+					disabled={currentPage === 1}
+					className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${
+						currentPage === 1
+							? "text-gray-300 cursor-not-allowed"
+							: "text-gray-600 hover:bg-gray-100 hover:text-[#556b2f] cursor-pointer"
+					}`}
+				>
+					<IconChevronLeft size={20} />
+				</button>
+				
+				{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+					<button
+						key={page}
+						onClick={() => onPageChange(page)}
+						className={`w-10 h-10 rounded-xl text-sm font-bold font-(family-name:--font-dmsans) transition-all cursor-pointer ${
+							currentPage === page
+								? "bg-[#556b2f] text-white shadow-md transform scale-105"
+								: "text-gray-600 hover:bg-gray-100 hover:text-[#556b2f]"
+						}`}
+					>
+						{page}
+					</button>
+				))}
+
+				<button
+					onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
+					disabled={currentPage === totalPages}
+					className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${
+						currentPage === totalPages
+							? "text-gray-300 cursor-not-allowed"
+							: "text-gray-600 hover:bg-gray-100 hover:text-[#556b2f] cursor-pointer"
+					}`}
+				>
+					<IconChevronRight size={20} />
+				</button>
+			</div>
+		);
+	};
+
+	const EventCard = ({ event }: { event: any }) => {
+		const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
+		const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
+
+		if (viewMode === "grid") {
+			return (
+				<Link to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out both` }}>
+					<Card className="group relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer ring-0 hover:ring-2 hover:ring-[#556b2f]/30">
+						<div className="aspect-video w-full overflow-hidden">
+							<img
+								src={event.fullImageUrl}
+								alt={event.title}
+								className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+							/>
+						</div>
+						<div className="relative">
+							<div className="relative z-10 p-4 bg-white group-hover:bg-transparent transition-colors">
+								<CardHeader className="p-0">
+									{event.managerName && (
+										<CardDescription className="font-(family-name:--font-crimson) text-sm text-gray-600 group-hover:text-white/80 transition-colors mt-1">
+											Host: {event.managerName}
+										</CardDescription>
+									)}
+									<CardTitle className="font-(family-name:--font-crimson) text-xl text-gray-900 group-hover:text-white transition-colors">
+										{event.title}
+									</CardTitle>
+									<CardDescription className="font-(family-name:--font-dmsans) text-sm text-gray-700 group-hover:text-white/90 transition-colors">
+										{startDate} {startTimeStr} - {endDate} {endTimeStr}
+									</CardDescription>
+								</CardHeader>
+							</div>
+							<div className="absolute bottom-0 left-0 w-full h-[110%] transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
+						</div>
+					</Card>
+				</Link>
+			);
+		} else {
+			return (
+				<Link to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out both` }}>
+					<Card className="group relative overflow-hidden hover:shadow-lg transition-all cursor-pointer">
+						<div className="flex flex-row">
+							<div className="w-64 h-40 shrink-0 overflow-hidden">
+								<img
+									src={event.fullImageUrl}
+									alt={event.title}
+									className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+								/>
+							</div>
+							<div className="flex-1 relative h-40">
+								<div className="absolute bottom-0 left-0 w-full p-4 z-10 bg-white group-hover:bg-transparent transition-colors">
+									<CardHeader className="p-0">
+										{event.managerName && (
+											<CardDescription className="font-(family-name:--font-crimson) text-md text-gray-600 group-hover:text-white/80 transition-colors mt-1">
+												Host: {event.managerName}
+											</CardDescription>
+										)}
+										<CardTitle className="font-(family-name:--font-crimson) text-2xl text-gray-900 group-hover:text-white transition-colors">
+											{event.title}
+										</CardTitle>
+										<CardDescription className="font-(family-name:--font-dmsans) text-gray-700 group-hover:text-white/90 transition-colors">
+											{startDate} {startTimeStr} - {endDate} {endTimeStr}
+										</CardDescription>
+									</CardHeader>
+								</div>
+								<div className="absolute bottom-0 left-0 w-full h-[150%] transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
+							</div>
+						</div>
+					</Card>
+				</Link>
+			);
+		}
+	};
 
 	return (
 		<div className="min-h-screen bg-white">
@@ -332,192 +473,53 @@ export default function Events() {
 						</div>
 					</div>
 
-				{/* Events Grid/List Toggle */}
+				{/* Hosted Events Section */}
 				{isHost && myHostedEvents.length > 0 && (
-					<>
-						{/* My Hosted Events Section */}
-						<div className="mb-8">
-							<h2 className="font-(family-name:--font-crimson) text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-								<span className="w-2 h-2 bg-[#556b2f] rounded-full"></span>
-								My Hosted Events
-								<span className="ml-2 px-2 py-0.5 bg-[#556b2f]/10 text-[#556b2f] rounded-full text-sm font-medium">
-									{myHostedEvents.length}
-								</span>
-							</h2>
-							{viewMode === "grid" ? (
-								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-									{myHostedEvents.map((event, index) => {
-										const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
-										const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
-										return (
-											<Link key={`${event.id}-${viewMode}`} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
-												<Card className="group relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer ring-2 ring-[#556b2f]/30">
-													<div className="absolute top-2 right-2 z-20 px-2 py-1 bg-[#556b2f] text-white text-xs font-semibold rounded-lg">
-														Hosted by you
-													</div>
-													<div className="aspect-video w-full overflow-hidden">
-														<img
-															src={event.fullImageUrl}
-															alt={event.title}
-															className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-														/>
-													</div>
-													<div className="relative">
-														<div className="relative z-10 p-4 bg-white group-hover:bg-transparent transition-colors">
-															<CardHeader className="p-0">
-																<CardTitle className="font-(family-name:--font-crimson) text-xl text-gray-900 group-hover:text-white transition-colors">
-																	{event.title}
-																</CardTitle>
-																<CardDescription className="font-(family-name:--font-dmsans) text-sm text-gray-700 group-hover:text-white/90 transition-colors">
-																	{startDate} {startTimeStr} - {endDate} {endTimeStr}
-																</CardDescription>
-															</CardHeader>
-														</div>
-														<div className="absolute bottom-0 left-0 w-full h-[110%] transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
-													</div>
-												</Card>
-											</Link>
-										);
-									})}
-								</div>
-							) : (
-								<div className="flex flex-col gap-4">
-									{myHostedEvents.map((event, index) => {
-										const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
-										const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
-										return (
-											<Link key={`${event.id}-${viewMode}`} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
-												<Card className="group relative overflow-hidden hover:shadow-lg transition-all cursor-pointer ring-2 ring-[#556b2f]/30">
-													<div className="flex flex-row">
-														<div className="w-64 h-40 shrink-0 overflow-hidden relative">
-															<div className="absolute top-2 left-2 z-20 px-2 py-1 bg-[#556b2f] text-white text-xs font-semibold rounded-lg">
-																Hosted by you
-															</div>
-															<img
-																src={event.fullImageUrl}
-																alt={event.title}
-																className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-															/>
-														</div>
-														<div className="flex-1 relative h-40">
-															<div className="absolute bottom-0 left-0 w-full p-4 z-10 bg-white group-hover:bg-transparent transition-colors">
-																<CardHeader className="p-0">
-																	<CardTitle className="font-(family-name:--font-crimson) text-2xl text-gray-900 group-hover:text-white transition-colors">
-																		{event.title}
-																	</CardTitle>
-																	<CardDescription className="font-(family-name:--font-dmsans) text-gray-700 group-hover:text-white/90 transition-colors">
-																		{startDate} {startTimeStr} - {endDate} {endTimeStr}
-																	</CardDescription>
-																</CardHeader>
-															</div>
-															<div className="absolute bottom-0 left-0 w-full h-[150%] transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
-														</div>
-													</div>
-												</Card>
-											</Link>
-										);
-									})}
-								</div>
-							)}
+					<div className="mb-12">
+						<h2 className="font-(family-name:--font-crimson) text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+							<span className="w-2 h-2 bg-[#556b2f] rounded-full"></span>
+							My Hosted Events
+							<span className="ml-2 px-3 py-1 bg-[#556b2f]/10 text-[#556b2f] rounded-full text-sm font-medium">
+								Showing {Math.min((hostedPage - 1) * ITEMS_PER_PAGE + 1, myHostedEvents.length)}-{Math.min(hostedPage * ITEMS_PER_PAGE, myHostedEvents.length)} of {myHostedEvents.length}
+							</span>
+						</h2>
+
+						<div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "flex flex-col gap-4"}>
+							{paginatedHostedEvents.map((event) => (
+								<EventCard key={`hosted-${event.id}`} event={event} />
+							))}
 						</div>
 
-						{/* Other Events Section Header */}
-						{otherEvents.length > 0 && (
-							<h2 className="font-(family-name:--font-crimson) text-2xl font-bold text-gray-900 mb-4 mt-8 flex items-center gap-2">
-								<span className="w-2 h-2 bg-gray-400 rounded-full"></span>
-								Other Events
-								<span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
-									{otherEvents.length}
-								</span>
-							</h2>
-						)}
-					</>
+						<PaginationControls 
+							currentPage={hostedPage} 
+							totalPages={hostedTotalPages} 
+							onPageChange={setHostedPage} 
+						/>
+					</div>
 				)}
 
-				{viewMode === "grid" ? (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{otherEvents.map((event, index) => {
-							const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
-							const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
-							return (
-								<Link key={`${event.id}-${viewMode}`} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
-											<Card className="group relative overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
-												<div className="aspect-video w-full overflow-hidden">
-														<img
-															src={event.fullImageUrl}
-															alt={event.title}
-															className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-														/>
-													</div>
+				{/* Other Events Section */}
+				{otherEvents.length > 0 && (
+					<div className="mb-8">
+						<h2 className="font-(family-name:--font-crimson) text-2xl font-bold text-gray-900 mb-4 mt-8 flex items-center gap-2">
+							<span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+							{myHostedEvents.length > 0 ? "Other Events" : "Events"}
+							<span className="ml-2 px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium font-(family-name:--font-crimson)">
+								Showing {Math.min((otherPage - 1) * ITEMS_PER_PAGE + 1, otherEvents.length)}-{Math.min(otherPage * ITEMS_PER_PAGE, otherEvents.length)} of {otherEvents.length}
+							</span>
+						</h2>
 
-													{/* White info strip remains visible; overlay slides up behind it */}
-													<div className="relative">
-														<div className="relative z-10 p-4 bg-white group-hover:bg-transparent transition-colors">
-															<CardHeader className="p-0">
-																{event.managerName && (
-																	<CardDescription className="font-(family-name:--font-crimson) text-sm text-gray-600 group-hover:text-white/80 transition-colors mt-1">
-																		Host: {event.managerName}
-																	</CardDescription>
-																)}
-																<CardTitle className="font-(family-name:--font-crimson) text-xl text-gray-900 group-hover:text-white transition-colors">
-																	{event.title}
-																</CardTitle>
-																<CardDescription className="font-(family-name:--font-dmsans) text-sm text-gray-700 group-hover:text-white/90 transition-colors">
-																	{startDate} {startTimeStr} - {endDate} {endTimeStr}
-																</CardDescription>
-																
-															</CardHeader>
-														</div>
+						<div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "flex flex-col gap-4"}>
+							{paginatedOtherEvents.map((event) => (
+								<EventCard key={`other-${event.id}`} event={event} />
+							))}
+						</div>
 
-														<div className="absolute bottom-0 left-0 w-full h-[110%] transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
-													</div>
-											</Card>
-								</Link>
-							);
-						})}
-					</div>
-				) : (
-					<div className="flex flex-col gap-4">
-						{otherEvents.map((event, index) => {
-							const { dateStr: startDate, timeStr: startTimeStr } = formatDateTime(event.startTime);
-							const { dateStr: endDate, timeStr: endTimeStr } = formatDateTime(event.endTime);
-							return (
-								<Link key={`${event.id}-${viewMode}`} to={`/events/${event.id}`} style={{ animation: `fadeInUp 0.4s ease-out ${index * 50}ms both` }}>
-									<Card className="group relative overflow-hidden hover:shadow-lg transition-all cursor-pointer">
-										<div className="flex flex-row">
-											<div className="w-64 h-40 shrink-0 overflow-hidden">
-												<img
-													src={event.fullImageUrl}
-													alt={event.title}
-													className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-												/>
-											</div>
-											<div className="flex-1 relative h-40">
-												<div className="absolute bottom-0 left-0 w-full p-4 z-10 bg-white group-hover:bg-transparent transition-colors">
-													<CardHeader className="p-0">
-														{event.managerName && (
-														<CardDescription className="font-(family-name:--font-crimson) text-md text-gray-600 group-hover:text-white/80 transition-colors mt-1">
-															Host: {event.managerName}
-														</CardDescription>
-													)}
-														<CardTitle className="font-(family-name:--font-crimson) text-2xl text-gray-900 group-hover:text-white transition-colors">
-															{event.title}
-														</CardTitle>
-														<CardDescription className="font-(family-name:--font-dmsans) text-gray-700 group-hover:text-white/90 transition-colors">
-															{startDate} {startTimeStr} - {endDate} {endTimeStr}
-														</CardDescription>
-													
-												</CardHeader>
-											</div>
-
-											{/* Sliding overlay for list view (behind the white strip) */}
-											<div className="absolute bottom-0 left-0 w-full h-[150%] transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-[#556b2f] via-[#556b2f]/85 to-transparent p-4 z-0" />
-										</div>
-									</div>
-								</Card>
-							</Link>
-							);
-						})}
+						<PaginationControls 
+							currentPage={otherPage} 
+							totalPages={otherTotalPages} 
+							onPageChange={setOtherPage} 
+						/>
 					</div>
 				)}
 
