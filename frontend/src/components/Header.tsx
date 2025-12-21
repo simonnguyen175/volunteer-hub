@@ -10,12 +10,13 @@ import {
 import { useState, useEffect, useRef, useCallback } from "react";
 import { NavLink, useSearchParams, useNavigate } from "react-router-dom";
 import { RestClient } from "../api/RestClient";
-import { onPushMessage } from "../utils/pushNotifications";
+import { onPushMessage, setupPushNotifications, getNotificationPermission } from "../utils/pushNotifications";
 
 import logo from "../assets/VolunteerHub.png";
 import Login from "./Login";
 import Register from "./Register";
 import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "./ui/Toast";
 
 export default function Header() {
 	const [isLoginOpen, setLoginOpen] = useState(false);
@@ -31,6 +32,13 @@ export default function Header() {
 	const userMenuRef = useRef<HTMLDivElement>(null);
 	const notificationRef = useRef<HTMLDivElement>(null);
 	const navigate = useNavigate();
+	const { showToast } = useToast();
+	const [pushPermission, setPushPermission] = useState<NotificationPermission>(() => {
+		if (typeof window !== 'undefined' && 'Notification' in window) {
+			return Notification.permission;
+		}
+		return 'default';
+	});
 
 	const rawRole = auth.user?.role;
 	const roleName = typeof rawRole === "string" ? rawRole : (rawRole as { name?: string; role?: string } | undefined)?.name ?? "";
@@ -137,12 +145,34 @@ export default function Header() {
 
 		const cleanup = onPushMessage((data) => {
 			console.log('🔔 Push notification received in Header:', data);
+			// Show toast notification
+			const strippedBody = data.body?.replace(/<[^>]*>/g, '') || 'New notification';
+			showToast(strippedBody, "info");
 			// Immediately refresh notifications when a push is received
 			fetchNotifications();
 		});
 
 		return cleanup;
-	}, [auth.isAuthenticated, fetchNotifications]);
+	}, [auth.isAuthenticated, fetchNotifications, showToast]);
+
+	// Handler for enabling push notifications (user-initiated)
+	const handleEnablePushNotifications = async () => {
+		if (!auth.user?.id || !auth.token) return;
+		
+		try {
+			const success = await setupPushNotifications(auth.user.id, auth.token);
+			if (success) {
+				setPushPermission('granted');
+				showToast('Push notifications enabled!', 'success');
+			} else {
+				setPushPermission(getNotificationPermission());
+				showToast('Could not enable notifications. Please check browser settings.', 'warning');
+			}
+		} catch (error) {
+			console.error('Failed to enable push notifications:', error);
+			showToast('Failed to enable notifications', 'error');
+		}
+	};
 
 	const handleMarkAsRead = async (notificationId: number) => {
 		try {
@@ -262,6 +292,20 @@ export default function Header() {
 										)}
 									</div>
 									<div className="divide-y divide-gray-100">
+										{/* Show enable button if permission not granted */}
+										{pushPermission !== 'granted' && (
+											<div className="px-4 py-3 bg-amber-50 border-b border-amber-100">
+												<p className="text-xs text-amber-700 mb-2 font-(family-name:--font-dmsans)">
+													Enable push notifications to receive real-time alerts
+												</p>
+												<button
+													onClick={handleEnablePushNotifications}
+													className="w-full py-2 px-3 bg-[#556b2f] text-white text-sm font-medium rounded-lg hover:bg-[#6d8c3a] transition-colors cursor-pointer"
+												>
+													Enable Push Notifications
+												</button>
+											</div>
+										)}
 										{notifications.filter(notif => !notif.read).length === 0 ? (
 											<div className="px-4 py-8 text-center text-gray-500 text-sm font-(family-name:--font-dmsans)">
 												No new notifications...
