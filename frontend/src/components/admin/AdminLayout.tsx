@@ -1,19 +1,26 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { IconLayoutDashboard, IconCalendarEvent, IconUsers, IconLogout, IconMenu2, IconBell, IconNewSection } from "@tabler/icons-react";
+import { IconLayoutDashboard, IconCalendarEvent, IconUsers, IconLogout, IconMenu2, IconBell, IconNewSection, IconAlertCircle } from "@tabler/icons-react";
 import logo from "../../assets/VolunteerHub.png";
 import { useAuth } from "../../contexts/AuthContext";
 import { RestClient } from "../../api/RestClient";
-import { onPushMessage } from "../../utils/pushNotifications";
+import { onPushMessage, setupPushNotifications, getNotificationPermission } from "../../utils/pushNotifications";
+import { useToast } from "../ui/Toast";
 
 export default function AdminLayout() {
 	const [isSidebarOpen, setSidebarOpen] = useState(true);
 	const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 	const [notifications, setNotifications] = useState<any[]>([]);
 	const [unreadCount, setUnreadCount] = useState(0);
+	const [pushPermission, setPushPermission] = useState<NotificationPermission>(() => 
+		'Notification' in window ? Notification.permission : 'denied'
+	);
+	const [showRoleChangedModal, setShowRoleChangedModal] = useState(false);
+	const [newRoleName, setNewRoleName] = useState('');
 	const notificationRef = useRef<HTMLDivElement>(null);
 	const auth = useAuth();
 	const navigate = useNavigate();
+	const { showToast } = useToast();
 
 	const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
@@ -65,11 +72,23 @@ export default function AdminLayout() {
 
 		const cleanup = onPushMessage((data) => {
 			console.log('🔔 Push notification received in Admin:', data);
+			// Check for role change notification
+			if (data.body?.includes('[ROLE_CHANGED]')) {
+				const roleMatch = data.body.match(/changed to <b>(\w+)<\/b>/);
+				if (roleMatch) {
+					setNewRoleName(roleMatch[1]);
+				}
+				setShowRoleChangedModal(true);
+			} else {
+				// Show toast for other notifications
+				const strippedBody = data.body?.replace(/<[^>]*>/g, '') || 'New notification';
+				showToast(strippedBody, "info");
+			}
 			fetchNotifications();
 		});
 
 		return cleanup;
-	}, [auth.isAuthenticated, fetchNotifications]);
+	}, [auth.isAuthenticated, fetchNotifications, showToast]);
 
 	const handleMarkAsRead = async (notificationId: number) => {
 		try {
@@ -313,6 +332,30 @@ export default function AdminLayout() {
 					className="fixed inset-0 bg-black/50 z-40 lg:hidden cursor-pointer"
 					onClick={() => setSidebarOpen(false)}
 				/>
+			)}
+
+			{/* Role Changed Modal */}
+			{showRoleChangedModal && (
+				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+					<div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+						<div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+							<IconAlertCircle size={32} className="text-amber-600" />
+						</div>
+						<h2 className="text-2xl font-bold text-gray-800 mb-2 font-(family-name:--font-crimson)">
+							Your Role Has Changed
+						</h2>
+						<p className="text-gray-600 mb-6 font-(family-name:--font-dmsans)">
+						Your account role has been updated to <strong className="text-[#556b2f]">{newRoleName}</strong>.
+						Click OK to log out and apply changes.
+					</p>
+					<button
+						onClick={() => auth.logout()}
+						className="px-8 py-3 bg-[#556b2f] text-white font-semibold rounded-xl hover:bg-[#6d8c3a] transition-colors cursor-pointer"
+					>
+							OK
+						</button>
+					</div>
+				</div>
 			)}
 		</div>
 	);

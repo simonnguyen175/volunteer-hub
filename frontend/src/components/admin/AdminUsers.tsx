@@ -114,13 +114,25 @@ export default function AdminUsers() {
 		const newRole = isCurrentlyHost ? 'USER' : 'HOST';
 		
 		try {
-			await RestClient.updateUserRole(user.id, newRole);
-			showToast(`User role updated to ${newRole}`, "success");
-			// Refresh users list
-			fetchUsers();
+			const result = await RestClient.updateUserRole(user.id, newRole);
+			
+			// Check if backend returned an error (including in message field)
+			if (result.error || (result.message && result.message.toLowerCase().includes("cannot"))) {
+				showToast("This host has events, you cannot change their role!", "error");
+				return;
+			}
+			
+			if (result.data) {
+				showToast(`User role updated to ${newRole}`, "success");
+				// Refresh users list
+				fetchUsers();
+			} else if (!result.data && result.message) {
+				// Backend returned a message but no data - likely an error
+				showToast("This host has events, you cannot change their role!", "error");
+			}
 		} catch (err) {
 			console.error("Failed to update user role:", err);
-			showToast("Failed to update user role", "error");
+			showToast("This host has events, you cannot change their role!", "error");
 		}
 	};
 

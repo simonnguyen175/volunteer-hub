@@ -1,24 +1,25 @@
 package com.example.backend.service;
 
+import com.example.backend.model.Event;
 import com.example.backend.model.Role;
 import com.example.backend.model.RoleName;
 import com.example.backend.model.User;
+import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.RoleRepository;
 import com.example.backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-
-    public UserService(UserRepository userRepository, RoleRepository roleRepository) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-    }
+    private final NotificationService notificationService;
+    private final EventRepository eventRepository;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -39,11 +40,33 @@ public class UserService {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User with id " + id + " not found"));
 
-        Role role = roleRepository.findByName(roleName)
+        Role oldRole = existingUser.getRole();
+        
+        // Check if user is a HOST with events - prevent role change
+        if (oldRole != null && oldRole.getName() == RoleName.HOST) {
+            List<Event> hostedEvents = eventRepository.findByManager(existingUser);
+            if (!hostedEvents.isEmpty()) {
+                throw new IllegalStateException(
+                        "Cannot change role of a host who has events. User '" + existingUser.getUsername() 
+                        + "' has " + hostedEvents.size() + " event(s).");
+            }
+        }
+        
+        Role newRole = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new IllegalArgumentException("Role " + roleName + " not found"));
 
-        existingUser.setRole(role);
-        return userRepository.save(existingUser);
+        existingUser.setRole(newRole);
+        User savedUser = userRepository.save(existingUser);
+
+        // Notify user about role change
+        if (oldRole == null || !oldRole.getName().equals(newRole.getName())) {
+            notificationService.createAndSendNotification(
+                    id,
+                    "[ROLE_CHANGED] Your role has been changed to <b>" + roleName.name() + "</b>. Please refresh to apply changes.",
+                    "/");
+        }
+
+        return savedUser;
     }
 
     public User updateUser(Long id, String roleParam) {

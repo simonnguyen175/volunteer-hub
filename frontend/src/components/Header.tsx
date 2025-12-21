@@ -6,6 +6,7 @@ import {
 	IconCalendarEvent,
 	IconLogout,
 	IconChevronDown,
+	IconAlertCircle,
 } from "@tabler/icons-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { NavLink, useSearchParams, useNavigate } from "react-router-dom";
@@ -33,6 +34,8 @@ export default function Header() {
 	const notificationRef = useRef<HTMLDivElement>(null);
 	const navigate = useNavigate();
 	const { showToast } = useToast();
+	const [showRoleChangedModal, setShowRoleChangedModal] = useState(false);
+	const [newRoleName, setNewRoleName] = useState('');
 
 	const rawRole = auth.user?.role;
 	const roleName = typeof rawRole === "string" ? rawRole : (rawRole as { name?: string; role?: string } | undefined)?.name ?? "";
@@ -139,9 +142,18 @@ export default function Header() {
 
 		const cleanup = onPushMessage((data) => {
 			console.log('🔔 Push notification received in Header:', data);
-			// Show toast notification
-			const strippedBody = data.body?.replace(/<[^>]*>/g, '') || 'New notification';
-			showToast(strippedBody, "info");
+			// Check for role change notification
+			if (data.body?.includes('[ROLE_CHANGED]')) {
+				const roleMatch = data.body.match(/changed to <b>(\w+)<\/b>/);
+				if (roleMatch) {
+					setNewRoleName(roleMatch[1]);
+				}
+				setShowRoleChangedModal(true);
+			} else {
+				// Show toast for other notifications
+				const strippedBody = data.body?.replace(/<[^>]*>/g, '') || 'New notification';
+				showToast(strippedBody, "info");
+			}
 			// Immediately refresh notifications when a push is received
 			fetchNotifications();
 		});
@@ -474,6 +486,30 @@ export default function Header() {
 
 			{isLoginOpen && <Login setLoginOpen={setLoginOpen} />}
 			{isRegisterOpen && <Register setRegisterOpen={setRegisterOpen} />}
+			
+			{/* Role Changed Modal */}
+			{showRoleChangedModal && (
+				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+					<div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center">
+						<div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+							<IconAlertCircle size={32} className="text-amber-600" />
+						</div>
+						<h2 className="text-2xl font-bold text-gray-800 mb-2 font-(family-name:--font-crimson)">
+							Your Role Has Changed
+						</h2>
+						<p className="text-gray-600 mb-6 font-(family-name:--font-dmsans)">
+							Your account role has been updated to <strong className="text-[#556b2f]">{newRoleName}</strong>.
+							Click OK to log out and apply changes.
+						</p>
+						<button
+							onClick={() => auth.logout()}
+							className="px-8 py-3 bg-[#556b2f] text-white font-semibold rounded-xl hover:bg-[#6d8c3a] transition-colors cursor-pointer"
+						>
+							OK
+						</button>
+					</div>
+				</div>
+			)}
 		</>
 	);
 }
