@@ -58,7 +58,7 @@ export default function Login({ setLoginOpen }: Props) {
 		<>
 			{/* Dark overlay */}
 			<div
-				className="fixed w-full h-full bg-[rgba(0,0,0,0.5)] z-[999] left-0 top-0"
+				className="fixed w-full h-full bg-[rgba(0,0,0,0.5)] z-[999] left-0 top-0 cursor-pointer"
 				onClick={() => setLoginOpen(false)}
 			></div>
 

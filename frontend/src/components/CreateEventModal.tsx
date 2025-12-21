@@ -317,7 +317,7 @@ export default function CreateEventModal({ isOpen, onClose, onEventCreated, edit
 
 	return (
 		<div className="fixed inset-0 z-[1000] flex items-center justify-center">
-			<div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
+			<div className="absolute inset-0 bg-black/50 backdrop-blur-sm cursor-pointer" onClick={handleClose} />
 			<div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
 				{/* Header */}
 				<div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-[#556b2f] to-[#6d8c3a]">

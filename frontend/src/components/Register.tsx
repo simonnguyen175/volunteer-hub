@@ -1,8 +1,7 @@
 import { IconBrandGoogle, IconBrandFacebook } from "@tabler/icons-react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { RestClient } from "../api/RestClient";
-import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "./ui/Toast";
 
 interface Props {
@@ -11,7 +10,6 @@ interface Props {
 
 export default function Register({ setRegisterOpen }: Props) {
 	const navigate = useNavigate();
-	const auth = useAuth();
 	const { showToast } = useToast();
 	const [formData, setFormData] = useState({
 		username: "",
@@ -64,7 +62,7 @@ export default function Register({ setRegisterOpen }: Props) {
 		<>
 			{/* Dark overlay */}
 			<div
-				className="fixed w-full h-full bg-[rgba(0,0,0,0.5)] z-[999] left-0 top-0"
+				className="fixed w-full h-full bg-[rgba(0,0,0,0.5)] z-[999] left-0 top-0 cursor-pointer"
 				onClick={() => setRegisterOpen(false)}
 			></div>
 

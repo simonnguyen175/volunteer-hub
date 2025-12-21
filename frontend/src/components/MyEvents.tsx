@@ -252,7 +252,7 @@ function ParticipantModal({
 
 	return (
 		<div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-			<div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
+			<div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity cursor-pointer" onClick={onClose} />
 			<div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 				{/* Header */}
 				<div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">

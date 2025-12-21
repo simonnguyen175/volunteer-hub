@@ -180,7 +180,7 @@ export default function Events() {
 					{isHost && (
 						<button
 							onClick={() => setIsCreateModalOpen(true)}
-							className="absolute right-0 flex items-center gap-2 px-6 py-3 bg-[#556b2f] text-white rounded-xl font-semibold font-(family-name:--font-dmsans) hover:bg-[#6d8c3a] transition-all shadow-md hover:shadow-lg"
+							className="absolute right-0 flex items-center gap-2 px-6 py-3 bg-[#556b2f] text-white rounded-xl font-semibold font-(family-name:--font-dmsans) hover:bg-[#6d8c3a] transition-all shadow-md hover:shadow-lg cursor-pointer"
 						>
 							<IconPlus size={20} />
 							Create Event
@@ -211,7 +211,7 @@ export default function Events() {
 							<div className="flex items-center gap-2 bg-gray-50 p-1 rounded-xl">
 								<button
 									onClick={() => setViewMode("grid")}
-									className={`p-2 rounded-lg transition-all ${
+									className={`p-2 rounded-lg transition-all cursor-pointer ${
 										viewMode === "grid"
 											? "bg-white text-[#556b2f] shadow-sm"
 											: "text-gray-400 hover:text-gray-600"
@@ -221,7 +221,7 @@ export default function Events() {
 								</button>
 								<button
 									onClick={() => setViewMode("list")}
-									className={`p-2 rounded-lg transition-all ${
+									className={`p-2 rounded-lg transition-all cursor-pointer ${
 										viewMode === "list"
 											? "bg-white text-[#556b2f] shadow-sm"
 											: "text-gray-400 hover:text-gray-600"
@@ -241,7 +241,7 @@ export default function Events() {
 							<div className="flex flex-wrap gap-2">
 								<button
 									onClick={() => setTypeFilter("")}
-									className={`px-5 py-2.5 rounded-full text-sm font-bold font-(family-name:--font-dmsans) transition-all border ${
+									className={`px-5 py-2.5 rounded-full text-sm font-bold font-(family-name:--font-dmsans) transition-all border cursor-pointer ${
 										typeFilter === ""
 											? "bg-[#556b2f] text-white border-[#556b2f]"
 											: "bg-white text-gray-600 border-gray-200 hover:border-[#556b2f] hover:text-[#556b2f]"
@@ -253,7 +253,7 @@ export default function Events() {
 									<button
 										key={type}
 										onClick={() => setTypeFilter(type)}
-										className={`px-5 py-2.5 rounded-full text-sm font-bold font-(family-name:--font-dmsans) transition-all border capitalize ${
+										className={`px-5 py-2.5 rounded-full text-sm font-bold font-(family-name:--font-dmsans) transition-all border capitalize cursor-pointer ${
 											typeFilter === type
 												? "bg-[#556b2f] text-white border-[#556b2f]"
 												: "bg-white text-gray-600 border-gray-200 hover:border-[#556b2f] hover:text-[#556b2f]"
@@ -309,7 +309,7 @@ export default function Events() {
 								<button
 									key={tab.id}
 									onClick={() => setTimeStatusFilter(tab.id as any)}
-									className={`px-6 py-4 text-sm font-bold font-(family-name:--font-dmsans) transition-all relative flex items-center gap-2 ${
+									className={`px-6 py-4 text-sm font-bold font-(family-name:--font-dmsans) transition-all relative flex items-center gap-2 cursor-pointer ${
 										timeStatusFilter === tab.id
 											? "text-[#556b2f]"
 											: "text-gray-400 hover:text-gray-600"
