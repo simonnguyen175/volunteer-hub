@@ -25,6 +25,15 @@ export class RestClient {
 		return headers;
 	}
 
+	// Cache for events
+	private static eventCache: { data: any, timestamp: number } | null = null;
+	private static CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+	private static clearEventCache() {
+		this.eventCache = null;
+		console.log("Event cache cleared");
+	}
+
 	// Handler for locked account - set by AuthContext
 	static onLockedAccount: (() => void) | null = null;
 
@@ -91,6 +100,13 @@ export class RestClient {
 	// ========== EVENT APIs ==========
 
 	static async getEvents(): Promise<any> {
+		// Check cache
+		const now = Date.now();
+		if (this.eventCache && (now - this.eventCache.timestamp < this.CACHE_DURATION)) {
+			console.log("Serving events from cache");
+			return this.eventCache.data;
+		}
+
 		const url = `${RestClient.baseUrl}/event`;
 
 		const result = await fetch(url, {
@@ -98,7 +114,14 @@ export class RestClient {
 			headers: this.getHeaders(),
 		});
 
-		return await result.json();
+		const data = await result.json();
+		
+		// Update cache
+		if (result.ok) {
+			this.eventCache = { data, timestamp: now };
+		}
+
+		return data;
 	}
 
 	static async getAllEventsForAdmin(): Promise<any> {
@@ -145,6 +168,7 @@ export class RestClient {
 			body: JSON.stringify(eventData),
 		});
 
+		this.clearEventCache();
 		return await result.json();
 	}
 
@@ -165,6 +189,7 @@ export class RestClient {
 			body: JSON.stringify(eventData),
 		});
 
+		this.clearEventCache();
 		return await result.json();
 	}
 
@@ -176,6 +201,7 @@ export class RestClient {
 			headers: this.getHeaders(true),
 		});
 
+		this.clearEventCache();
 		return await result.json();
 	}
 
@@ -187,6 +213,7 @@ export class RestClient {
 			headers: this.getHeaders(true),
 		});
 
+		this.clearEventCache();
 		return await result.json();
 	}
 
@@ -257,6 +284,7 @@ export class RestClient {
 			headers: this.getHeaders(true),
 		});
 
+		this.clearEventCache();
 		return await result.json();
 	}
 
@@ -268,6 +296,7 @@ export class RestClient {
 			headers: this.getHeaders(true),
 		});
 
+		this.clearEventCache();
 		return await result.json();
 	}
 
@@ -279,6 +308,7 @@ export class RestClient {
 			headers: this.getHeaders(true),
 		});
 
+		this.clearEventCache();
 		return await result.json();
 	}
 
@@ -290,6 +320,7 @@ export class RestClient {
 			headers: this.getHeaders(true),
 		});
 
+		this.clearEventCache();
 		return await result.json();
 	}
 
