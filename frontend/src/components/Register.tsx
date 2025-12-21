@@ -3,6 +3,30 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { RestClient } from "../api/RestClient";
 import { useToast } from "./ui/Toast";
+import * as yup from "yup";
+
+const registrationSchema = yup.object().shape({
+	username: yup
+		.string()
+		.required("Username is required")
+		.min(3, "Username must be at least 3 characters")
+		.max(30, "Username must not exceed 30 characters")
+		.matches(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+	email: yup
+		.string()
+		.required("Email is required")
+		.email("Please enter a valid email address"),
+	password: yup
+		.string()
+		.required("Password is required")
+		.min(6, "Password must be at least 6 characters")
+		.matches(/[a-z]/, "Password must contain at least one lowercase letter")
+		.matches(/[0-9]/, "Password must contain at least one number"),
+	confirmPassword: yup
+		.string()
+		.required("Please confirm your password")
+		.oneOf([yup.ref("password")], "Passwords do not match"),
+});
 
 interface Props {
 	setRegisterOpen: (isOpen: boolean) => void;
@@ -18,18 +42,39 @@ export default function Register({ setRegisterOpen }: Props) {
 		confirmPassword: "",
 		role: "user",
 	});
+	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-		setFormData({ ...formData, [e.target.name]: e.target.value });
+		const { name, value } = e.target;
+		setFormData({ ...formData, [name]: value });
+		// Clear error for this field when user starts typing
+		if (errors[name]) {
+			setErrors({ ...errors, [name]: "" });
+		}
 	};
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		
-		// Validate passwords match
-		if (formData.password !== formData.confirmPassword) {
-			showToast("Passwords do not match!", "error");
-			return;
+		// Validate form with Yup
+		try {
+			await registrationSchema.validate(formData, { abortEarly: false });
+			setErrors({});
+		} catch (err) {
+			if (err instanceof yup.ValidationError) {
+				const validationErrors: Record<string, string> = {};
+				err.inner.forEach((error) => {
+					if (error.path) {
+						validationErrors[error.path] = error.message;
+					}
+				});
+				setErrors(validationErrors);
+				
+				// Show first error in toast
+				const firstError = err.inner[0]?.message || "Please fix validation errors";
+				showToast(firstError, "warning");
+				return;
+			}
 		}
 		
 		RestClient.handleRegister(
@@ -77,45 +122,53 @@ export default function Register({ setRegisterOpen }: Props) {
 
 				{/* Registration Form */}
 				<form onSubmit={handleSubmit} className="flex flex-col gap-3 mt-4">
-					<input
-						type="text"
-						name="username"
-						placeholder="Username"
-						required
-						className="w-70 text-base px-0 py-[0.6rem] border-b-[#bbb] border-[none] border-b border-solid"
-						value={formData.username}
-						onChange={handleChange}
-					/>
+					<div className="flex flex-col">
+						<input
+							type="text"
+							name="username"
+							placeholder="Username"
+							className={`w-70 text-base px-0 py-[0.6rem] border-b border-solid ${errors.username ? 'border-b-red-500' : 'border-b-[#bbb]'}`}
+							value={formData.username}
+							onChange={handleChange}
+						/>
+						{errors.username && <span className="text-red-500 text-xs text-left mt-1">{errors.username}</span>}
+					</div>
 
-					<input
-						type="email"
-						name="email"
-						placeholder="Email Address"
-						required
-						className="w-70 text-base px-0 py-[0.6rem] border-b-[#bbb] border-[none] border-b border-solid"
-						value={formData.email}
-						onChange={handleChange}
-					/>
+					<div className="flex flex-col">
+						<input
+							type="email"
+							name="email"
+							placeholder="Email Address"
+							className={`w-70 text-base px-0 py-[0.6rem] border-b border-solid ${errors.email ? 'border-b-red-500' : 'border-b-[#bbb]'}`}
+							value={formData.email}
+							onChange={handleChange}
+						/>
+						{errors.email && <span className="text-red-500 text-xs text-left mt-1">{errors.email}</span>}
+					</div>
 
-					<input
-						type="password"
-						name="password"
-						placeholder="Password"
-						required
-						className="w-70 text-base px-0 py-[0.6rem] border-b-[#bbb] border-[none] border-b border-solid"
-						value={formData.password}
-						onChange={handleChange}
-					/>
+					<div className="flex flex-col">
+						<input
+							type="password"
+							name="password"
+							placeholder="Password"
+							className={`w-70 text-base px-0 py-[0.6rem] border-b border-solid ${errors.password ? 'border-b-red-500' : 'border-b-[#bbb]'}`}
+							value={formData.password}
+							onChange={handleChange}
+						/>
+						{errors.password && <span className="text-red-500 text-xs text-left mt-1">{errors.password}</span>}
+					</div>
 
-					<input
-						type="password"
-						name="confirmPassword"
-						placeholder="Confirm Password"
-						required
-						className="w-70 text-base px-0 py-[0.6rem] border-b-[#bbb] border-[none] border-b border-solid"
-						value={formData.confirmPassword}
-						onChange={handleChange}
-					/>
+					<div className="flex flex-col">
+						<input
+							type="password"
+							name="confirmPassword"
+							placeholder="Confirm Password"
+							className={`w-70 text-base px-0 py-[0.6rem] border-b border-solid ${errors.confirmPassword ? 'border-b-red-500' : 'border-b-[#bbb]'}`}
+							value={formData.confirmPassword}
+							onChange={handleChange}
+						/>
+						{errors.confirmPassword && <span className="text-red-500 text-xs text-left mt-1">{errors.confirmPassword}</span>}
+					</div>
 
 					<div className="mt-2 mb-2">
 						<p className="text-sm text-[#666] mb-2">I want to join as:</p>

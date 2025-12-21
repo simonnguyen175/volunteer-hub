@@ -29,21 +29,25 @@ export default function Login({ setLoginOpen }: Props) {
 
 				if (result.data && result.data.user) {
 					const userData = result.data.user;
-					auth.login(username, result.data.token, userData);
-					setLoginOpen(false);
 					
-					// Show success toast
-					showToast(`Welcome back, ${userData.username}!`, "success");
-					
-					// Check if admin and redirect to dashboard
+					// Check if admin - block login through normal page
 					const rawRole = userData.role;
 					const roleName = typeof rawRole === "string" 
 						? rawRole 
 						: (rawRole as { name?: string } | undefined)?.name ?? "";
 					
 					if (roleName.toUpperCase() === "ADMIN") {
-						navigate("/admin/events");
+						// Block admin login - show generic error to hide admin existence
+						showToast("Login failed: Invalid credentials", "error");
+						setLoginOpen(false);
+						return;
 					}
+					
+					auth.login(username, result.data.token, userData);
+					setLoginOpen(false);
+					
+					// Show success toast
+					showToast(`Welcome back, ${userData.username}!`, "success");
 				} else {
 					showToast("Login failed: " + (result.message || "Unknown error"), "error");
 				}
