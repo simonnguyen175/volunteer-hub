@@ -1,0 +1,39 @@
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.suo
+.DS_Store
+
+# Common
+node_modules/
+.env
+*.log
+logs/
+
+# Frontend
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+
+# Backend
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/build/
+backend/HELP.md
+backend/.apt_generated
+backend/.classpath
+backend/.factorypath
+backend/.project
+backend/.settings
+backend/.springBeans
+backend/.sts4-cache
+backend/*.iws
+backend/*.iml
+backend/*.ipr
+backend/nbproject/private/
+backend/nbbuild/
+backend/dist/
+backend/nbdist/
+backend/build/
