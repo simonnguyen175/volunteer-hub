@@ -11,6 +11,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import nl.martijndwars.webpush.PushService;
 import nl.martijndwars.webpush.Subscription;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
@@ -40,8 +41,9 @@ public class NotificationService {
 
         List<PushSubscription> subscriptions = subscriptionRepo.findByUserId(user.getId());
 
+        // Send push notifications asynchronously in background threads
         for (PushSubscription sub : subscriptions) {
-            sendWebPush(sub, content, link);
+            java.util.concurrent.CompletableFuture.runAsync(() -> sendWebPush(sub, content, link));
         }
     }
 
@@ -77,7 +79,7 @@ public class NotificationService {
             pushService.send(notification);
 
         } catch (Exception e) {
-            if (e.getMessage().contains("410") || e.getMessage().contains("404")) {
+            if (e.getMessage() != null && (e.getMessage().contains("410") || e.getMessage().contains("404"))) {
                 subscriptionRepo.delete(sub);
             }
             e.printStackTrace();
