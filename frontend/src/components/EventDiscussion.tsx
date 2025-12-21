@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { IconSend, IconPhoto, IconHeart, IconHeartFilled, IconMessage, IconChevronDown, IconChevronUp, IconTrash, IconX } from "@tabler/icons-react";
 import { createClient } from "@supabase/supabase-js";
 import { useToast } from "./ui/Toast";
@@ -43,11 +43,26 @@ interface EventDiscussionProps {
 
 export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 	const [posts, setPosts] = useState<Post[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [page, setPage] = useState(0);
+	const [hasMore, setHasMore] = useState(true);
+	const observer = useRef<IntersectionObserver | null>(null);
+
+	const lastPostElementRef = useCallback((node: HTMLDivElement) => {
+		if (loading) return;
+		if (observer.current) observer.current.disconnect();
+		observer.current = new IntersectionObserver(entries => {
+			if (entries[0].isIntersecting && hasMore) {
+				setPage(prevPage => prevPage + 1);
+			}
+		});
+		if (node) observer.current.observe(node);
+	}, [loading, hasMore]);
+
 	const [newPostContent, setNewPostContent] = useState("");
 	const [imageFile, setImageFile] = useState<File | null>(null);
 	const [imagePreview, setImagePreview] = useState<string>("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [loading, setLoading] = useState(true);
 	const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
 	const [likedComments, setLikedComments] = useState<Set<number>>(new Set());
 	const [expandedComments, setExpandedComments] = useState<Set<number>>(new Set());
@@ -60,34 +75,67 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 	const { confirm, ConfirmDialogComponent } = useConfirmDialog();
 	const auth = useAuth();
 
-	const fetchPosts = useCallback(async () => {
+	const fetchPosts = useCallback(async (pageNum: number) => {
 		try {
-			setLoading(true);
-			const result = await RestClient.getPostsByEventId(parseInt(eventId));
+			// Only show loading state on initial load (page 0), not on pagination
+			if (pageNum === 0) {
+				setLoading(true);
+			}
+			
+			const limit = 2; // Load 2 posts at a time
+			const result = await RestClient.getPostsByEventId(parseInt(eventId), pageNum, limit);
+			
 			if (result.data) {
-				setPosts(result.data);
-				// Check which posts the user has liked
-				if (auth.user?.id) {
-					const likedSet = new Set<number>();
-					for (const post of result.data) {
-						const likeResult = await RestClient.checkLikePost(auth.user.id, post.id);
-						if (likeResult.data === true) {
-							likedSet.add(post.id);
-						}
-					}
-					setLikedPosts(likedSet);
-				}
+				const newPosts = result.data;
+				
+				setPosts(prev => {
+					// If it's page 0, replace. Else append unique posts
+					if (pageNum === 0) return newPosts;
+					
+					const existingIds = new Set(prev.map(p => p.id));
+					const uniqueNewPosts = newPosts.filter((p: Post) => !existingIds.has(p.id));
+					return [...prev, ...uniqueNewPosts];
+				});
+				
+				// Check if there are more posts to load
+				setHasMore(newPosts.length === limit);
+				
+				// Check which posts the user has liked (parallel requests)
+			if (auth.user?.id && newPosts.length > 0) {
+				const likeChecks = newPosts.map(post => 
+					RestClient.checkLikePost(auth.user.id, post.id)
+						.then(result => ({ postId: post.id, isLiked: result.data === true }))
+						.catch(() => ({ postId: post.id, isLiked: false }))
+				);
+				
+				const likeResults = await Promise.all(likeChecks);
+				const newLikedSet = new Set<number>();
+				likeResults.forEach(({ postId, isLiked }) => {
+					if (isLiked) newLikedSet.add(postId);
+				});
+				
+				setLikedPosts(prev => {
+					const next = new Set(prev);
+					newLikedSet.forEach(id => next.add(id));
+					return next;
+				});
+			}
+			} else {
+				if (pageNum === 0) setPosts([]);
+				setHasMore(false);
 			}
 		} catch (error) {
 			console.error("Failed to fetch posts:", error);
 		} finally {
-			setLoading(false);
+			if (pageNum === 0) {
+				setLoading(false);
+			}
 		}
 	}, [eventId, auth.user?.id]);
 
 	useEffect(() => {
-		fetchPosts();
-	}, [fetchPosts]);
+		fetchPosts(page);
+	}, [fetchPosts, page]);
 
 	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
@@ -339,19 +387,24 @@ export default function EventDiscussion({ eventId }: EventDiscussionProps) {
 				try {
 					const result = await RestClient.getCommentsByPostId(postId);
 					if (result.data) {
-						setPostComments(prev => ({ ...prev, [postId]: result.data }));
-						// Check which comments the user has liked
-						if (auth.user?.id) {
-							const likedSet = new Set(likedComments);
-							for (const comment of result.data) {
-								const likeResult = await RestClient.checkLikeComment(auth.user.id, comment.id);
-								if (likeResult.data === true) {
-									likedSet.add(comment.id);
-								}
-							}
-							setLikedComments(likedSet);
-						}
+					setPostComments(prev => ({ ...prev, [postId]: result.data }));
+					// Check which comments the user has liked (in parallel)
+					if (auth.user?.id && result.data.length > 0) {
+						const userId = auth.user.id; // Cache user ID for type safety
+						const commentLikeChecks = result.data.map(comment =>
+							RestClient.checkLikeComment(userId, comment.id)
+								.then(likeResult => ({ commentId: comment.id, isLiked: likeResult.data === true }))
+								.catch(() => ({ commentId: comment.id, isLiked: false }))
+						);
+						
+						const likeResults = await Promise.all(commentLikeChecks);
+						const newLikedComments = new Set(likedComments);
+						likeResults.forEach(({ commentId, isLiked }) => {
+							if (isLiked) newLikedComments.add(commentId);
+						});
+						setLikedComments(newLikedComments);
 					}
+				}	
 				} catch (error) {
 					console.error("Failed to fetch comments:", error);
 				}
@@ -663,7 +716,11 @@ if (loading) {
 					<span className="text-[#556b2f]"> ({posts.length})</span>
 				</h3>
 				
-				{posts.length === 0 ? (
+			{loading && posts.length === 0 ? (
+				<div className="flex justify-center py-16">
+					<div className="w-8 h-8 border-2 border-[#556b2f] border-t-transparent rounded-full animate-spin"></div>
+				</div>
+			) : posts.length === 0 ? (
 					<div className="text-center py-16 animate-fadeIn">
 						<div className="w-20 h-20 bg-gradient-to-br from-[#556b2f]/10 to-[#6d8c3a]/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
 							<IconMessage size={36} className="text-[#556b2f]" />
@@ -677,6 +734,7 @@ if (loading) {
 						{posts.map((post, index) => (
 							<div
 								key={post.id}
+								ref={index === posts.length - 1 ? lastPostElementRef : null}
 								className="overflow-hidden shadow-lg border-0 bg-white/80 backdrop-blur-sm rounded-2xl p-6 hover:shadow-2xl transition-all duration-500 group animate-fadeIn"
 								style={{ animationDelay: `${index * 100}ms` }}
 							>
@@ -829,6 +887,13 @@ if (loading) {
 								</div>
 							</div>
 						))}
+					</div>
+				)}
+
+				{/* Loading indicator for infinite scroll */}
+				{loading && posts.length > 0 && (
+					<div className="flex justify-center py-4">
+						<div className="w-8 h-8 border-2 border-[#556b2f] border-t-transparent rounded-full animate-spin"></div>
 					</div>
 				)}
 			</div>

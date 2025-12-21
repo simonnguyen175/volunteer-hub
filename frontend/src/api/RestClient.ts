@@ -538,8 +538,8 @@ export class RestClient {
 
 	// ========== POST APIs ==========
 
-	static async getPostsByEventId(eventId: number): Promise<any> {
-		const url = `${RestClient.baseUrl}/post/by-event?event_id=${eventId}`;
+	static async getPostsByEventId(eventId: number, page: number = 0, limit: number = 10): Promise<any> {
+		const url = `${RestClient.baseUrl}/post/by-event?event_id=${eventId}&page=${page}&limit=${limit}`;
 
 		const result = await fetch(url, {
 			method: "GET",
