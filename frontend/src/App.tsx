@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ToastProvider } from "./components/ui/Toast";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./components/admin/AdminDashboard";
+import AdminNewsFeed from "./components/admin/AdminNewsFeed";
 import AdminEvents from "./components/admin/AdminEvents";
 import AdminUsers from "./components/admin/AdminUsers";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -51,6 +52,7 @@ function AppContent() {
 						<Route path="events" element={<AdminEvents />} />
 						<Route path="users" element={<AdminUsers />} />
 						<Route path="dashboard" element={<AdminDashboard />} />
+						<Route path="newsfeed" element={<AdminNewsFeed />} />
 					</Route>
 				</Routes>
 			</BrowserRouter>

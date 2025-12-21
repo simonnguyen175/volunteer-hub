@@ -37,7 +37,11 @@ interface Event {
 	managerName?: string;
 }
 
-export default function Dashboard() {
+interface DashboardProps {
+	isEmbedded?: boolean;
+}
+
+export default function Dashboard({ isEmbedded = false }: DashboardProps) {
 	const [topEvents, setTopEvents] = useState<(Event & { fullImageUrl: string })[]>([]);
 	const [hottestEvents, setHottestEvents] = useState<(Event & { fullImageUrl: string })[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -157,21 +161,23 @@ export default function Dashboard() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-			{/* Hero Section */}
-			<div className="relative pt-24 pb-12 bg-gradient-to-br from-[#556b2f]/5 via-white to-[#747e59]/5">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="text-center">
-						<h1 className="font-(family-name:--font-crimson) font-medium text-[4rem] sm:text-[5rem] text-gray-900 mb-4 leading-tight">
-							Dashboard
-							<span className="text-[#556b2f]">.</span>
-						</h1>
-						<p className="font-(family-name:--font-dmsans) text-lg text-gray-600 max-w-2xl mx-auto">
-							Discover the most popular volunteer events and hottest discussions in our community
-						</p>
+		<div className={isEmbedded ? "" : "min-h-screen bg-gradient-to-b from-white to-gray-50"}>
+			{/* Hero Section - only show when not embedded */}
+			{!isEmbedded && (
+				<div className="relative pt-24 pb-12 bg-gradient-to-br from-[#556b2f]/5 via-white to-[#747e59]/5">
+					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+						<div className="text-center">
+							<h1 className="font-(family-name:--font-crimson) font-medium text-[4rem] sm:text-[5rem] text-gray-900 mb-4 leading-tight">
+								Dashboard
+								<span className="text-[#556b2f]">.</span>
+							</h1>
+							<p className="font-(family-name:--font-dmsans) text-lg text-gray-600 max-w-2xl mx-auto">
+								Discover the most popular volunteer events and hottest discussions in our community
+							</p>
+						</div>
 					</div>
 				</div>
-			</div>
+			)}
 
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
 				{/* Top Events Section */}

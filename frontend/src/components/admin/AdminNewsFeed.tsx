@@ -1,19 +1,19 @@
-import Dashboard from "../Dashboard";
+import NewsFeed from "../NewsFeed";
 
-export default function AdminDashboard() {
+export default function AdminNewsFeed() {
 	return (
 		<div className="space-y-6">
 			{/* Admin Header */}
 			<div className="mb-4">
 				<h1 className="text-3xl font-bold text-gray-800 font-(family-name:--font-crimson)">
-					Dashboard
+					News Feed
 				</h1>
-				<p className="text-gray-500 mt-1">Overview of platform statistics and activity.</p>
+				<p className="text-gray-500 mt-1">View and manage community posts and updates.</p>
 			</div>
 			
-			{/* Embed the Dashboard component */}
+			{/* Embed the NewsFeed component */}
 			<div className="-mx-6 -mb-6">
-				<Dashboard isEmbedded={true} />
+				<NewsFeed isEmbedded={true} />
 			</div>
 		</div>
 	);

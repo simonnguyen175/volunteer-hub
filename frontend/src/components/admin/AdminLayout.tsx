@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { IconLayoutDashboard, IconCalendarEvent, IconUsers, IconLogout, IconMenu2, IconBell } from "@tabler/icons-react";
+import { IconLayoutDashboard, IconCalendarEvent, IconUsers, IconLogout, IconMenu2, IconBell, IconNewSection } from "@tabler/icons-react";
 import logo from "../../assets/VolunteerHub.png";
 import { useAuth } from "../../contexts/AuthContext";
 import { RestClient } from "../../api/RestClient";
@@ -114,7 +114,8 @@ export default function AdminLayout() {
 	const navItems = [
 		{ name: "Event Approvals", path: "/admin/events", icon: <IconCalendarEvent size={20} /> },
 		{ name: "User Management", path: "/admin/users", icon: <IconUsers size={20} /> },
-		{ name: "News Feed", path: "/admin/dashboard", icon: <IconLayoutDashboard size={20} /> },
+		{ name: "Dashboard", path: "/admin/dashboard", icon: <IconLayoutDashboard size={20} /> },
+		{ name: "News Feed", path: "/admin/newsfeed", icon: <IconNewSection size={20} /> },
 	];
 
 	return (
