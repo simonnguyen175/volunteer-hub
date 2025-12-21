@@ -91,6 +91,25 @@ export default function AdminLayout() {
 		}
 	};
 
+	// Handler for enabling push notifications (user-initiated)
+	const handleEnablePushNotifications = async () => {
+		if (!auth.user?.id || !auth.token) return;
+		
+		try {
+			const success = await setupPushNotifications(auth.user.id, auth.token);
+			if (success) {
+				setPushPermission('granted');
+				showToast('Push notifications enabled!', 'success');
+			} else {
+				setPushPermission(getNotificationPermission());
+				showToast('Could not enable notifications. Please check browser settings.', 'warning');
+			}
+		} catch (error) {
+			console.error('Failed to enable push notifications:', error);
+			showToast('Failed to enable notifications', 'error');
+		}
+	};
+
 	// Close notification menu when clicking outside
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -221,6 +240,20 @@ export default function AdminLayout() {
 										)}
 									</div>
 									<div className="divide-y divide-gray-100">
+										{/* Show enable button if permission not granted */}
+										{pushPermission !== 'granted' && (
+											<div className="px-4 py-3 bg-amber-50 border-b border-amber-100">
+												<p className="text-xs text-amber-700 mb-2 font-(family-name:--font-dmsans)">
+													Enable push notifications to receive real-time alerts
+												</p>
+												<button
+													onClick={handleEnablePushNotifications}
+													className="w-full py-2 px-3 bg-[#556b2f] text-white text-sm font-medium rounded-lg hover:bg-[#6d8c3a] transition-colors cursor-pointer"
+												>
+													Enable Push Notifications
+												</button>
+											</div>
+										)}
 										{notifications.filter(notif => !notif.read).length === 0 ? (
 											<div className="px-4 py-8 text-center text-gray-500 text-sm font-(family-name:--font-dmsans)">
 												No new notifications...

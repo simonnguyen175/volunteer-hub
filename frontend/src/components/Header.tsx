@@ -16,6 +16,7 @@ import logo from "../assets/VolunteerHub.png";
 import Login from "./Login";
 import Register from "./Register";
 import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "./ui/Toast";
 
 export default function Header() {
 	const [isLoginOpen, setLoginOpen] = useState(false);
@@ -31,6 +32,7 @@ export default function Header() {
 	const userMenuRef = useRef<HTMLDivElement>(null);
 	const notificationRef = useRef<HTMLDivElement>(null);
 	const navigate = useNavigate();
+	const { showToast } = useToast();
 
 	const rawRole = auth.user?.role;
 	const roleName = typeof rawRole === "string" ? rawRole : (rawRole as { name?: string; role?: string } | undefined)?.name ?? "";
@@ -137,12 +139,15 @@ export default function Header() {
 
 		const cleanup = onPushMessage((data) => {
 			console.log('🔔 Push notification received in Header:', data);
+			// Show toast notification
+			const strippedBody = data.body?.replace(/<[^>]*>/g, '') || 'New notification';
+			showToast(strippedBody, "info");
 			// Immediately refresh notifications when a push is received
 			fetchNotifications();
 		});
 
 		return cleanup;
-	}, [auth.isAuthenticated, fetchNotifications]);
+	}, [auth.isAuthenticated, fetchNotifications, showToast]);
 
 	const handleMarkAsRead = async (notificationId: number) => {
 		try {
